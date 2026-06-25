@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.23**
+**当前版本：1.0.24**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.23.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.24.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -142,6 +142,31 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.24（2026-06-26）
+
+**类型：** 关于页信息布局优化
+
+**变更说明：**
+- 移除关于页「会话超时」显示
+- 环境信息改为标签左、内容右的紧凑布局，短项多列并排；较长项独占整行
+
+---
+
+### v1.0.23（2026-06-26）
+
+**类型：** 修复数据库结构更新重复字段报错
+
+**涉及文件：**
+- `core/DatabaseMigrator.php`、`install/migrations/1.0.20.sql`
+- `core/Updater.php`、`assets/js/vs-update.js`、`admin/upgrade.php`
+
+**变更说明：**
+- 修复 `avatar_url` 字段已存在时更新报 Duplicate column 失败
+- 结构更新前检测字段是否已存在；无害重复错误自动忽略
+- 用户可见文案统一为「数据库结构更新」
+
+---
 
 ### v1.0.22（2026-06-26）
 

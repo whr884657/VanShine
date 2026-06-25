@@ -796,28 +796,45 @@ select.vs-input {
 
 .vs-info-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px 12px;
 }
 
 .vs-info-item {
-    padding: 14px 16px;
+    padding: 12px 14px;
     background: var(--vs-content-bg);
     border-radius: 8px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+}
+
+.vs-info-item--wide {
+    grid-column: 1 / -1;
+    align-items: flex-start;
 }
 
 .vs-info-item__label {
     font-size: 13px;
     color: var(--vs-text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .vs-info-item__value {
     font-size: 14px;
     font-weight: 500;
     word-break: break-all;
+    text-align: right;
+    flex: 1;
+    min-width: 0;
+}
+
+.vs-info-item--wide .vs-info-item__value {
+    text-align: left;
 }
 
 .vs-version-display {
@@ -864,6 +881,10 @@ select.vs-input {
 @media (max-width: 768px) {
     .vs-info-grid {
         grid-template-columns: 1fr;
+    }
+
+    .vs-info-item--wide {
+        grid-column: auto;
     }
 }
 

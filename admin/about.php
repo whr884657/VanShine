@@ -2,7 +2,7 @@
 /**
  * 文件：admin/about.php
  * 作用：VanShine 后台关于页面（系统与环境信息）
- * @version 1.0.18
+ * @version 1.0.24
  */
 
 require_once __DIR__ . '/init.php';
@@ -21,7 +21,10 @@ vs_admin_layout_start('关于', 'about');
 
     <div class="vs-info-grid">
         <?php foreach ($systemInfo as $item): ?>
-            <div class="vs-info-item">
+            <?php
+            $wideClass = !empty($item['wide']) ? ' vs-info-item--wide' : '';
+            ?>
+            <div class="vs-info-item<?php echo $wideClass; ?>">
                 <span class="vs-info-item__label"><?php echo vs_e($item['label']); ?></span>
                 <span class="vs-info-item__value">
                     <?php if ($item['label'] === '系统版本'): ?>

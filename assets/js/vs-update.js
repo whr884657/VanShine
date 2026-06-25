@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/vs-update.js
  * 作用：系统升级共用逻辑（检测、二次确认、执行更新）
- * @version 1.0.25
+ * @version 1.0.26
  */
 
 (function () {

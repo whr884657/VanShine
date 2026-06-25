@@ -2,7 +2,7 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.22
+ * @version 1.0.26
  */
 
 class Updater
@@ -153,99 +153,96 @@ class Updater
         $zipPath = $updateDir . '/vanshine-update.zip';
         $extractDir = $updateDir . '/extract';
 
-        self::cleanupPaths(array($zipPath, $extractDir));
-
-        $downloadOk = false;
-        $triedUrls = array();
-        foreach (self::buildUpdatePackageUrls($repo, $branch, $remoteVersion, $manifest) as $item) {
-            self::cleanupPaths(array($zipPath));
-            $triedUrls[] = $item['label'];
-            if (!self::downloadFile($item['url'], $zipPath)) {
-                continue;
-            }
-            if (!self::isValidZipFile($zipPath)) {
-                self::$lastError = '下载内容不是有效的 ZIP 更新包（' . $item['label'] . '）';
-                @unlink($zipPath);
-                continue;
-            }
-            $downloadOk = true;
-            break;
-        }
-
-        if (!$downloadOk) {
-            self::cleanupPaths(array($zipPath, $extractDir));
-            $detail = self::$lastError !== '' ? self::$lastError : '未知错误';
-            $sources = implode('、', $triedUrls);
-            return array(
-                'ok'  => false,
-                'msg' => '更新包下载失败（已尝试：' . $sources . '）。' . $detail . '。请检查服务器能否访问 Gitee，或稍后重试。',
-            );
-        }
-
-        $zip = new ZipArchive();
-        $zipOpen = $zip->open($zipPath);
-        if ($zipOpen !== true) {
-            self::cleanupPaths(array($zipPath, $extractDir));
-            $size = is_file($zipPath) ? (int) filesize($zipPath) : 0;
-            return array(
-                'ok'  => false,
-                'msg' => '更新包解压失败：无法打开 ZIP 文件（文件大小 ' . $size . ' 字节）。请确认 Gitee 发行附件已上传，或联系管理员。',
-            );
-        }
-
-        if (!is_dir($extractDir)) {
-            @mkdir($extractDir, 0755, true);
-        }
-
-        if (!$zip->extractTo($extractDir)) {
-            $zip->close();
-            self::cleanupPaths(array($zipPath, $extractDir));
-            return array('ok' => false, 'msg' => '更新包解压失败');
-        }
-        $zip->close();
-
-        $sourceRoot = self::detectExtractRoot($extractDir);
-        if ($sourceRoot === null) {
-            self::cleanupPaths(array($zipPath, $extractDir));
-            return array('ok' => false, 'msg' => '更新包结构异常，未找到有效目录');
-        }
-
-        $dbConfigHash = self::databaseConfigFingerprint();
-
         try {
-            self::copyTree($sourceRoot, VS_ROOT, self::protectedRelativePaths());
-            self::assertDatabaseConfigUnchanged($dbConfigHash);
-        } catch (Exception $e) {
-            self::cleanupPaths(array($zipPath, $extractDir));
-            return array('ok' => false, 'msg' => '文件覆盖失败：' . $e->getMessage());
-        }
+            self::cleanupUpdateWorkspace($updateDir);
 
-        self::cleanupPaths(array($zipPath, $extractDir));
+            $downloadOk = false;
+            $triedUrls = array();
+            foreach (self::buildUpdatePackageUrls($repo, $branch, $remoteVersion, $manifest) as $item) {
+                @unlink($zipPath);
+                $triedUrls[] = $item['label'];
+                if (!self::downloadFile($item['url'], $zipPath)) {
+                    continue;
+                }
+                if (!self::isValidZipFile($zipPath)) {
+                    self::$lastError = '下载内容不是有效的 ZIP 更新包（' . $item['label'] . '）';
+                    @unlink($zipPath);
+                    continue;
+                }
+                $downloadOk = true;
+                break;
+            }
 
-        $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过');
-        if (DatabaseMigrator::hasPendingMigrations()) {
-            $migration = DatabaseMigrator::runPending();
-            if (empty($migration['ok'])) {
+            if (!$downloadOk) {
+                $detail = self::$lastError !== '' ? self::$lastError : '未知错误';
+                $sources = implode('、', $triedUrls);
                 return array(
-                    'ok'      => false,
-                    'msg'     => '文件已更新，但' . $migration['msg'],
-                    'version' => $check['remote_version'],
+                    'ok'  => false,
+                    'msg' => '更新包下载失败（已尝试：' . $sources . '）。' . $detail . '。请检查服务器能否访问 Gitee，或稍后重试。',
                 );
             }
-        }
 
-        $msg = '更新完成，当前版本 v' . $check['remote_version'];
-        if (!empty($migration['applied'])) {
-            $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
-        } else {
-            $msg .= '（本次无数据库结构变更）';
-        }
+            $zip = new ZipArchive();
+            $zipOpen = $zip->open($zipPath);
+            if ($zipOpen !== true) {
+                $size = is_file($zipPath) ? (int) filesize($zipPath) : 0;
+                return array(
+                    'ok'  => false,
+                    'msg' => '更新包解压失败：无法打开 ZIP 文件（文件大小 ' . $size . ' 字节）。请确认 Gitee 发行附件已上传，或联系管理员。',
+                );
+            }
 
-        return array(
-            'ok'      => true,
-            'msg'     => $msg,
-            'version' => $check['remote_version'],
-        );
+            if (!is_dir($extractDir)) {
+                @mkdir($extractDir, 0755, true);
+            }
+
+            if (!$zip->extractTo($extractDir)) {
+                $zip->close();
+                return array('ok' => false, 'msg' => '更新包解压失败');
+            }
+            $zip->close();
+
+            $sourceRoot = self::detectExtractRoot($extractDir);
+            if ($sourceRoot === null) {
+                return array('ok' => false, 'msg' => '更新包结构异常，未找到有效目录');
+            }
+
+            $dbConfigHash = self::databaseConfigFingerprint();
+
+            try {
+                self::copyTree($sourceRoot, VS_ROOT, self::protectedRelativePaths());
+                self::assertDatabaseConfigUnchanged($dbConfigHash);
+            } catch (Exception $e) {
+                return array('ok' => false, 'msg' => '文件覆盖失败：' . $e->getMessage());
+            }
+
+            $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过');
+            if (DatabaseMigrator::hasPendingMigrations()) {
+                $migration = DatabaseMigrator::runPending();
+                if (empty($migration['ok'])) {
+                    return array(
+                        'ok'      => false,
+                        'msg'     => '文件已更新，但' . $migration['msg'],
+                        'version' => $check['remote_version'],
+                    );
+                }
+            }
+
+            $msg = '更新完成，当前版本 v' . $check['remote_version'];
+            if (!empty($migration['applied'])) {
+                $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
+            } else {
+                $msg .= '（本次无数据库结构变更）';
+            }
+
+            return array(
+                'ok'      => true,
+                'msg'     => $msg,
+                'version' => $check['remote_version'],
+            );
+        } finally {
+            self::cleanupUpdateWorkspace($updateDir);
+        }
     }
 
     /**
@@ -577,7 +574,7 @@ class Updater
         return array(
             'config/database.php',
             'config/install.lock',
-            'storage/update',
+            'storage',
         );
     }
 
@@ -729,6 +726,42 @@ class Updater
             }
         }
         return false;
+    }
+
+    /**
+     * 清空更新临时目录（zip、解压目录及残留文件）
+     *
+     * @param string|null $updateDir
+     * @return void
+     */
+    public static function cleanupUpdateWorkspace($updateDir = null)
+    {
+        if ($updateDir === null) {
+            $updateDir = VS_ROOT . '/storage/update';
+        }
+        if (!is_dir($updateDir)) {
+            return;
+        }
+
+        $items = scandir($updateDir);
+        if ($items === false) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            if ($item === '.htaccess') {
+                continue;
+            }
+            $path = $updateDir . DIRECTORY_SEPARATOR . $item;
+            if (is_dir($path)) {
+                self::removeDir($path);
+            } elseif (is_file($path)) {
+                @unlink($path);
+            }
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/update-check.js
  * 作用：登录后自动检测更新（弹窗 + 侧边栏角标）
- * @version 1.0.25
+ * @version 1.0.26
  */
 
 (function () {

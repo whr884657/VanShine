@@ -1,12 +1,12 @@
 {
-    "version": "1.0.25",
+    "version": "1.0.26",
     "release_date": "2026-06-26",
-    "title": "系统更新侧边栏角标",
+    "title": "在线更新临时文件清理",
     "db_changes": false,
     "changes": [
-        "关闭更新弹窗后，侧边栏「系统」大类显示红色角标",
-        "展开「系统」大类后，角标移至「系统升级」菜单项旁",
-        "更新完成后角标自动消失"
+        "升级完成后自动清空 storage/update 下的 ZIP 与解压目录",
+        "升级失败时同样清理临时文件，避免残留 vanshine-update.zip",
+        "发行包排除 storage 运行时目录，在线更新不覆盖服务器 storage"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

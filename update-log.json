@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.26",
+            "date": "2026-06-26",
+            "title": "在线更新临时文件清理",
+            "db_changes": false,
+            "changes": [
+                "升级完成后自动清空 storage/update 临时文件",
+                "失败时同样清理，避免残留 vanshine-update.zip",
+                "发行包排除 storage 目录，更新时不覆盖服务器 storage"
+            ]
+        },
+        {
             "version": "1.0.25",
             "date": "2026-06-26",
             "title": "系统更新侧边栏角标",

@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.25**
+**当前版本：1.0.26**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.25.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.26.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -131,7 +131,8 @@ VanShine/
   `https://gitee.com/xunjinlu/VanShine/releases/download/v{版本}/VanShine{版本}.zip`
 - 出站 HTTPS 仅连接 Gitee 白名单域名，**不依赖**本地 CA 证书包
 - 下载后校验 **ZIP 文件头**（`PK` 魔数），再解压覆盖
-- 覆盖项目文件，**绝不替换** `config/database.php`
+- 更新完成后自动清理 `storage/update/` 临时文件（ZIP 与解压目录）
+- 覆盖项目文件，**绝不替换** `config/database.php`，**不覆盖** 运行时 `storage/` 目录
 - **仅当**存在未执行的结构更新 SQL 时，才对数据库执行 ADD/ALTER 等命令（字段已存在则自动跳过）
 - 更新前弹窗**二次确认**是否已备份数据
 
@@ -142,6 +143,16 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.26（2026-06-26）
+
+**类型：** 在线更新临时文件清理与发行包优化
+
+**变更说明：**
+- 升级完成后自动清空 `storage/update/` 下的 ZIP 与解压目录
+- 发行包排除 `storage/` 运行时目录；在线更新时不覆盖服务器 `storage/`
+
+---
 
 ### v1.0.25（2026-06-26）
 

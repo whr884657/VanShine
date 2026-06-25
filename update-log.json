@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.28",
+            "date": "2026-06-26",
+            "title": "更新记录改为云端读取",
+            "db_changes": false,
+            "changes": [
+                "升级页更新记录优先从 Gitee 云端读取",
+                "版本检测同步使用云端 update-log.json",
+                "云端失败时回退本地并提示"
+            ]
+        },
+        {
             "version": "1.0.27",
             "date": "2026-06-26",
             "title": "关于页信息布局统一",

@@ -2,13 +2,14 @@
 /**
  * 文件：admin/upgrade.php
  * 作用：VanShine 系统升级（手动检测、更新、更新记录）
- * @version 1.0.17
+ * @version 1.0.28
  */
 
 require_once __DIR__ . '/init.php';
 
 $localVersion = VS_VERSION;
 $updateHistory = UpdateLog::payloadForApi();
+$updateLogSource = UpdateLog::getSource();
 
 vs_admin_layout_start('系统升级', 'upgrade');
 ?>
@@ -37,7 +38,7 @@ vs_admin_layout_start('系统升级', 'upgrade');
 <div class="vs-panel vs-panel--spaced vs-upgrade-log-panel">
     <div class="vs-panel__header">
         <h2 class="vs-panel__title">更新记录</h2>
-        <p class="vs-panel__desc">各版本更新说明（来源：update-log.json，与 Gitee 仓库同步）</p>
+        <p class="vs-panel__desc">各版本更新说明（优先从 Gitee 云端读取 update-log.json<?php if ($updateLogSource === 'local'): ?>，当前为本地回退<?php endif; ?>）</p>
     </div>
 
     <?php if (count($updateHistory) === 0): ?>

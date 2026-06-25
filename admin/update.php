@@ -2,7 +2,7 @@
 /**
  * 文件：admin/update.php
  * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
- * @version 1.0.21
+ * @version 1.0.28
  */
 
 require_once __DIR__ . '/init.php';
@@ -31,6 +31,7 @@ if ($action === 'history') {
     AjaxResponse::success('ok', array(
         'versions' => UpdateLog::payloadForApi(),
         'local_version' => VS_VERSION,
+        'source' => UpdateLog::getSource(),
     ));
 }
 

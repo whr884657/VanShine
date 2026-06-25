@@ -1,0 +1,138 @@
+/**
+ * 文件：assets/css/admin-login.css
+ * 作用：VanShine 管理员登录 / 忘记密码 / 后台样式
+ * @version 1.0.4
+ */
+
+.vs-login-page {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 100vh;
+    height: auto;
+    padding: 24px 20px 40px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 100%);
+}
+
+@media (min-height: 600px) {
+    .vs-login-page {
+        align-items: center;
+        padding: 20px;
+    }
+}
+
+.vs-login-container {
+    width: 100%;
+    max-width: 420px;
+}
+
+.vs-login-card {
+    background: var(--vs-white);
+    border-radius: var(--vs-radius);
+    box-shadow: var(--vs-shadow);
+    padding: 40px 32px;
+}
+
+.vs-login-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.vs-login-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-top: 16px;
+}
+
+.vs-login-subtitle {
+    color: var(--vs-text-secondary);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.vs-login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+/* 后台控制台 */
+.vs-admin-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.vs-admin-header {
+    background: var(--vs-white);
+    border-bottom: 1px solid var(--vs-border);
+}
+
+.vs-admin-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+}
+
+.vs-admin-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-admin-main {
+    flex: 1;
+    padding: 32px 0;
+}
+
+.vs-admin-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.vs-stat-item {
+    padding: 16px;
+    background: var(--vs-bg);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vs-stat-label {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vs-text);
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .vs-login-card {
+        padding: 28px 20px;
+    }
+
+    .vs-admin-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-admin-header-inner {
+        height: 52px;
+    }
+
+    .vs-admin-user span {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

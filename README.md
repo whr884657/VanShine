@@ -1,0 +1,395 @@
+# VanShine
+
+**当前版本：1.0.13**
+
+---
+
+## 项目简介
+
+VanShine 是一个基于 **PHP + MySQL** 的轻量级 Web 管理系统，**不依赖任何第三方 PHP 框架**，全部采用自定义架构开发。提供 Web 一键安装、可收缩侧边栏后台、系统设置、账号设置、邮箱找回密码等功能。UI 为白色主题，图标风格参考 TDesign，全面适配电脑端与手机端。
+
+---
+
+## 功能列表
+
+| 功能 | 路径 | 说明 |
+|------|------|------|
+| 前台首页 | `/` | 读取系统名称/描述配置 |
+| Web 安装向导 | `/install` | 五步安装，执行 database.sql |
+| 管理员登录 | `/admin/login.php` | 登录入口 |
+| 管理员注册 | `/admin/register.php` | 注册界面（账号在安装时创建） |
+| 管理控制台 | `/admin/index.php` | 后台首页 |
+| 账号设置 | `/admin/account.php` | 修改邮箱、密码 |
+| 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱配置 |
+| 关于 | `/admin/about.php` | 系统与环境信息 |
+| 忘记密码 | `/admin/forgot.php` | 邮箱验证码重置（需配置邮箱） |
+| 重置密码 | `/admin/reset.php` | 已合并至忘记密码页（自动跳转） |
+
+---
+
+## 后台框架特性
+
+- **自定义 PHP 架构**：无 Laravel / ThinkPHP 等框架
+- **白色主题**：顶部栏 + 可收缩侧边栏
+- **电脑端**：侧边栏默认展开，点击左上角三横线可收缩/展开
+- **手机端**：侧边栏默认隐藏，顶部栏仅显示三横线，点击滑出菜单
+- **会话超时**：长时间无操作自动退出（默认 30 分钟，可配置）
+- **系统可配置**：名称、描述、关键词、Favicon、站点 Logo 可在后台修改
+
+---
+
+## 环境要求
+
+- **PHP** 7.4 / 8.0 / 8.2
+- **MySQL** 5.7+ 或 MariaDB 10.3+
+- **PHP 扩展**：pdo、pdo_mysql、mbstring、json、session
+- **目录权限**：`config/` 可写；上传 Favicon 需 `assets/img/site/` 可写
+
+---
+
+## 目录结构
+
+```
+VanShine/
+├── README.md
+├── index.php
+├── admin/
+│   ├── init.php              # 后台统一引导
+│   ├── includes/layout.php   # 后台自定义布局
+│   ├── login.php             # 登录
+│   ├── index.php             # 控制台
+│   ├── account.php           # 账号设置
+│   ├── settings.php          # 系统设置
+│   ├── forgot.php
+│   └── reset.php
+├── install/
+│   ├── index.php
+│   └── database.sql          # 数据库结构（独立维护）
+├── config/
+├── core/
+│   ├── bootstrap.php
+│   ├── version.php
+│   ├── Config.php
+│   ├── Auth.php
+│   ├── Database.php
+│   ├── DatabaseInstaller.php
+│   ├── Mailer.php
+│   └── helpers.php
+└── assets/
+    ├── css/（common, admin, icons, ...）
+    ├── js/
+    └── img/site/             # 站点 Favicon 上传目录
+```
+
+---
+
+## 安装说明
+
+1. 上传代码到 Web 服务器
+2. 确保 `config/` 可写
+3. 创建 MySQL 空数据库
+4. 访问 `https://域名/install` 完成五步安装
+
+---
+
+## 密码加密
+
+```
+md5(md5('123456')) = 14e1b600b1fd579f47433b88e8d85291
+```
+
+---
+
+## 版本记录
+
+### v1.0.13（2026-06-26）
+
+**类型：** 浏览器标题去重 + 绑定域名卡片列表
+
+**涉及文件：**
+- `core/helpers.php`（`vs_page_title()` 统一构建标题）
+- `admin/includes/auth_layout.php`、`admin/includes/layout.php`
+- `admin/login.php`
+- `admin/settings.php`、`assets/js/settings.js`、`assets/css/admin.css`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 修复浏览器标题重复（如「站点名 - 站点名」），登录页改为「登录 - 站点名」
+- 全站 `<title>` 经 `vs_page_title()` 生成，页面名与站点名相同时不再拼接
+- 系统设置「绑定子域名」由表格改为卡片列表，手机端无需横向滑动
+
+---
+
+### v1.0.12（2026-06-26）
+
+**类型：** 退出登录修复 + 后台导航优化
+
+**涉及文件：**
+- `admin/login.php`（退出逻辑先于登录态跳转）
+- `core/Auth.php`（完整销毁会话）
+- `admin/includes/layout.php`（侧边栏退出入口）
+- `assets/css/admin.css`、`assets/css/icons.css`
+- `install/index.php`（数据库默认地址改为 localhost）
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 修复点击「退出」无法登出（已登录时被 `redirectIfLoggedIn` 拦截）
+- 侧边栏底部增加「退出登录」；手机端顶部栏保留退出按钮
+- 电脑端侧边栏展开时隐藏顶部栏站点名称，避免与侧栏标题重复；侧栏收缩时顶部栏显示站点名
+- 安装向导数据库地址默认值改为 `localhost`
+
+---
+
+### v1.0.11（2026-06-26）
+
+**类型：** 统一弹窗组件 + 系统设置折叠板块
+
+**涉及文件：**
+- `core/helpers.php`（`vs_render_modal_shell()`）
+- `assets/css/modal.css`、`assets/js/modal.js`（新增）
+- `admin/includes/layout.php`（后台引入弹窗；`vs_admin_accordion_start/end`）
+- `install/index.php`、`assets/js/install.js`（清空库确认、密码校验弹窗）
+- `admin/settings.php`、`assets/js/settings.js`（域名删除确认；板块默认折叠）
+- `assets/css/admin.css`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 全站统一自定义弹窗（`VsModal.alert` / `VsModal.confirm`），替代浏览器原生 `alert` / `confirm`
+- 安装向导第三步「清空数据库并重新创建」使用主题一致确认弹窗
+- 系统设置三个板块（站点信息、绑定子域名、邮箱发信）默认折叠，点击标题展开；编辑域名时自动展开子域名板块
+
+---
+
+### v1.0.10（2026-06-26）
+
+**类型：** 安装/设置交互优化 + 侧边栏分组菜单
+
+**涉及文件：**
+- `install/index.php`、`assets/js/install.js`（数据库测试 AJAX，无整页刷新）
+- `admin/settings.php`、`assets/js/settings.js`（保存/测试 AJAX）
+- `admin/includes/layout.php`（分组侧边栏）
+- `admin/files.php`、`admin/cdn/*`、`admin/archive/*`（占位页）
+- `core/AjaxResponse.php`（新增）
+- `assets/css/admin.css`、`assets/css/icons.css`、`assets/js/admin.js`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 安装向导「测试数据库连接」改为 AJAX，页面不刷新、不跳回顶部
+- 系统设置各保存/测试操作改为 AJAX 静态提示
+- 统一系统设置表单间距；测试邮箱输入框与按钮增加间距
+- 侧边栏分组：控制台、文件管理、CDN（EdgeOne/ESA）、归档（文章/记事本/资料库/密钥管理）、系统（账号/设置/关于）
+
+---
+
+### v1.0.9（2026-06-26）
+
+**类型：** 站点 Logo 可配置
+
+**涉及文件：**
+- `install/database.sql`（新增 `site_logo` 配置项）
+- `core/SiteContext.php`、`core/helpers.php`
+- `admin/settings.php`、`admin/includes/layout.php`、`index.php`
+- `assets/css/common.css`、`assets/css/admin.css`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 新增「站点 Logo」配置，支持填写 URL 或站点路径（与 Favicon 相同方式）
+- 前台页眉、后台侧栏不再使用系统名称首字作为黑色方块图标，改为展示自定义 Logo
+- 未配置 Logo 时不显示图标，仅保留站点名称文字
+
+**升级提示：** 已安装站点可在后台「系统设置」填写 Logo，或向 `vs_config` 插入 `site_logo` 配置项。
+
+---
+
+### v1.0.8（2026-06-26）
+
+**类型：** 认证页安全防护
+
+**涉及文件：**
+- `core/AuthSecurity.php`（新增）
+- `core/bootstrap.php`、`core/Auth.php`
+- `admin/login.php`、`admin/register.php`、`admin/forgot.php`
+- `admin/includes/auth_layout.php`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- CSRF 令牌：所有认证 POST 必须携带令牌，并校验同源来源
+- 发验证码频率限制：单 IP / 单邮箱每小时上限，同一邮箱 60 秒间隔（持久化到 `config/.security/`）
+- 登录防暴力：单 IP / 单账号 15 分钟内失败次数限制
+- Session 加固：HttpOnly、SameSite=Strict、HTTPS 下 Secure、登录后轮换 Session ID
+- 认证页响应头：禁止缓存、nosniff、SAMEORIGIN
+
+**部署提示：** 生产环境务必启用 HTTPS，否则明文传输下抓包仍可看到账号密码；HTTPS + 上述防护可有效抵御接口滥用与跨站攻击。
+
+---
+
+### v1.0.7（2026-06-26）
+
+**类型：** 忘记密码改为邮箱验证码
+
+**涉及文件：**
+- `admin/forgot.php`、`admin/reset.php`
+- `core/Auth.php`、`core/version.php`
+- `README.md`
+
+**变更说明：**
+- 忘记密码改为：邮箱发送 6 位验证码，用户在页面填写验证码与新密码完成重置
+- 验证码 5 分钟有效，60 秒内不可重复发送
+- `reset.php` 重定向至 `forgot.php`（旧邮件链接入口已弃用）
+
+---
+
+### v1.0.6（2026-06-26）
+
+**类型：** 认证页 UI 重构 + 后台主题统一
+
+**涉及文件：**
+- `admin/login.php`、`admin/register.php`（新增）、`admin/forgot.php`、`admin/reset.php`
+- `admin/includes/auth_layout.php`（新增）
+- `assets/css/auth-login.css`、`assets/css/theme-picker.css`（新增）
+- `assets/js/auth-characters.js`、`assets/js/theme-picker.js`（新增）
+- `assets/css/common.css`、`assets/css/admin.css`、`assets/css/index.css`
+- `core/version.php`、`README.md`
+
+**变更说明：**
+- 登录、注册、忘记密码页按「登录界面参考」一比一还原（角色动画、调色盘、表单动效）
+- 新增注册页 UI（管理员账号仍在安装时创建，页面提示不支持开放注册）
+- 忘记密码保留邮件链接重置逻辑，界面与参考一致
+- 后台主题调整为黑白极简风格，与认证页统一
+
+---
+
+### v1.0.5（2026-06-26）
+
+**类型：** Bug 修复（配置读取与备案展示）
+
+**涉及文件：**
+- core/Config.php、core/Domain.php、core/SiteContext.php
+- core/version.php
+- admin/settings.php
+- README.md
+
+**变更说明：**
+- 修复 `vs_config` 表 `key` 列在 PDO 读取时映射失败，导致系统设置保存后无法回显、前台备案号不显示的问题
+- 站点设置保存后采用 PRG 重定向，刷新页面可看到成功提示与最新配置
+- 域名匹配增加 `www` 前缀容错
+
+---
+
+### v1.0.4（2026-06-26）
+
+**类型：** 配置架构 + 多域名绑定 + 关于页
+
+**涉及文件：**
+- install/database.sql（初始配置 INSERT、domain 表）
+- core/Config.php、core/Domain.php、core/SiteContext.php、core/SystemInfo.php
+- core/version.php（VS_SESSION_TIMEOUT 常量）
+- core/bootstrap.php、core/helpers.php
+- admin/settings.php、admin/about.php（新增）
+- admin/includes/layout.php、admin/init.php
+- index.php
+- README.md 及全部版本号文件
+
+**变更说明：**
+- 系统默认配置移至 database.sql 初始数据，不再写在 PHP 代码中
+- Favicon 改为填写 URL 或站点路径，取消上传
+- 会话超时写死为 30 分钟（VS_SESSION_TIMEOUT），每次操作刷新计时
+- 新增多域名绑定：主域名用系统设置，子域名独立名称与备案号
+- 前台按访问域名自动展示对应站点名称与 ICP/公安备案（链接至官方查询页）
+- 新增后台「关于」页面，展示 PHP/MySQL/服务器等信息
+- 移除后台底部栏
+
+**升级提示：** 已安装站点需重新执行安装第三步（清空重建）或手动执行 database.sql 中新增表与 INSERT 语句。
+
+---
+
+### v1.0.3（2026-06-26）
+
+**类型：** 布局优化 + 滚动修复
+
+**涉及文件：**
+- README.md
+- assets/css/common.css
+- assets/css/admin.css
+- assets/css/install.css
+- assets/css/admin-login.css
+- core/helpers.php
+- admin/includes/layout.php
+- install/index.php
+- 全部版本号文件同步
+
+**变更说明：**
+- 修复全站页面无法上下滚动（移除后台 body overflow 锁死）
+- 优化 viewport，移除 maximum-scale 限制
+- 安装向导环境检测、表单改为两列布局（手机端单列）
+- 登录页内容过高时可正常滚动
+
+---
+
+### v1.0.2（2026-06-26）
+
+**类型：** 后台框架重构 + 系统可配置
+
+**涉及文件：**
+- README.md
+- index.php
+- admin/init.php（新增）
+- admin/includes/layout.php（新增）
+- admin/index.php
+- admin/account.php（新增）
+- admin/settings.php
+- admin/login.php
+- admin/forgot.php
+- admin/reset.php
+- core/version.php
+- core/Config.php
+- core/Auth.php
+- core/helpers.php
+- core/bootstrap.php
+- core/Database.php
+- core/InstallChecker.php
+- core/Mailer.php
+- core/DatabaseInstaller.php
+- install/index.php
+- install/database.sql
+- assets/css/admin.css
+- assets/css/icons.css（新增）
+- assets/css/common.css
+- assets/css/install.css
+- assets/css/admin-login.css
+- assets/css/index.css
+- assets/js/admin.js
+- assets/js/common.js
+- assets/js/install.js
+- assets/js/admin-login.js
+- assets/img/site/.gitkeep（新增）
+
+**变更说明：**
+- 移除 TDesign 框架 CDN 依赖，采用纯自定义 PHP + CSS 架构
+- 新增专属 SVG 图标库（icons.css）
+- 重构后台布局：顶部栏 + 可收缩侧边栏
+- 电脑端侧边栏默认展开，手机端默认收缩，三横线切换
+- 新增系统名称、描述、关键词、Favicon 可配置
+- 拆分账号设置（account.php）与系统设置（settings.php）
+- 登录态下可直接修改邮箱和密码
+- 前台首页/登录页读取系统配置名称与描述
+
+---
+
+### v1.0.1（2026-06-26）
+
+- 安装建表改为 database.sql
+- 拆分 login.php 与 index.php
+- 邮箱发信与忘记密码
+
+---
+
+### v1.0.0（2026-06-26）
+
+- 初始版本
+
+---
+
+## 开源协议
+
+MIT License

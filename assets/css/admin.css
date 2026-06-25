@@ -1,0 +1,858 @@
+/**
+ * 文件：assets/css/admin.css
+ * 作用：VanShine 后台管理框架样式（自定义布局，白色主题）
+ * @version 1.0.4
+ */
+
+/* ── 变量 ── */
+.vs-admin-body {
+    --vs-sidebar-width: 240px;
+    --vs-topbar-height: 56px;
+    --vs-sidebar-bg: #ffffff;
+    --vs-topbar-bg: #ffffff;
+    --vs-content-bg: #f5f7fa;
+    min-height: 100vh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── 整体壳层 ── */
+.vs-admin-shell {
+    display: flex;
+    min-height: 100vh;
+    height: auto;
+    background: var(--vs-content-bg);
+}
+
+/* ── 侧边栏 ── */
+.vs-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    width: var(--vs-sidebar-width);
+    height: 100%;
+    min-height: 100vh;
+    background: var(--vs-sidebar-bg);
+    border-right: 1px solid var(--vs-border);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.28s ease, width 0.28s ease;
+    overflow: hidden;
+}
+
+.vs-sidebar__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--vs-topbar-height);
+    padding: 0 20px;
+    border-bottom: 1px solid var(--vs-border);
+    flex-shrink: 0;
+}
+
+.vs-sidebar__logo {
+    width: 32px;
+    height: 32px;
+    background: #111111;
+    color: #fff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.vs-site-logo-img.vs-sidebar__logo,
+.vs-sidebar__logo.vs-site-logo-img {
+    background: transparent;
+    object-fit: contain;
+    padding: 0;
+}
+
+.vs-sidebar__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--vs-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s;
+}
+
+.vs-sidebar__nav {
+    flex: 1;
+    padding: 12px 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+}
+
+.vs-sidebar__foot {
+    flex-shrink: 0;
+    padding: 8px 0 12px;
+    border-top: 1px solid var(--vs-border);
+}
+
+.vs-sidebar__logout {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--vs-text-secondary);
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.vs-sidebar__logout:hover {
+    color: var(--vs-danger);
+    background: rgba(220, 38, 38, 0.06);
+}
+
+.vs-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--vs-text-secondary);
+    font-size: 14px;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+}
+
+.vs-sidebar__link:hover {
+    color: var(--vs-primary);
+    background: rgba(17, 17, 17, 0.04);
+}
+
+.vs-sidebar__link.is-active {
+    color: var(--vs-primary);
+    background: rgba(17, 17, 17, 0.06);
+    border-left-color: var(--vs-primary);
+    font-weight: 500;
+}
+
+/* 分组菜单 */
+.vs-sidebar__group {
+    margin-bottom: 4px;
+}
+
+.vs-sidebar__group-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: var(--vs-text-secondary);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.vs-sidebar__group-btn:hover {
+    color: var(--vs-primary);
+    background: rgba(17, 17, 17, 0.04);
+}
+
+.vs-sidebar__group-btn.is-active {
+    color: var(--vs-primary);
+    font-weight: 500;
+}
+
+.vs-sidebar__group-btn .vs-icon--chevron {
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s;
+}
+
+.vs-sidebar__group.is-open .vs-icon--chevron {
+    transform: rotate(180deg);
+}
+
+.vs-sidebar__sub {
+    display: none;
+    padding: 4px 0 8px;
+}
+
+.vs-sidebar__group.is-open .vs-sidebar__sub {
+    display: block;
+}
+
+.vs-sidebar__sublink {
+    display: block;
+    padding: 10px 20px 10px 52px;
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.vs-sidebar__sublink:hover {
+    color: var(--vs-primary);
+    background: rgba(17, 17, 17, 0.04);
+}
+
+.vs-sidebar__sublink.is-active {
+    color: var(--vs-primary);
+    background: rgba(17, 17, 17, 0.06);
+    border-left-color: var(--vs-primary);
+    font-weight: 500;
+}
+
+.vs-sidebar__text {
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+/* 遮罩（手机端） */
+.vs-sidebar-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.28s;
+}
+
+/* ── 主区域（跟随文档自然滚动） ── */
+.vs-admin-main {
+    flex: 1;
+    margin-left: var(--vs-sidebar-width);
+    min-height: 100vh;
+    width: calc(100% - var(--vs-sidebar-width));
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.28s ease, width 0.28s ease;
+}
+
+/* ── 顶部栏 ── */
+.vs-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--vs-topbar-height);
+    background: var(--vs-topbar-bg);
+    border-bottom: 1px solid var(--vs-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+}
+
+.vs-topbar__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.vs-topbar__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.vs-topbar__toggle:hover {
+    background: var(--vs-content-bg);
+}
+
+.vs-topbar__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vs-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (min-width: 769px) {
+    .vs-topbar__title {
+        display: none;
+    }
+
+    .vs-admin-shell.is-collapsed .vs-topbar__title {
+        display: block;
+    }
+}
+
+.vs-topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.vs-topbar__user {
+    font-size: 14px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-topbar__logout {
+    font-size: 14px;
+    color: var(--vs-primary);
+    text-decoration: none;
+}
+
+.vs-topbar__logout:hover {
+    color: var(--vs-primary-hover);
+}
+
+/* ── 内容区 ── */
+.vs-content {
+    flex: 1;
+    padding: 20px;
+    width: 100%;
+}
+
+.vs-content__head {
+    margin-bottom: 16px;
+}
+
+.vs-content__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--vs-text);
+}
+
+.vs-admin-footer {
+    display: none;
+}
+
+/* ── 表格 ── */
+.vs-panel {
+    background: var(--vs-white);
+    border-radius: var(--vs-radius);
+    box-shadow: var(--vs-shadow);
+    padding: 24px;
+}
+
+.vs-panel--spaced {
+    margin-top: 20px;
+}
+
+/* ── 设置页折叠板块 ── */
+.vs-panel.vs-accordion {
+    padding: 0;
+    margin-bottom: 16px;
+}
+
+.vs-panel.vs-accordion:last-child {
+    margin-bottom: 0;
+}
+
+.vs-accordion__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    gap: 16px;
+}
+
+.vs-accordion__trigger:hover .vs-accordion__title {
+    color: var(--vs-primary);
+}
+
+.vs-accordion__trigger .vs-icon--chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    color: var(--vs-text-secondary);
+}
+
+.vs-accordion.is-open .vs-accordion__trigger .vs-icon--chevron {
+    transform: rotate(180deg);
+}
+
+.vs-accordion__head {
+    flex: 1;
+    min-width: 0;
+}
+
+.vs-accordion__title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--vs-text);
+    line-height: 1.4;
+}
+
+.vs-accordion__desc {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+    margin: 6px 0 0;
+    line-height: 1.5;
+}
+
+.vs-accordion__body {
+    display: none;
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--vs-border);
+}
+
+.vs-accordion.is-open .vs-accordion__body {
+    display: block;
+    padding-top: 20px;
+}
+
+.vs-panel__header {
+    margin-bottom: 20px;
+}
+
+.vs-panel__title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.vs-panel__desc {
+    font-size: 14px;
+    color: var(--vs-text-secondary);
+}
+
+/* ── 统计卡片 ── */
+.vs-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.vs-stat-card {
+    padding: 16px;
+    background: var(--vs-content-bg);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vs-stat-card__label {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-stat-card__value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--vs-text);
+    word-break: break-all;
+}
+
+/* ── 表单扩展 ── */
+.vs-form-section {
+    margin-bottom: 24px;
+}
+
+.vs-form-section .vs-form-row {
+    margin-bottom: 20px;
+}
+
+.vs-form-section .vs-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.vs-settings-flash {
+    margin-bottom: 16px;
+}
+
+.vs-form-row--test-mail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.vs-form-row--test-mail .vs-input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.vs-form-section__title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vs-border);
+}
+
+.vs-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--vs-border);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.vs-textarea:focus {
+    border-color: var(--vs-primary);
+    box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.08);
+}
+
+.vs-form-tip--block {
+    margin-bottom: 12px;
+}
+
+.vs-input--file {
+    padding: 8px 0;
+    height: auto;
+    border: none;
+}
+
+.vs-favicon-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-favicon-preview img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border: 1px solid var(--vs-border);
+    border-radius: 4px;
+}
+
+.vs-form-row--inline {
+    display: flex;
+    gap: 16px;
+}
+
+.vs-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 20px;
+}
+
+.vs-form-grid .vs-form-row {
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .vs-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vs-form-col {
+    flex: 1;
+}
+
+.vs-form-col--grow {
+    flex: 1;
+}
+
+.vs-form-col--btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.vs-divider {
+    border: none;
+    border-top: 1px solid var(--vs-border);
+    margin: 28px 0;
+}
+
+select.vs-input {
+    appearance: auto;
+}
+
+.vs-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.vs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.vs-table th,
+.vs-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--vs-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.vs-table th {
+    background: var(--vs-content-bg);
+    font-weight: 600;
+    color: var(--vs-text-secondary);
+}
+
+.vs-table__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.vs-inline-form {
+    display: inline;
+}
+
+/* ── 绑定域名卡片列表 ── */
+.vs-domain-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.vs-domain-card {
+    background: var(--vs-content-bg);
+    border: 1px solid var(--vs-border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vs-domain-card__head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vs-domain-card__domain {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--vs-text);
+    margin: 0;
+    line-height: 1.4;
+    word-break: break-all;
+}
+
+.vs-domain-card__site {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-domain-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vs-domain-card__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vs-domain-card__label {
+    font-size: 12px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-domain-card__value {
+    font-size: 13px;
+    color: var(--vs-text);
+    word-break: break-all;
+}
+
+.vs-domain-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+    border-top: 1px solid var(--vs-border);
+}
+
+.vs-domain-card__actions .vs-domain-delete-form {
+    display: inline-flex;
+}
+
+.vs-btn--sm {
+    min-height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+}
+
+.vs-btn--danger-text {
+    color: var(--vs-danger);
+}
+
+.vs-btn--danger-text:hover {
+    color: var(--vs-danger-hover);
+}
+
+.vs-form--spaced-top {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vs-border);
+}
+
+.vs-form-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.vs-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.vs-info-item {
+    padding: 14px 16px;
+    background: var(--vs-content-bg);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vs-info-item__label {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-info-item__value {
+    font-size: 14px;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+@media (max-width: 768px) {
+    .vs-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── 电脑端：侧边栏收缩 ── */
+.vs-admin-shell.is-collapsed .vs-sidebar {
+    width: 0;
+    transform: translateX(0);
+    border-right: none;
+}
+
+.vs-admin-shell.is-collapsed .vs-sidebar__head,
+.vs-admin-shell.is-collapsed .vs-sidebar__nav,
+.vs-admin-shell.is-collapsed .vs-sidebar__foot {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vs-admin-shell.is-collapsed .vs-admin-main {
+    margin-left: 0;
+    width: 100%;
+}
+
+/* ── 手机端 ── */
+@media (max-width: 768px) {
+    .vs-admin-body {
+        --vs-sidebar-width: 260px;
+    }
+
+    .vs-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .vs-admin-main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .vs-topbar__title {
+        display: none;
+    }
+
+    .vs-topbar__user {
+        display: none;
+    }
+
+    .vs-topbar__right {
+        display: flex;
+    }
+
+    .vs-topbar {
+        padding: 0 12px;
+    }
+
+    .vs-content {
+        padding: 12px;
+    }
+
+    .vs-panel {
+        padding: 16px;
+    }
+
+    .vs-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-form-row--inline {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .vs-form-col--btn .vs-btn {
+        width: 100%;
+    }
+
+    .vs-admin-shell.is-mobile-open .vs-sidebar {
+        transform: translateX(0);
+        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .vs-admin-shell.is-mobile-open .vs-sidebar-mask {
+        display: block;
+        opacity: 1;
+    }
+
+    .vs-admin-shell.is-collapsed .vs-sidebar {
+        width: var(--vs-sidebar-width);
+        transform: translateX(-100%);
+    }
+
+    .vs-admin-shell.is-mobile-open.is-collapsed .vs-sidebar {
+        transform: translateX(0);
+    }
+}
+
+@media (min-width: 769px) {
+    .vs-sidebar-mask {
+        display: none !important;
+    }
+}

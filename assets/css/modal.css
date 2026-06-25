@@ -1,0 +1,82 @@
+/**
+ * 文件：assets/css/modal.css
+ * 作用：VanShine 统一弹窗（与后台/安装主题一致）
+ * @version 1.0.11
+ */
+
+.vs-modal-root {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.vs-modal-root[hidden] {
+    display: none !important;
+}
+
+.vs-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 17, 17, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+.vs-modal {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    animation: vsModalIn 0.22s ease;
+}
+
+@keyframes vsModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.vs-modal__head {
+    padding: 20px 24px 0;
+}
+
+.vs-modal__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111;
+    line-height: 1.4;
+}
+
+.vs-modal__body {
+    padding: 12px 24px 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #6b7280;
+}
+
+.vs-modal__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 24px 20px;
+}
+
+.vs-modal__foot .vs-btn {
+    min-width: 88px;
+}
+
+body.vs-modal-open {
+    overflow: hidden;
+}

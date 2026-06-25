@@ -1,0 +1,186 @@
+<?php
+/**
+ * 文件：admin/login.php
+ * 作用：VanShine 管理员登录页面
+ * @version 1.0.13
+ */
+
+define('VS_ROOT', dirname(__DIR__));
+require_once VS_ROOT . '/core/bootstrap.php';
+require_once __DIR__ . '/includes/auth_layout.php';
+
+InstallChecker::requireInstalled();
+
+$base = vs_base_url();
+
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    Auth::logout();
+    vs_redirect($base . '/admin/login.php');
+}
+
+Auth::redirectIfLoggedIn();
+
+$siteName = SiteContext::siteName();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
+    vs_auth_require_post();
+
+    $username = trim(isset($_POST['username']) ? $_POST['username'] : '');
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+
+    if ($username === '' || $password === '') {
+        vs_auth_json(array('code' => 0, 'msg' => '请输入账号和密码'));
+    }
+
+    $loginBlocked = AuthSecurity::checkLoginAllowed($username);
+    if ($loginBlocked !== null) {
+        vs_auth_json(array('code' => 0, 'msg' => $loginBlocked));
+    }
+
+    if (Auth::login($username, $password)) {
+        vs_auth_json(array(
+            'code' => 1,
+            'msg'  => '登录成功',
+            'url'  => $base . '/admin/index.php',
+        ));
+    }
+
+    AuthSecurity::recordLoginFailure($username);
+    vs_auth_json(array('code' => 0, 'msg' => '账号或密码错误'));
+}
+
+if (isset($_GET['expired']) && $_GET['expired'] === '1') {
+    $expiredMsg = '登录已超时，请重新登录';
+} else {
+    $expiredMsg = '';
+}
+
+vs_auth_head('登录');
+?>
+
+<div class="page">
+    <?php vs_auth_left_panel(true); ?>
+
+    <div class="right">
+        <div class="form-box">
+            <div class="header header-desktop">
+                <h1><?php echo vs_e($siteName); ?></h1>
+            </div>
+
+            <div id="formMessage" class="form-message" role="alert" hidden></div>
+
+            <form id="loginForm" method="post" action="" novalidate>
+                <?php vs_auth_csrf_field(); ?>
+                <div class="field">
+                    <label for="username">账号</label>
+                    <input id="username" name="username" type="text" placeholder="请输入账号" autocomplete="username" maxlength="64" required>
+                </div>
+
+                <div class="field">
+                    <label for="password">密码</label>
+                    <div class="input-wrap">
+                        <input id="password" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" maxlength="64" required>
+                        <?php echo vs_auth_toggle_password_html(); ?>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="remember">
+                        <input type="checkbox" id="keepLogin" name="keep_login" value="1">
+                        保持登录
+                    </label>
+                    <a href="<?php echo vs_e($base); ?>/admin/forgot.php">忘记密码？</a>
+                </div>
+
+                <?php echo vs_auth_submit_btn('登 录', 'loginBtn', 'login-btn'); ?>
+
+                <div class="divider">
+                    还没有账号？<a href="<?php echo vs_e($base); ?>/admin/register.php">立即注册</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var form = document.getElementById('loginForm');
+    var messageEl = document.getElementById('formMessage');
+    var loginBtn = document.getElementById('loginBtn');
+    var expiredMsg = <?php echo json_encode($expiredMsg, JSON_UNESCAPED_UNICODE); ?>;
+
+    if (!form) return;
+
+    function showMessage(text, type) {
+        if (!messageEl) return;
+        messageEl.textContent = text;
+        messageEl.className = 'form-message form-message--' + type;
+        messageEl.hidden = false;
+    }
+
+    function hideMessage() {
+        if (messageEl) messageEl.hidden = true;
+    }
+
+    if (expiredMsg) {
+        showMessage(expiredMsg, 'error');
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        hideMessage();
+
+        var username = form.username.value.trim();
+        var password = form.password.value;
+
+        if (!username) {
+            showMessage('请输入账号', 'error');
+            form.username.focus();
+            return;
+        }
+        if (!password) {
+            showMessage('请输入密码', 'error');
+            form.password.focus();
+            return;
+        }
+
+        if (loginBtn) loginBtn.disabled = true;
+
+        var body = new FormData(form);
+        body.append('action', 'login');
+
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: body,
+            credentials: 'same-origin'
+        })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.code === 1) {
+                    showMessage(data.msg || '登录成功', 'success');
+                    if (data.url) {
+                        setTimeout(function () { window.location.href = data.url; }, 800);
+                    }
+                } else {
+                    showMessage(data.msg || '登录失败', 'error');
+                }
+            })
+            .catch(function () {
+                showMessage('网络异常，请稍后重试', 'error');
+            })
+            .finally(function () {
+                if (loginBtn) loginBtn.disabled = false;
+            });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && document.activeElement && document.activeElement.tagName !== 'BUTTON') {
+            form.requestSubmit();
+        }
+    });
+})();
+</script>
+
+<?php vs_auth_foot(); ?>

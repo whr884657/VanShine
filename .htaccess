@@ -1,0 +1,11 @@
+# VanShine URL Rewrite (Optional)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 禁止直接访问 config 目录
+    RewriteRule ^config/ - [F,L]
+</IfModule>
+
+# 禁止目录浏览
+Options -Indexes

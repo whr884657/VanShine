@@ -1,0 +1,291 @@
+/**
+ * 文件：assets/css/install.css
+ * 作用：VanShine 安装向导页面样式
+ * @version 1.0.4
+ */
+
+.vs-install-page {
+    padding: 40px 0 60px;
+    min-height: 100vh;
+    height: auto;
+}
+
+.vs-install-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.vs-install-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--vs-text);
+}
+
+.vs-install-subtitle {
+    color: var(--vs-text-secondary);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+/* ── 步骤条 ── */
+.vs-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    padding: 0 10px;
+}
+
+.vs-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    min-width: 64px;
+}
+
+.vs-step__circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--vs-border);
+    background: var(--vs-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.vs-step__num {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vs-text-secondary);
+    line-height: 1;
+}
+
+.vs-step__title {
+    font-size: 12px;
+    color: var(--vs-text-secondary);
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.vs-step__line {
+    flex: 1;
+    height: 2px;
+    background: var(--vs-border);
+    min-width: 20px;
+    max-width: 80px;
+    transition: background 0.3s;
+}
+
+.vs-step__line.is-finished {
+    background: var(--vs-primary);
+}
+
+.vs-step.is-active .vs-step__circle {
+    border-color: var(--vs-primary);
+    background: var(--vs-primary);
+}
+
+.vs-step.is-active .vs-step__num {
+    color: var(--vs-white);
+}
+
+.vs-step.is-active .vs-step__title {
+    color: var(--vs-primary);
+    font-weight: 600;
+}
+
+.vs-step.is-finished .vs-step__circle {
+    border-color: var(--vs-primary);
+    background: var(--vs-primary);
+}
+
+.vs-step.is-finished .vs-step__num {
+    color: var(--vs-white);
+}
+
+.vs-step.is-finished .vs-step__title {
+    color: var(--vs-primary);
+}
+
+/* 检测列表：两列网格 */
+.vs-check-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.vs-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--vs-border);
+    background: var(--vs-white);
+    min-width: 0;
+}
+
+.vs-check-item.is-pass {
+    border-color: #b8e6cc;
+    background: #f0faf5;
+}
+
+.vs-check-item.is-fail {
+    border-color: #ffd6d6;
+    background: #fff0f0;
+}
+
+.vs-check-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.is-pass .vs-check-icon {
+    background: var(--vs-success);
+    color: var(--vs-white);
+}
+
+.is-fail .vs-check-icon {
+    background: var(--vs-danger);
+    color: var(--vs-white);
+}
+
+.vs-check-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+    min-width: 0;
+}
+
+.vs-check-info strong {
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.vs-check-info span {
+    color: var(--vs-text-secondary);
+    word-break: break-word;
+}
+
+/* 安装向导表单两列 */
+.vs-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 20px;
+}
+
+.vs-form-grid .vs-form-row {
+    margin-bottom: 20px;
+}
+
+.vs-form-grid .vs-form-row--full {
+    grid-column: 1 / -1;
+}
+
+/* 安装完成 */
+.vs-success-block {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.vs-success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--vs-success);
+    color: var(--vs-white);
+    font-size: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.vs-install-footer {
+    text-align: center;
+    margin-top: 24px;
+    color: var(--vs-text-secondary);
+    font-size: 13px;
+}
+
+.vs-install-card {
+    max-width: 920px;
+    margin: 0 auto;
+}
+
+/* ── 手机端适配 ── */
+@media (max-width: 768px) {
+    .vs-install-page {
+        padding: 20px 0 40px;
+    }
+
+    .vs-install-title {
+        font-size: 22px;
+    }
+
+    .vs-check-list {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-steps {
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        gap: 0;
+    }
+
+    .vs-step {
+        min-width: 52px;
+    }
+
+    .vs-step__circle {
+        width: 32px;
+        height: 32px;
+    }
+
+    .vs-step__num {
+        font-size: 13px;
+    }
+
+    .vs-step__title {
+        font-size: 11px;
+        max-width: 56px;
+        white-space: normal;
+        line-height: 1.3;
+    }
+
+    .vs-step__line {
+        min-width: 12px;
+        max-width: 32px;
+    }
+
+    .vs-success-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vs-step__title {
+        display: none;
+    }
+}

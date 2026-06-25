@@ -89,6 +89,10 @@
                     group.classList.add('is-open');
                     btn.setAttribute('aria-expanded', 'true');
                 }
+
+                if (group.getAttribute('data-group') === 'system' && window.VsUpdate) {
+                    VsUpdate.refreshSidebarBadgePlacement();
+                }
             });
         });
     }

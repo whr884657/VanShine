@@ -191,13 +191,38 @@
 }
 
 .vs-sidebar__sublink {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     padding: 10px 20px 10px 52px;
     font-size: 13px;
     color: var(--vs-text-secondary);
     text-decoration: none;
     border-left: 3px solid transparent;
     transition: all 0.2s;
+}
+
+.vs-sidebar__badge {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vs-danger);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px var(--vs-sidebar-bg);
+}
+
+.vs-sidebar__group-btn .vs-sidebar__text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.vs-sidebar__badge[hidden] {
+    display: none !important;
 }
 
 .vs-sidebar__sublink:hover {

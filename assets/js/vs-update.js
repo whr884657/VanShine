@@ -1,11 +1,13 @@
 /**
  * 文件：assets/js/vs-update.js
  * 作用：系统升级共用逻辑（检测、二次确认、执行更新）
- * @version 1.0.21
+ * @version 1.0.25
  */
 
 (function () {
     'use strict';
+
+    var badgeActive = false;
 
     function escapeHtml(str) {
         var div = document.createElement('div');
@@ -91,6 +93,7 @@
 
         return postUpdate('apply').then(function (res) {
             if (res.code === 1) {
+                clearSidebarBadge();
                 VsModal.open({
                     title: '更新成功',
                     message: res.msg || '系统已更新到最新版本',
@@ -191,6 +194,44 @@
         });
     }
 
+    function shouldShowSidebarBadge(data) {
+        return !!(data && data.code === 1 && data.update_available && !data.show_modal);
+    }
+
+    function refreshSidebarBadgePlacement() {
+        var groupBadge = document.getElementById('vsUpdateBadgeGroup');
+        var itemBadge = document.getElementById('vsUpdateBadgeUpgrade');
+        var systemGroup = document.querySelector('.vs-sidebar__group[data-group="system"]');
+
+        if (!badgeActive) {
+            if (groupBadge) {
+                groupBadge.hidden = true;
+            }
+            if (itemBadge) {
+                itemBadge.hidden = true;
+            }
+            return;
+        }
+
+        if (!groupBadge || !itemBadge || !systemGroup) {
+            return;
+        }
+
+        var isOpen = systemGroup.classList.contains('is-open');
+        groupBadge.hidden = isOpen;
+        itemBadge.hidden = !isOpen;
+    }
+
+    function syncSidebarBadge(data) {
+        badgeActive = shouldShowSidebarBadge(data);
+        refreshSidebarBadgePlacement();
+    }
+
+    function clearSidebarBadge() {
+        badgeActive = false;
+        refreshSidebarBadgePlacement();
+    }
+
     function checkUpdate(options) {
         options = options || {};
         return fetch(apiUrl() + '?action=check', { credentials: 'same-origin' })
@@ -211,8 +252,20 @@
         confirmBackupThenUpdate: confirmBackupThenUpdate,
         runApply: runUpdateApply,
         buildUpdateHtml: buildUpdateHtml,
+        syncSidebarBadge: syncSidebarBadge,
+        refreshSidebarBadgePlacement: refreshSidebarBadgePlacement,
+        clearSidebarBadge: clearSidebarBadge,
         dismiss: function (version) {
-            return postUpdate('dismiss', { version: version });
+            return postUpdate('dismiss', { version: version }).then(function (res) {
+                if (res.code === 1) {
+                    syncSidebarBadge({
+                        code: 1,
+                        update_available: true,
+                        show_modal: false,
+                    });
+                }
+                return res;
+            });
         },
     };
 })();

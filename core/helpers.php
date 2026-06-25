@@ -17,7 +17,7 @@ function vs_e($value)
 }
 
 /**
- * 双层 MD5 密码加密
+ * 密码哈希（不可逆，算法不对外公开）
  *
  * @param string $password
  * @return string

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/modal.js
  * 作用：VanShine 统一弹窗（替代 alert / confirm）
- * @version 1.0.11
+ * @version 1.0.14
  */
 
 (function () {
@@ -9,6 +9,8 @@
 
     var root, overlay, titleEl, bodyEl, footEl;
     var resolveFn = null;
+    var allowOverlayClose = true;
+    var allowEscapeClose = true;
 
     function init() {
         root = document.getElementById('vsModalRoot');
@@ -22,12 +24,14 @@
 
         if (overlay) {
             overlay.addEventListener('click', function () {
-                close(false);
+                if (allowOverlayClose) {
+                    close(false);
+                }
             });
         }
 
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && root && !root.hidden) {
+            if (e.key === 'Escape' && root && !root.hidden && allowEscapeClose) {
                 close(false);
             }
         });
@@ -40,6 +44,8 @@
         root.hidden = true;
         root.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('vs-modal-open');
+        allowOverlayClose = true;
+        allowEscapeClose = true;
         if (resolveFn) {
             var fn = resolveFn;
             resolveFn = null;
@@ -47,16 +53,31 @@
         }
     }
 
-    function open(title, message, buttons) {
+    function setBodyContent(message, html) {
+        if (!bodyEl) {
+            return;
+        }
+        if (html) {
+            bodyEl.innerHTML = html;
+        } else {
+            bodyEl.textContent = message || '';
+        }
+    }
+
+    function openDialog(title, message, buttons, options) {
+        options = options || {};
         if (!root || !titleEl || !bodyEl || !footEl) {
             return;
         }
 
+        allowOverlayClose = options.closeOnOverlay !== false;
+        allowEscapeClose = options.closeOnEscape !== false;
+
         titleEl.textContent = title || '提示';
-        bodyEl.textContent = message || '';
+        setBodyContent(message, options.html || '');
         footEl.innerHTML = '';
 
-        buttons.forEach(function (btn) {
+        (buttons || []).forEach(function (btn) {
             var el = document.createElement('button');
             el.type = 'button';
             el.textContent = btn.text;
@@ -85,13 +106,25 @@
     }
 
     window.VsModal = {
+        close: close,
+
+        open: function (options) {
+            options = options || {};
+            openDialog(
+                options.title || '提示',
+                options.message || '',
+                options.buttons || [],
+                options
+            );
+        },
+
         alert: function (message, title) {
             title = title || '提示';
             return new Promise(function (resolve) {
                 resolveFn = function () {
                     resolve();
                 };
-                open(title, message, [{
+                openDialog(title, message, [{
                     text: '知道了',
                     primary: true,
                     action: function () {
@@ -106,7 +139,7 @@
             title = title || '操作确认';
             return new Promise(function (resolve) {
                 resolveFn = resolve;
-                open(title, message, [
+                openDialog(title, message, [
                     {
                         text: options.cancelText || '取消',
                         action: function () {
@@ -121,7 +154,7 @@
                             close(true);
                         },
                     },
-                ]);
+                ], options);
             });
         },
     };

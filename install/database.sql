@@ -9,7 +9,7 @@
 CREATE TABLE IF NOT EXISTS `{prefix}admin` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `username` varchar(50) NOT NULL,
-    `password` char(32) NOT NULL COMMENT 'md5(md5(pwd))',
+    `password` char(32) NOT NULL COMMENT 'password hash',
     `email` varchar(100) NOT NULL,
     `status` tinyint(1) NOT NULL DEFAULT 1,
     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

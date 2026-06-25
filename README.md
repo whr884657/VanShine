@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.13**
+**当前版本：1.0.15**
 
 ---
 
@@ -92,15 +92,63 @@ VanShine/
 
 ---
 
-## 密码加密
+## 在线更新
 
-```
-md5(md5('123456')) = 14e1b600b1fd579f47433b88e8d85291
-```
+登录后台后会**自动**向 Gitee 检测最新版本（读取仓库根目录 `update.json`）。若本地 `core/version.php` 中的版本号**低于**远程版本，将弹出更新提示；若本地**高于**远程（开发测试环境），则不提示。
+
+**发布新版本时需同步修改：**
+1. `core/version.php` — `VS_VERSION`
+2. `update.json` — 版本号、更新说明（`changes` 数组）
+3. 若数据库结构有变 — 在 `install/migrations/` 新增对应版本 SQL（如 `1.0.16.sql`）
+
+**更新过程：**
+- 从 `https://gitee.com/xunjinlu/VanShine/repository/archive/main.zip` 下载更新包
+- 解压并覆盖文件，**绝不替换** `config/database.php`（更新前后校验文件指纹）
+- 自动执行 `install/migrations/` 中尚未应用的增量 SQL
+- 完成后自动删除临时 ZIP 与解压目录
+
+**服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问 Gitee。
 
 ---
 
 ## 版本记录
+
+### v1.0.15（2026-06-26）
+
+**类型：** 更新数据库迁移 + 配置安全 + 文档脱敏
+
+**涉及文件：**
+- `core/DatabaseMigrator.php`、`install/migrations/1.0.15.sql`（新增）
+- `core/Updater.php`、`core/DatabaseInstaller.php`
+- `core/helpers.php`、`install/database.sql`、`README.md`
+- `update.json`、`core/version.php`
+
+**变更说明：**
+- 在线更新完成后自动执行 `install/migrations/` 下未应用的 SQL 迁移
+- `config/database.php` 列入不可覆盖名单，更新前后校验文件指纹
+- 移除 README 中密码加密算法与示例哈希，降低被针对性爆破风险
+
+---
+
+### v1.0.14（2026-06-26）
+
+**类型：** Gitee 在线更新机制
+
+**涉及文件：**
+- `update.json`（远程版本清单，新增）
+- `core/Updater.php`、`admin/update.php`（新增）
+- `assets/js/update-check.js`、`assets/js/modal.js`（扩展 HTML 弹窗）
+- `assets/css/modal.css`、`admin/includes/layout.php`
+- `storage/`（更新临时目录）
+- `core/bootstrap.php`、`core/version.php`、`README.md`
+
+**变更说明：**
+- 登录后台后自动检测 Gitee 最新版本并弹窗提示
+- 展示更新标题、版本号与变更列表
+- 支持一键下载更新包、覆盖安装并自动清理临时文件
+- 本地版本高于仓库时不提示
+
+---
 
 ### v1.0.13（2026-06-26）
 

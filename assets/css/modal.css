@@ -80,3 +80,45 @@
 body.vs-modal-open {
     overflow: hidden;
 }
+
+.vs-update-modal__ver {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.vs-update-modal__date,
+.vs-update-modal__title-text {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.vs-update-modal__title-text {
+    font-weight: 600;
+    color: #111;
+}
+
+.vs-update-modal__list {
+    margin: 0 0 12px;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #4b5563;
+}
+
+.vs-update-modal__list li {
+    margin-bottom: 4px;
+}
+
+.vs-update-modal__tip,
+.vs-update-modal__loading {
+    margin: 0;
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.6;
+}
+
+.vs-modal {
+    max-width: 480px;
+}

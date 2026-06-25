@@ -50,7 +50,7 @@ class DatabaseInstaller
 
         $sql = file_get_contents(self::sqlFile());
         $sql = str_replace('{prefix}', $prefix, $sql);
-        $statements = self::parseStatements($sql);
+        $statements = self::parseSqlStatements($sql);
 
         foreach ($statements as $statement) {
             $pdo->exec($statement);
@@ -101,12 +101,12 @@ class DatabaseInstaller
     }
 
     /**
-     * 解析 SQL 语句
+     * 解析 SQL 语句（安装与迁移共用）
      *
      * @param string $sql
      * @return array
      */
-    private static function parseStatements($sql)
+    public static function parseSqlStatements($sql)
     {
         $sql = preg_replace('/^--.*$/m', '', $sql);
         $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);

@@ -53,7 +53,7 @@ vs_render_head('首页', array('index.css'));
                 <div class="vs-feature-card">
                     <div class="vs-feature-icon">SC</div>
                     <h3>安全加密</h3>
-                    <p>管理员密码采用 MD5 双层加密存储</p>
+                    <p>管理员密码加密存储，安全可靠</p>
                 </div>
                 <div class="vs-feature-card">
                     <div class="vs-feature-icon">RS</div>

@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/layout.php
  * 作用：VanShine 后台自定义布局（分组侧边栏）
- * @version 1.0.13
+ * @version 1.0.14
  */
 
 /**
@@ -204,9 +204,11 @@ function vs_admin_layout_end(array $extraScripts = array())
     vs_render_modal_shell();
 
     echo '<script>window.VS_BASE_URL = ' . json_encode($vsBase) . ';</script>' . "\n";
+    echo '<script>window.VS_CSRF_TOKEN = ' . json_encode(AuthSecurity::csrfToken()) . ';</script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/modal.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/common.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/admin.js?v=' . VS_VERSION . '"></script>' . "\n";
+    echo '<script src="' . vs_e($vsBase) . '/assets/js/update-check.js?v=' . VS_VERSION . '"></script>' . "\n";
     foreach ($extraScripts as $js) {
         echo '<script src="' . vs_e($vsBase) . '/assets/js/' . vs_e($js) . '?v=' . VS_VERSION . '"></script>' . "\n";
     }

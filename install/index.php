@@ -418,7 +418,7 @@ vs_render_head('安装向导 - 第' . $step . '步', array('install.css'));
 
             <?php elseif ($step === 4): ?>
                 <h2 class="vs-card-title">第四步：管理员配置</h2>
-                <p class="vs-card-desc">请设置系统管理员账号，密码采用 MD5 双层加密存储。</p>
+                <p class="vs-card-desc">请设置系统管理员账号，密码将加密存储。</p>
                 <form method="post" action="" class="vs-form" id="adminForm">
                     <input type="hidden" name="step" value="4">
                     <input type="hidden" name="action" value="create_admin">

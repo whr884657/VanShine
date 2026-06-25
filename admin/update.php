@@ -1,0 +1,54 @@
+<?php
+/**
+ * 文件：admin/update.php
+ * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
+ * @version 1.0.14
+ */
+
+require_once __DIR__ . '/init.php';
+
+$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+
+if ($action === 'check') {
+    $result = Updater::checkForUpdate();
+    $dismissed = isset($_SESSION['vs_update_dismiss']) ? (string) $_SESSION['vs_update_dismiss'] : '';
+    $showModal = !empty($result['update_available'])
+        && $dismissed !== (string) $result['remote_version'];
+
+    AjaxResponse::success('ok', array_merge($result, array(
+        'show_modal' => $showModal,
+    )));
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    AjaxResponse::error('无效请求', 405);
+}
+
+$token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+if (!AuthSecurity::validateCsrf($token)) {
+    AjaxResponse::error('安全校验失败，请刷新页面后重试', 403);
+}
+
+if ($action === 'dismiss') {
+    $version = isset($_POST['version']) ? trim($_POST['version']) : '';
+    $_SESSION['vs_update_dismiss'] = $version;
+    AjaxResponse::success('已稍后提醒');
+}
+
+if ($action === 'apply') {
+    @set_time_limit(600);
+    @ini_set('memory_limit', '256M');
+
+    $result = Updater::applyUpdate();
+    if (empty($result['ok'])) {
+        AjaxResponse::error(isset($result['msg']) ? $result['msg'] : '更新失败');
+    }
+
+    unset($_SESSION['vs_update_dismiss']);
+
+    AjaxResponse::success($result['msg'], array(
+        'version' => isset($result['version']) ? $result['version'] : '',
+    ));
+}
+
+AjaxResponse::error('未知操作', 400);

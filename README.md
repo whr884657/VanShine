@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.15**
+**当前版本：1.0.16**
 
 ---
 
@@ -26,8 +26,8 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.15.zip`** |
-| 发行说明 | 见仓库内 `发行说明/VanShine1.0.15.md` |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.16.zip`** |
+| 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
 
@@ -133,6 +133,21 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.16（2026-06-26）
+
+**类型：** 系统设置 · 绑定子域名卡片 UI
+
+**涉及文件：**
+- `admin/settings.php`、`assets/js/settings.js`、`assets/css/admin.css`
+- `update.json`、`core/version.php`、`README.md`
+
+**变更说明：**
+- 绑定子域名卡片改为 **2×2 信息格**（域名 / 站点名称 / ICP / 公安备案）
+- 手机端左右两列布局，四项信息同卡片内分组展示
+- 编辑、删除按钮改为**胶囊样式**，尺寸更紧凑
+
+---
 
 ### v1.0.15（2026-06-26）
 

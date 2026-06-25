@@ -630,76 +630,106 @@ select.vs-input {
 
 /* ── 绑定域名卡片列表 ── */
 .vs-domain-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
 .vs-domain-card {
-    background: var(--vs-content-bg);
+    background: var(--vs-white);
     border: 1px solid var(--vs-border);
-    border-radius: 10px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: var(--vs-shadow);
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.vs-domain-card__head {
+.vs-domain-card__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.vs-domain-card__cell {
+    background: var(--vs-content-bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.vs-domain-card__domain {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--vs-text);
-    margin: 0;
-    line-height: 1.4;
-    word-break: break-all;
-}
-
-.vs-domain-card__site {
-    font-size: 13px;
-    color: var(--vs-text-secondary);
-}
-
-.vs-domain-card__meta {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.vs-domain-card__item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
 .vs-domain-card__label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--vs-text-secondary);
+    line-height: 1.3;
 }
 
 .vs-domain-card__value {
     font-size: 13px;
+    font-weight: 500;
     color: var(--vs-text);
+    line-height: 1.45;
     word-break: break-all;
 }
 
 .vs-domain-card__actions {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding-top: 4px;
-    border-top: 1px solid var(--vs-border);
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 2px;
 }
 
 .vs-domain-card__actions .vs-domain-delete-form {
     display: inline-flex;
+    margin: 0;
+}
+
+.vs-btn--pill {
+    height: auto;
+    min-height: 0;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.25;
+    border-radius: 999px;
+}
+
+.vs-btn--pill-primary {
+    background: var(--vs-primary);
+    color: var(--vs-white);
+    border: 1px solid var(--vs-primary);
+}
+
+.vs-btn--pill-primary:hover {
+    background: var(--vs-primary-hover);
+    border-color: var(--vs-primary-hover);
+    color: var(--vs-white);
+}
+
+.vs-btn--pill-danger {
+    background: transparent;
+    color: var(--vs-danger);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+.vs-btn--pill-danger:hover {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: var(--vs-danger);
+    color: var(--vs-danger);
+}
+
+@media (min-width: 769px) {
+    .vs-domain-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 14px;
+    }
 }
 
 .vs-btn--sm {

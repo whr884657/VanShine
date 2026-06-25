@@ -2,7 +2,7 @@
 /**
  * 文件：admin/settings.php
  * 作用：VanShine 后台系统设置（站点信息、域名绑定、邮箱发信）
- * @version 1.0.13
+ * @version 1.0.16
  */
 
 require_once __DIR__ . '/init.php';
@@ -20,22 +20,35 @@ function vs_settings_render_domain_list(array $domains)
         $icp = trim((string) $row['icp_number']);
         $gongan = trim((string) $row['gongan_number']);
         echo '<article class="vs-domain-card" data-domain-id="' . (int) $row['id'] . '">' . "\n";
-        echo '<div class="vs-domain-card__head">' . "\n";
-        echo '<h4 class="vs-domain-card__domain">' . vs_e($row['domain']) . '</h4>' . "\n";
-        echo '<span class="vs-domain-card__site">' . vs_e($row['site_name']) . '</span>' . "\n";
-        echo '</div>' . "\n";
-        echo '<div class="vs-domain-card__meta">' . "\n";
-        echo '<div class="vs-domain-card__item"><span class="vs-domain-card__label">ICP 备案号</span><span class="vs-domain-card__value">' . vs_e($icp !== '' ? $icp : '未设置') . '</span></div>' . "\n";
-        echo '<div class="vs-domain-card__item"><span class="vs-domain-card__label">公安备案号</span><span class="vs-domain-card__value">' . vs_e($gongan !== '' ? $gongan : '未设置') . '</span></div>' . "\n";
+        echo '<div class="vs-domain-card__grid">' . "\n";
+        vs_settings_domain_cell('域名', $row['domain']);
+        vs_settings_domain_cell('站点名称', $row['site_name']);
+        vs_settings_domain_cell('ICP 备案号', $icp !== '' ? $icp : '未设置');
+        vs_settings_domain_cell('公安备案号', $gongan !== '' ? $gongan : '未设置');
         echo '</div>' . "\n";
         echo '<div class="vs-domain-card__actions">' . "\n";
-        echo '<a href="?edit_domain=' . (int) $row['id'] . '" class="vs-btn vs-btn--default vs-btn--sm">编辑</a>' . "\n";
+        echo '<a href="?edit_domain=' . (int) $row['id'] . '" class="vs-btn vs-btn--pill vs-btn--pill-primary">编辑</a>' . "\n";
         echo '<form method="post" class="vs-domain-delete-form" data-ajax="1">' . "\n";
         echo '<input type="hidden" name="action" value="delete_domain">' . "\n";
         echo '<input type="hidden" name="domain_id" value="' . (int) $row['id'] . '">' . "\n";
-        echo '<button type="submit" class="vs-btn vs-btn--text vs-btn--danger-text">删除</button>' . "\n";
+        echo '<button type="submit" class="vs-btn vs-btn--pill vs-btn--pill-danger">删除</button>' . "\n";
         echo '</form></div></article>' . "\n";
     }
+    echo '</div>' . "\n";
+}
+
+/**
+ * 域名卡片信息格
+ *
+ * @param string $label
+ * @param string $value
+ * @return void
+ */
+function vs_settings_domain_cell($label, $value)
+{
+    echo '<div class="vs-domain-card__cell">' . "\n";
+    echo '<span class="vs-domain-card__label">' . vs_e($label) . '</span>' . "\n";
+    echo '<span class="vs-domain-card__value">' . vs_e($value) . '</span>' . "\n";
     echo '</div>' . "\n";
 }
 

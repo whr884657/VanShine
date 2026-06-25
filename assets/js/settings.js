@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/settings.js
  * 作用：系统设置页 AJAX 保存与折叠板块
- * @version 1.0.13
+ * @version 1.0.16
  */
 
 (function () {
@@ -85,22 +85,18 @@
             var gongan = row.gongan_number ? String(row.gongan_number).trim() : '';
 
             html += '<article class="vs-domain-card" data-domain-id="' + row.id + '">';
-            html += '<div class="vs-domain-card__head">';
-            html += '<h4 class="vs-domain-card__domain">' + escapeHtml(row.domain) + '</h4>';
-            html += '<span class="vs-domain-card__site">' + escapeHtml(row.site_name) + '</span>';
-            html += '</div>';
-            html += '<div class="vs-domain-card__meta">';
-            html += '<div class="vs-domain-card__item"><span class="vs-domain-card__label">ICP 备案号</span>';
-            html += '<span class="vs-domain-card__value">' + escapeHtml(icp || '未设置') + '</span></div>';
-            html += '<div class="vs-domain-card__item"><span class="vs-domain-card__label">公安备案号</span>';
-            html += '<span class="vs-domain-card__value">' + escapeHtml(gongan || '未设置') + '</span></div>';
+            html += '<div class="vs-domain-card__grid">';
+            html += domainCell('域名', row.domain);
+            html += domainCell('站点名称', row.site_name);
+            html += domainCell('ICP 备案号', icp || '未设置');
+            html += domainCell('公安备案号', gongan || '未设置');
             html += '</div>';
             html += '<div class="vs-domain-card__actions">';
-            html += '<a href="?edit_domain=' + row.id + '" class="vs-btn vs-btn--default vs-btn--sm">编辑</a>';
+            html += '<a href="?edit_domain=' + row.id + '" class="vs-btn vs-btn--pill vs-btn--pill-primary">编辑</a>';
             html += '<form method="post" class="vs-domain-delete-form" data-ajax="1">';
             html += '<input type="hidden" name="action" value="delete_domain">';
             html += '<input type="hidden" name="domain_id" value="' + row.id + '">';
-            html += '<button type="submit" class="vs-btn vs-btn--text vs-btn--danger-text">删除</button>';
+            html += '<button type="submit" class="vs-btn vs-btn--pill vs-btn--pill-danger">删除</button>';
             html += '</form></div></article>';
         });
 
@@ -116,6 +112,12 @@
         var div = document.createElement('div');
         div.textContent = str == null ? '' : String(str);
         return div.innerHTML;
+    }
+
+    function domainCell(label, value) {
+        return '<div class="vs-domain-card__cell"><span class="vs-domain-card__label">'
+            + escapeHtml(label) + '</span><span class="vs-domain-card__value">'
+            + escapeHtml(value) + '</span></div>';
     }
 
     function bindDeleteForm(form) {

@@ -1,12 +1,11 @@
 {
-    "version": "1.0.15",
+    "version": "1.0.16",
     "release_date": "2026-06-26",
-    "title": "数据库迁移与安全加固",
+    "title": "绑定子域名卡片 UI 优化",
     "changes": [
-        "在线更新后自动执行 install/migrations 增量 SQL",
-        "更新过程双重保护 config/database.php 不被覆盖",
-        "移除公开文档中的密码算法说明",
-        "补全 site_logo 配置项迁移（若缺失）"
+        "绑定子域名卡片改为 2×2 信息格布局（域名、站点名称、ICP、公安备案）",
+        "手机端左右两列展示，四项信息同卡片内清晰分组",
+        "编辑/删除按钮改为胶囊样式，更紧凑美观"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

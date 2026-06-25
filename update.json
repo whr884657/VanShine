@@ -1,12 +1,14 @@
 {
-    "version": "1.0.18",
+    "version": "1.0.19",
     "release_date": "2026-06-26",
-    "title": "关于页版本展示优化",
+    "title": "修复在线更新 ZIP 下载与解压失败",
     "db_changes": false,
     "changes": [
-        "关于页移除标题下方重复的系统版本号",
-        "系统版本一行支持检测 Gitee 仓库新版本",
-        "有新版本时显示「当前 → 新版本」，点击跳转系统升级页"
+        "在线更新改为优先从 Gitee 发行版附件下载（VanShine{版本}.zip）",
+        "修复 Gitee 仓库快照返回 HTML 导致「无法打开 ZIP 文件」的问题",
+        "下载后校验 ZIP 文件头，跳过无效内容并自动尝试备用来源",
+        "修复 Windows/无 CA 环境下 HTTPS 下载 SSL 证书校验失败",
+        "修复发行包解压后项目根目录识别错误"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.18**
+**当前版本：1.0.19**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.18.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.19.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -127,15 +127,32 @@ VanShine/
 4. 若数据库结构有变 — 在 `install/migrations/` 新增 SQL，并将对应版本 `db_changes` 设为 `true`
 
 **更新过程：**
-- 从 Gitee 下载更新包并覆盖文件，**绝不替换** `config/database.php`
+- **优先**从 Gitee **发行版附件**下载（`VanShine{版本}.zip`），并校验 ZIP 文件头；无效时自动尝试备用来源
+- 覆盖项目文件，**绝不替换** `config/database.php`
 - **仅当**版本记录标明含数据库变更且存在待执行迁移 SQL 时，才执行数据库迁移
 - 更新前弹窗**二次确认**是否已备份数据
+
+**若在线更新失败：** 请从 [Gitee 发行页](https://gitee.com/xunjinlu/VanShine/releases) 手动下载最新 `VanShine{版本}.zip` 覆盖（保留 `config/database.php`）。
 
 **服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问 Gitee。
 
 ---
 
 ## 版本记录
+
+### v1.0.19（2026-06-26）
+
+**类型：** 修复在线更新 ZIP 下载与解压失败
+
+**涉及文件：**
+- `core/Updater.php`、`core/cacert.pem`
+- `update.json`、`update-log.json`、`core/version.php`、`README.md`
+
+**变更说明：**
+- 在线更新改为优先从 Gitee 发行版附件下载，不再依赖易返回 HTML 的仓库快照链接
+- 下载后校验 ZIP 文件头；修复 SSL 证书校验与发行包解压根目录识别
+
+---
 
 ### v1.0.18（2026-06-26）
 

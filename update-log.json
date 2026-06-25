@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.19",
+            "date": "2026-06-26",
+            "title": "修复在线更新 ZIP 下载与解压失败",
+            "db_changes": false,
+            "changes": [
+                "在线更新改为优先从 Gitee 发行版附件下载",
+                "修复仓库快照返回 HTML 导致 ZIP 无法打开",
+                "下载后校验 ZIP 文件头并自动尝试备用来源",
+                "修复 HTTPS SSL 证书校验与解压根目录识别"
+            ]
+        },
+        {
             "version": "1.0.18",
             "date": "2026-06-26",
             "title": "关于页版本展示优化",

@@ -2,7 +2,7 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.15
+ * @version 1.0.19
  */
 
 class Updater
@@ -11,6 +11,9 @@ class Updater
     const VERSION_URL  = 'https://gitee.com/xunjinlu/VanShine/raw/main/core/version.php';
     const DEFAULT_REPO = 'xunjinlu/VanShine';
     const DEFAULT_BRANCH = 'main';
+
+    /** @var string 最近一次下载/网络错误说明 */
+    private static $lastError = '';
 
     /**
      * 本地版本号
@@ -133,7 +136,11 @@ class Updater
 
         $repo = $check['repo'];
         $branch = $check['branch'];
-        $zipUrl = 'https://gitee.com/' . $repo . '/repository/archive/' . rawurlencode($branch) . '.zip';
+        $remoteVersion = $check['remote_version'];
+        $manifest = self::fetchRemoteManifest();
+        if (!is_array($manifest)) {
+            $manifest = array();
+        }
 
         $updateDir = self::updateDir();
         $zipPath = $updateDir . '/vanshine-update.zip';
@@ -141,15 +148,42 @@ class Updater
 
         self::cleanupPaths(array($zipPath, $extractDir));
 
-        if (!self::downloadFile($zipUrl, $zipPath)) {
+        $downloadOk = false;
+        $triedUrls = array();
+        foreach (self::buildUpdatePackageUrls($repo, $branch, $remoteVersion, $manifest) as $item) {
+            self::cleanupPaths(array($zipPath));
+            $triedUrls[] = $item['label'];
+            if (!self::downloadFile($item['url'], $zipPath)) {
+                continue;
+            }
+            if (!self::isValidZipFile($zipPath)) {
+                self::$lastError = '下载内容不是有效的 ZIP 更新包（' . $item['label'] . '）';
+                @unlink($zipPath);
+                continue;
+            }
+            $downloadOk = true;
+            break;
+        }
+
+        if (!$downloadOk) {
             self::cleanupPaths(array($zipPath, $extractDir));
-            return array('ok' => false, 'msg' => '更新包下载失败，请检查服务器网络或 Gitee 访问');
+            $detail = self::$lastError !== '' ? self::$lastError : '未知错误';
+            $sources = implode('、', $triedUrls);
+            return array(
+                'ok'  => false,
+                'msg' => '更新包下载失败（已尝试：' . $sources . '）。' . $detail . '。请检查服务器能否访问 Gitee，或稍后重试。',
+            );
         }
 
         $zip = new ZipArchive();
-        if ($zip->open($zipPath) !== true) {
+        $zipOpen = $zip->open($zipPath);
+        if ($zipOpen !== true) {
             self::cleanupPaths(array($zipPath, $extractDir));
-            return array('ok' => false, 'msg' => '更新包解压失败：无法打开 ZIP 文件');
+            $size = is_file($zipPath) ? (int) filesize($zipPath) : 0;
+            return array(
+                'ok'  => false,
+                'msg' => '更新包解压失败：无法打开 ZIP 文件（文件大小 ' . $size . ' 字节）。请确认 Gitee 发行附件已上传，或联系管理员。',
+            );
         }
 
         if (!is_dir($extractDir)) {
@@ -288,6 +322,99 @@ class Updater
     }
 
     /**
+     * 构建更新包下载地址（优先 Gitee 发行版附件）
+     *
+     * @param string $repo
+     * @param string $branch
+     * @param string $version
+     * @param array  $manifest
+     * @return array
+     */
+    public static function buildUpdatePackageUrls($repo, $branch, $version, array $manifest = array())
+    {
+        $urls = array();
+        if (!empty($manifest['package_url'])) {
+            $urls[] = array('label' => '自定义更新包', 'url' => $manifest['package_url']);
+        }
+
+        $ver = ltrim(trim($version), 'vV');
+        if ($ver !== '') {
+            $tag = 'v' . $ver;
+            $fileName = 'VanShine' . $ver . '.zip';
+            $urls[] = array(
+                'label' => 'Gitee 发行版',
+                'url'   => 'https://gitee.com/' . $repo . '/releases/download/'
+                    . rawurlencode($tag) . '/' . rawurlencode($fileName),
+            );
+        }
+
+        $urls[] = array(
+            'label' => '仓库快照',
+            'url'   => 'https://gitee.com/' . $repo . '/repository/archive/' . rawurlencode($branch) . '.zip',
+        );
+
+        return $urls;
+    }
+
+    /**
+     * 是否为有效 ZIP 文件（PK 头）
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isValidZipFile($path)
+    {
+        if (!is_file($path) || filesize($path) < 22) {
+            return false;
+        }
+        $h = @fopen($path, 'rb');
+        if (!$h) {
+            return false;
+        }
+        $magic = fread($h, 4);
+        fclose($h);
+        return $magic === "PK\x03\x04" || $magic === "PK\x05\x06" || $magic === "PK\x07\x08";
+    }
+
+    /**
+     * 获取最近一次错误说明
+     *
+     * @return string
+     */
+    public static function getLastError()
+    {
+        return self::$lastError;
+    }
+
+    /**
+     * 为 cURL 配置 SSL（优先系统/内置 CA 证书）
+     *
+     * @param resource $ch
+     * @return void
+     */
+    public static function configureCurlSsl($ch)
+    {
+        $caInfo = ini_get('curl.cainfo');
+        if ($caInfo !== '' && is_file($caInfo)) {
+            curl_setopt($ch, CURLOPT_CAINFO, $caInfo);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            return;
+        }
+
+        $bundled = VS_ROOT . '/core/cacert.pem';
+        if (is_file($bundled)) {
+            curl_setopt($ch, CURLOPT_CAINFO, $bundled);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            return;
+        }
+
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    }
+
+    /**
      * HTTP GET
      *
      * @param string $url
@@ -301,16 +428,21 @@ class Updater
             curl_setopt_array($ch, array(
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS        => 10,
                 CURLOPT_CONNECTTIMEOUT => $timeout,
                 CURLOPT_TIMEOUT        => $timeout,
-                CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_USERAGENT      => 'VanShine-Updater/' . self::localVersion(),
             ));
+            self::configureCurlSsl($ch);
             $body = curl_exec($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
             curl_close($ch);
             if ($body !== false && $code >= 200 && $code < 300) {
                 return $body;
+            }
+            if ($error !== '') {
+                self::$lastError = $error;
             }
             return false;
         }
@@ -327,7 +459,11 @@ class Updater
             ),
         ));
 
-        return @file_get_contents($url, false, $context);
+        $body = @file_get_contents($url, false, $context);
+        if ($body === false) {
+            self::$lastError = 'HTTP 请求失败';
+        }
+        return $body;
     }
 
     /**
@@ -339,36 +475,60 @@ class Updater
      */
     public static function downloadFile($url, $dest)
     {
+        self::$lastError = '';
+
         if (function_exists('curl_init')) {
             $fp = @fopen($dest, 'wb');
             if (!$fp) {
+                self::$lastError = '无法写入临时文件：' . basename($dest);
                 return false;
             }
             $ch = curl_init($url);
             curl_setopt_array($ch, array(
                 CURLOPT_FILE           => $fp,
                 CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS      => 10,
                 CURLOPT_CONNECTTIMEOUT => 30,
                 CURLOPT_TIMEOUT        => 300,
-                CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_USERAGENT      => 'VanShine-Updater/' . self::localVersion(),
             ));
+            self::configureCurlSsl($ch);
             $ok = curl_exec($ch) !== false;
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
             curl_close($ch);
             fclose($fp);
             if (!$ok || $code < 200 || $code >= 300) {
+                if ($error !== '') {
+                    self::$lastError = $error;
+                } elseif ($code > 0) {
+                    self::$lastError = 'HTTP 状态码 ' . $code;
+                } else {
+                    self::$lastError = '网络连接失败';
+                }
                 @unlink($dest);
                 return false;
             }
-            return is_file($dest) && filesize($dest) > 0;
+            if (!is_file($dest) || filesize($dest) <= 0) {
+                self::$lastError = '下载文件为空';
+                @unlink($dest);
+                return false;
+            }
+            return true;
         }
 
         $body = self::httpGet($url, 300);
         if ($body === false || $body === '') {
+            if (self::$lastError === '') {
+                self::$lastError = 'HTTP 请求失败';
+            }
             return false;
         }
-        return file_put_contents($dest, $body) !== false;
+        if (file_put_contents($dest, $body) === false) {
+            self::$lastError = '无法写入临时文件';
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -412,22 +572,50 @@ class Updater
             return null;
         }
 
+        if (self::looksLikeProjectRoot($extractDir)) {
+            return $extractDir;
+        }
+
         $items = scandir($extractDir);
         if ($items === false) {
             return null;
         }
 
+        $dirs = array();
         foreach ($items as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
             $path = $extractDir . DIRECTORY_SEPARATOR . $item;
             if (is_dir($path)) {
+                $dirs[] = $path;
+            }
+        }
+
+        foreach ($dirs as $path) {
+            if (self::looksLikeProjectRoot($path)) {
                 return $path;
             }
         }
 
-        return $extractDir;
+        if (count($dirs) === 1) {
+            return $dirs[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * 目录是否像 VanShine 项目根
+     *
+     * @param string $dir
+     * @return bool
+     */
+    public static function looksLikeProjectRoot($dir)
+    {
+        return is_file($dir . '/core/version.php')
+            || is_file($dir . '/index.php')
+            || is_file($dir . '/update.json');
     }
 
     /**

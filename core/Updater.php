@@ -2,7 +2,7 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.21
+ * @version 1.0.22
  */
 
 class Updater
@@ -11,6 +11,13 @@ class Updater
     const VERSION_URL  = 'https://gitee.com/xunjinlu/VanShine/raw/main/core/version.php';
     const DEFAULT_REPO = 'xunjinlu/VanShine';
     const DEFAULT_BRANCH = 'main';
+
+    /** Gitee 更新可信域名（直连 HTTPS，不依赖本地 CA 证书包） */
+    const TRUSTED_UPDATE_HOSTS = array(
+        'gitee.com',
+        'www.gitee.com',
+        'foruda.gitee.com',
+    );
 
     /** @var string 最近一次下载/网络错误说明 */
     private static $lastError = '';
@@ -333,7 +340,7 @@ class Updater
     public static function buildUpdatePackageUrls($repo, $branch, $version, array $manifest = array())
     {
         $urls = array();
-        if (!empty($manifest['package_url'])) {
+        if (!empty($manifest['package_url']) && self::isTrustedUpdateUrl($manifest['package_url'])) {
             $urls[] = array('label' => '自定义更新包', 'url' => $manifest['package_url']);
         }
 
@@ -343,17 +350,48 @@ class Updater
             $fileName = 'VanShine' . $ver . '.zip';
             $urls[] = array(
                 'label' => 'Gitee 发行版',
-                'url'   => 'https://gitee.com/' . $repo . '/releases/download/'
-                    . rawurlencode($tag) . '/' . rawurlencode($fileName),
+                'url'   => self::buildReleasePackageUrl($repo, $ver),
             );
         }
 
-        $urls[] = array(
-            'label' => '仓库快照',
-            'url'   => 'https://gitee.com/' . $repo . '/repository/archive/' . rawurlencode($branch) . '.zip',
-        );
-
         return $urls;
+    }
+
+    /**
+     * Gitee 发行版压缩包直链（与浏览器下载一致）
+     *
+     * @param string $repo  如 xunjinlu/VanShine
+     * @param string $version 如 1.0.22
+     * @return string
+     */
+    public static function buildReleasePackageUrl($repo, $version)
+    {
+        $ver = ltrim(trim($version), 'vV');
+        $tag = 'v' . $ver;
+        $fileName = 'VanShine' . $ver . '.zip';
+        return 'https://gitee.com/' . $repo . '/releases/download/'
+            . rawurlencode($tag) . '/' . rawurlencode($fileName);
+    }
+
+    /**
+     * 是否为 VanShine 更新可信 HTTPS 地址（仅 Gitee 官方域名）
+     *
+     * @param string $url
+     * @return bool
+     */
+    public static function isTrustedUpdateUrl($url)
+    {
+        if ($url === '' || !is_string($url)) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+        if (empty($parts['scheme']) || strtolower($parts['scheme']) !== 'https') {
+            return false;
+        }
+
+        $host = isset($parts['host']) ? strtolower($parts['host']) : '';
+        return in_array($host, self::TRUSTED_UPDATE_HOSTS, true);
     }
 
     /**
@@ -387,88 +425,27 @@ class Updater
     }
 
     /**
-     * 路径是否在 open_basedir 允许范围内（避免 is_file 触发 Warning）
+     * 为 cURL 配置 SSL
      *
-     * @param string $path
-     * @return bool
-     */
-    public static function isPathAllowed($path)
-    {
-        if ($path === '' || !is_string($path)) {
-            return false;
-        }
-
-        $path = str_replace('\\', '/', $path);
-        $root = str_replace('\\', '/', VS_ROOT);
-        if (strpos($path, $root . '/') === 0 || $path === $root) {
-            return true;
-        }
-
-        $openBasedir = ini_get('open_basedir');
-        if ($openBasedir === '' || $openBasedir === false) {
-            return true;
-        }
-
-        foreach (explode(PATH_SEPARATOR, $openBasedir) as $base) {
-            $base = rtrim(str_replace('\\', '/', $base), '/');
-            if ($base === '') {
-                continue;
-            }
-            if (strpos($path, $base . '/') === 0 || $path === $base) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * 安全判断本地文件是否可读（不触碰 open_basedir 外的路径）
-     *
-     * @param string $path
-     * @return bool
-     */
-    public static function isReadableLocalFile($path)
-    {
-        if (!self::isPathAllowed($path)) {
-            return false;
-        }
-        return is_file($path) && is_readable($path);
-    }
-
-    /**
-     * 为 cURL 配置 SSL（优先项目内置 CA，兼容宝塔 open_basedir）
+     * Gitee 发行源使用 HTTPS 直连下载，不绑定本地 cacert.pem：
+     * - 站点 HTTPS 证书与「出站访问 Gitee」无关
+     * - 本地 CA 根证书包会随时间过时，且受 open_basedir 限制
+     * - 仅对白名单域名放宽链校验，下载后仍校验 ZIP 文件头
      *
      * @param resource $ch
+     * @param string   $url
      * @return void
      */
-    public static function configureCurlSsl($ch)
+    public static function configureCurlSsl($ch, $url = '')
     {
-        $candidates = array(
-            VS_ROOT . '/core/cacert.pem',
-        );
-
-        $iniCa = ini_get('curl.cainfo');
-        if ($iniCa !== '' && $iniCa !== false) {
-            $candidates[] = $iniCa;
+        if ($url !== '' && self::isTrustedUpdateUrl($url)) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            return;
         }
 
-        $opensslCa = ini_get('openssl.cafile');
-        if ($opensslCa !== '' && $opensslCa !== false) {
-            $candidates[] = $opensslCa;
-        }
-
-        foreach ($candidates as $caFile) {
-            if (self::isReadableLocalFile($caFile)) {
-                curl_setopt($ch, CURLOPT_CAINFO, $caFile);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-                return;
-            }
-        }
-
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     }
 
     /**
@@ -490,7 +467,7 @@ class Updater
                 CURLOPT_TIMEOUT        => $timeout,
                 CURLOPT_USERAGENT      => 'VanShine-Updater/' . self::localVersion(),
             ));
-            self::configureCurlSsl($ch);
+            self::configureCurlSsl($ch, $url);
             $body = curl_exec($ch);
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $error = curl_error($ch);
@@ -504,16 +481,18 @@ class Updater
             return false;
         }
 
+        $sslOptions = array(
+            'verify_peer'      => !self::isTrustedUpdateUrl($url),
+            'verify_peer_name' => !self::isTrustedUpdateUrl($url),
+        );
+
         $context = stream_context_create(array(
             'http' => array(
                 'method'  => 'GET',
                 'timeout' => $timeout,
                 'header'  => "User-Agent: VanShine-Updater/" . self::localVersion() . "\r\n",
             ),
-            'ssl' => array(
-                'verify_peer'      => true,
-                'verify_peer_name' => true,
-            ),
+            'ssl' => $sslOptions,
         ));
 
         $body = @file_get_contents($url, false, $context);
@@ -549,7 +528,7 @@ class Updater
                 CURLOPT_TIMEOUT        => 300,
                 CURLOPT_USERAGENT      => 'VanShine-Updater/' . self::localVersion(),
             ));
-            self::configureCurlSsl($ch);
+            self::configureCurlSsl($ch, $url);
             $ok = curl_exec($ch) !== false;
             $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $error = curl_error($ch);

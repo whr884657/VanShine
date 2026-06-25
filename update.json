@@ -1,12 +1,13 @@
 {
-    "version": "1.0.21",
+    "version": "1.0.22",
     "release_date": "2026-06-26",
-    "title": "修复版本检测 open_basedir 报错",
+    "title": "在线更新 SSL 策略优化",
     "db_changes": false,
     "changes": [
-        "修复宝塔等 open_basedir 环境下检测系统 CA 路径触发 Warning 导致 JSON 异常",
-        "SSL 优先使用项目内置 cacert.pem，避免访问 /etc/ssl 目录",
-        "恢复系统升级页、登录弹窗的版本检测与更新提示"
+        "更新包仅通过 Gitee 发行版直链下载，与浏览器下载地址一致",
+        "移除本地 cacert.pem，不再依赖会过时的 CA 根证书包",
+        "出站 HTTPS 限定 Gitee 白名单域名，下载后校验 ZIP 文件头",
+        "移除不可靠的仓库快照备用源"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

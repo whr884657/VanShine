@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.21**
+**当前版本：1.0.22**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.21.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.22.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -127,7 +127,10 @@ VanShine/
 4. 若数据库结构有变 — 在 `install/migrations/` 新增 SQL，并将对应版本 `db_changes` 设为 `true`
 
 **更新过程：**
-- **优先**从 Gitee **发行版附件**下载（`VanShine{版本}.zip`），并校验 ZIP 文件头；无效时自动尝试备用来源
+- 从 Gitee **发行版直链**下载（与浏览器相同）：  
+  `https://gitee.com/xunjinlu/VanShine/releases/download/v{版本}/VanShine{版本}.zip`
+- 出站 HTTPS 仅连接 Gitee 白名单域名，**不依赖**本地 `cacert.pem`（避免 CA 包过期与 open_basedir 问题；与您站点是否启用 HTTPS 无关）
+- 下载后校验 **ZIP 文件头**（`PK` 魔数），再解压覆盖
 - 覆盖项目文件，**绝不替换** `config/database.php`
 - **仅当**版本记录标明含数据库变更且存在待执行迁移 SQL 时，才执行数据库迁移
 - 更新前弹窗**二次确认**是否已备份数据
@@ -139,6 +142,20 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.22（2026-06-26）
+
+**类型：** 在线更新 SSL 策略优化
+
+**涉及文件：**
+- `core/Updater.php`（移除 `core/cacert.pem`）
+- `update.json`、`update-log.json`、`core/version.php`、`README.md`
+
+**变更说明：**
+- 更新包仅通过 Gitee 发行版直链下载，不再使用易过时的本地 CA 证书包
+- 出站 HTTPS 限定 Gitee 白名单域名，下载后校验 ZIP 文件头
+
+---
 
 ### v1.0.21（2026-06-26）
 

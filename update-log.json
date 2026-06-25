@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.22",
+            "date": "2026-06-26",
+            "title": "在线更新 SSL 策略优化",
+            "db_changes": false,
+            "changes": [
+                "发行版直链下载 VanShine{版本}.zip",
+                "移除 cacert.pem，不依赖本地 CA 证书包",
+                "Gitee 域名白名单 + ZIP 文件头校验",
+                "移除仓库快照备用下载源"
+            ]
+        },
+        {
             "version": "1.0.21",
             "date": "2026-06-26",
             "title": "修复版本检测 open_basedir 报错",

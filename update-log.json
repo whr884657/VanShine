@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.23",
+            "date": "2026-06-26",
+            "title": "修复数据库结构更新重复字段报错",
+            "db_changes": false,
+            "changes": [
+                "修复 avatar_url 已存在时更新失败",
+                "结构更新前检测字段是否已存在，避免重复 ADD COLUMN",
+                "文案改为「数据库结构更新」"
+            ]
+        },
+        {
             "version": "1.0.22",
             "date": "2026-06-26",
             "title": "在线更新 SSL 策略优化",

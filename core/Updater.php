@@ -222,7 +222,7 @@ class Updater
 
         self::cleanupPaths(array($zipPath, $extractDir));
 
-        $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过迁移');
+        $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过');
         if (DatabaseMigrator::hasPendingMigrations()) {
             $migration = DatabaseMigrator::runPending();
             if (empty($migration['ok'])) {
@@ -236,7 +236,7 @@ class Updater
 
         $msg = '更新完成，当前版本 v' . $check['remote_version'];
         if (!empty($migration['applied'])) {
-            $msg .= '，已同步数据库（' . implode('、', $migration['applied']) . '）';
+            $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
         } else {
             $msg .= '（本次无数据库结构变更）';
         }

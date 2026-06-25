@@ -67,9 +67,9 @@
         }
 
         if (data.has_db_changes) {
-            html += '<p class="vs-update-modal__tip vs-update-modal__tip--warn">本次更新包含数据库结构变更，更新后将自动执行迁移 SQL。</p>';
+            html += '<p class="vs-update-modal__tip vs-update-modal__tip--warn">本次更新包含数据库结构变更，更新后将自动执行结构更新 SQL。</p>';
         } else {
-            html += '<p class="vs-update-modal__tip">本次更新<strong>不涉及</strong>数据库表结构变更，不会执行数据库迁移脚本。</p>';
+            html += '<p class="vs-update-modal__tip">本次更新<strong>不涉及</strong>数据库表结构变更，不会执行数据库结构更新脚本。</p>';
         }
         html += '<p class="vs-update-modal__tip">绝不会替换 config/database.php，完成后自动清理临时文件。</p>';
         html += '</div>';
@@ -114,7 +114,7 @@
 
     function confirmBackupThenUpdate(data) {
         var dbTip = data.has_db_changes
-            ? '本次更新将执行数据库迁移，请务必先备份数据库。'
+            ? '本次更新将执行数据库结构更新，请务必先备份数据库。'
             : '本次更新不涉及数据库结构变更，仍建议备份数据库与网站文件以防万一。';
 
         var html = '<div class="vs-update-modal">';

@@ -1,8 +1,8 @@
 <?php
 /**
  * 文件：core/DatabaseMigrator.php
- * 作用：版本更新时执行 install/migrations 下的增量 SQL
- * @version 1.0.15
+ * 作用：版本更新时执行 install/migrations 下的增量 SQL（数据库结构更新）
+ * @version 1.0.23
  */
 
 class DatabaseMigrator
@@ -10,7 +10,7 @@ class DatabaseMigrator
     const CONFIG_KEY = 'schema_migrations';
 
     /**
-     * 迁移脚本目录
+     * 结构更新脚本目录
      *
      * @return string
      */
@@ -20,15 +20,17 @@ class DatabaseMigrator
     }
 
     /**
-     * 执行尚未应用的迁移
+     * 执行尚未应用的结构更新
      *
      * @return array
      */
     public static function runPending()
     {
         if (!InstallChecker::isInstalled()) {
-            return array('ok' => true, 'msg' => '系统未安装，跳过数据库迁移', 'applied' => array());
+            return array('ok' => true, 'msg' => '系统未安装，跳过数据库结构更新', 'applied' => array());
         }
+
+        self::reconcileSchemaState();
 
         $pending = self::getPendingFiles();
         if (count($pending) === 0) {
@@ -49,7 +51,7 @@ class DatabaseMigrator
         } catch (Exception $e) {
             return array(
                 'ok'      => false,
-                'msg'     => '数据库迁移失败：' . $e->getMessage(),
+                'msg'     => '数据库结构更新失败：' . $e->getMessage(),
                 'applied' => $applied,
             );
         }
@@ -58,18 +60,38 @@ class DatabaseMigrator
 
         return array(
             'ok'      => true,
-            'msg'     => count($applied) > 0 ? '已执行 ' . count($applied) . ' 项数据库迁移' : '数据库结构已是最新',
+            'msg'     => count($applied) > 0 ? '已执行 ' . count($applied) . ' 项数据库结构更新' : '数据库结构已是最新',
             'applied' => $applied,
         );
     }
 
     /**
-     * 待执行的迁移文件（按版本升序）
+     * 根据当前表结构同步已完成的更新记录（避免重复 ADD COLUMN 报错）
+     *
+     * @return void
+     */
+    public static function reconcileSchemaState()
+    {
+        if (!InstallChecker::isInstalled()) {
+            return;
+        }
+
+        $applied = self::getAppliedVersions();
+
+        if (!in_array('1.0.20', $applied, true) && self::tableColumnExists('admin', 'avatar_url')) {
+            self::markApplied('1.0.20');
+        }
+    }
+
+    /**
+     * 待执行的结构更新脚本（按版本升序）
      *
      * @return array
      */
     public static function getPendingFiles()
     {
+        self::reconcileSchemaState();
+
         $dir = self::migrationsDir();
         if (!is_dir($dir)) {
             return array();
@@ -98,7 +120,7 @@ class DatabaseMigrator
     }
 
     /**
-     * 是否存在待执行的迁移
+     * 是否存在待执行的结构更新
      *
      * @return bool
      */
@@ -108,7 +130,7 @@ class DatabaseMigrator
     }
 
     /**
-     * 指定迁移文件是否尚未执行
+     * 指定脚本是否尚未执行
      *
      * @param string $filename 如 1.0.15.sql
      * @return bool
@@ -121,7 +143,7 @@ class DatabaseMigrator
     }
 
     /**
-     * 已应用的迁移版本
+     * 已应用的结构更新版本
      *
      * @return array
      */
@@ -141,7 +163,7 @@ class DatabaseMigrator
     }
 
     /**
-     * 标记迁移版本已应用
+     * 标记结构更新版本已应用
      *
      * @param string $version
      * @return void
@@ -158,7 +180,27 @@ class DatabaseMigrator
     }
 
     /**
-     * 执行单个迁移文件
+     * 表字段是否已存在
+     *
+     * @param string $tableShort 不含前缀的表名，如 admin
+     * @param string $column
+     * @return bool
+     */
+    public static function tableColumnExists($tableShort, $column)
+    {
+        try {
+            $pdo = Database::connect();
+            $table = Database::table($tableShort);
+            $stmt = $pdo->prepare('SHOW COLUMNS FROM `' . $table . '` LIKE ?');
+            $stmt->execute(array($column));
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * 执行单个结构更新脚本
      *
      * @param PDO    $pdo
      * @param string $file
@@ -169,7 +211,13 @@ class DatabaseMigrator
     public static function executeFile(PDO $pdo, $file, $prefix)
     {
         if (!is_file($file) || !is_readable($file)) {
-            throw new Exception('迁移文件不可读：' . basename($file));
+            throw new Exception('结构更新脚本不可读：' . basename($file));
+        }
+
+        $version = basename($file, '.sql');
+        if ($version === '1.0.20') {
+            self::applyAdminAvatarUrlColumn($pdo, $prefix);
+            return;
         }
 
         $sql = file_get_contents($file);
@@ -177,7 +225,69 @@ class DatabaseMigrator
         $statements = DatabaseInstaller::parseSqlStatements($sql);
 
         foreach ($statements as $statement) {
-            $pdo->exec($statement);
+            self::execStatement($pdo, $statement);
         }
+    }
+
+    /**
+     * v1.0.20：安全添加 avatar_url 字段（已存在则跳过）
+     *
+     * @param PDO    $pdo
+     * @param string $prefix
+     * @return void
+     */
+    public static function applyAdminAvatarUrlColumn(PDO $pdo, $prefix)
+    {
+        if (self::tableColumnExists('admin', 'avatar_url')) {
+            return;
+        }
+
+        $table = $prefix . 'admin';
+        $pdo->exec(
+            'ALTER TABLE `' . $table . '` ADD COLUMN `avatar_url` varchar(500) NOT NULL DEFAULT \'\' '
+            . 'COMMENT \'自定义头像链接\' AFTER `email`'
+        );
+    }
+
+    /**
+     * 执行单条 SQL，忽略「已存在/已删除」类无害错误
+     *
+     * @param PDO    $pdo
+     * @param string $statement
+     * @return void
+     * @throws Exception
+     */
+    public static function execStatement(PDO $pdo, $statement)
+    {
+        try {
+            $pdo->exec($statement);
+        } catch (PDOException $e) {
+            if (self::isIgnorableSqlError($e)) {
+                return;
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * 是否为可忽略的结构更新错误（字段/索引已存在等）
+     *
+     * @param PDOException $e
+     * @return bool
+     */
+    public static function isIgnorableSqlError(PDOException $e)
+    {
+        if (!is_array($e->errorInfo) || !isset($e->errorInfo[1])) {
+            return false;
+        }
+
+        $code = (int) $e->errorInfo[1];
+        return in_array($code, array(
+            1050, // Table already exists
+            1060, // Duplicate column name
+            1061, // Duplicate key name
+            1062, // Duplicate entry
+            1091, // Can't DROP; check that column/key exists
+        ), true);
     }
 }

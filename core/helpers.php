@@ -17,6 +17,36 @@ function vs_e($value)
 }
 
 /**
+ * 渲染系统版本展示（有新版本时显示箭头与可点击的新版本号）
+ *
+ * @param array|null $updateCheck Updater::checkForUpdate() 结果
+ * @return string
+ */
+function vs_render_version_display($updateCheck = null)
+{
+    $local = 'v' . VS_VERSION;
+    $upgradeUrl = vs_base_url() . '/admin/upgrade.php';
+
+    if (
+        is_array($updateCheck)
+        && !empty($updateCheck['update_available'])
+        && !empty($updateCheck['remote_version'])
+    ) {
+        $remote = $updateCheck['remote_version'];
+        $html = '<span class="vs-version-display">';
+        $html .= '<span class="vs-version-display__current">' . vs_e($local) . '</span>';
+        $html .= '<span class="vs-version-display__arrow" aria-hidden="true">→</span>';
+        $html .= '<a href="' . vs_e($upgradeUrl) . '" class="vs-version-display__new" title="前往系统升级">';
+        $html .= '<span class="vs-version-display__badge">新</span>';
+        $html .= 'v' . vs_e($remote);
+        $html .= '</a></span>';
+        return $html;
+    }
+
+    return vs_e($local);
+}
+
+/**
  * 密码哈希（不可逆，算法不对外公开）
  *
  * @param string $password

@@ -784,6 +784,47 @@ select.vs-input {
     word-break: break-all;
 }
 
+.vs-version-display {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.vs-version-display__current {
+    color: var(--vs-text);
+}
+
+.vs-version-display__arrow {
+    color: var(--vs-text-secondary);
+    font-size: 13px;
+}
+
+.vs-version-display__new {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--vs-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.vs-version-display__new:hover {
+    color: var(--vs-primary-hover);
+    text-decoration: underline;
+}
+
+.vs-version-display__badge {
+    display: inline-block;
+    padding: 0 5px;
+    font-size: 11px;
+    line-height: 18px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--vs-danger);
+    border-radius: 4px;
+}
+
 @media (max-width: 768px) {
     .vs-info-grid {
         grid-template-columns: 1fr;

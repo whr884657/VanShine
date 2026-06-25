@@ -1,12 +1,12 @@
 {
-    "version": "1.0.26",
+    "version": "1.0.27",
     "release_date": "2026-06-26",
-    "title": "在线更新临时文件清理",
+    "title": "关于页信息布局统一",
     "db_changes": false,
     "changes": [
-        "升级完成后自动清空 storage/update 下的 ZIP 与解压目录",
-        "升级失败时同样清理临时文件，避免残留 vanshine-update.zip",
-        "发行包排除 storage 运行时目录，在线更新不覆盖服务器 storage"
+        "关于页每项信息独占一行，名称在左、内容在右",
+        "电脑端两列展示，手机端单列展示",
+        "移除长短不一的整行/多列混排样式"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

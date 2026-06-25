@@ -2,7 +2,7 @@
 /**
  * 文件：core/SystemInfo.php
  * 作用：服务器与运行环境信息（关于页面）
- * @version 1.0.24
+ * @version 1.0.27
  */
 
 class SystemInfo
@@ -24,8 +24,7 @@ class SystemInfo
             self::item('当前域名', SiteContext::currentHost()),
             self::item(
                 '服务器软件',
-                isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '未知',
-                true
+                isset($_SERVER['SERVER_SOFTWARE']) ? $_SERVER['SERVER_SOFTWARE'] : '未知'
             ),
         );
 
@@ -39,7 +38,7 @@ class SystemInfo
             }
 
             $primaryDomain = Config::get('primary_domain', '') ?: '未设置（使用系统默认信息）';
-            $info[] = self::item('主绑定域名', $primaryDomain, true);
+            $info[] = self::item('主绑定域名', $primaryDomain);
             $info[] = self::item('绑定子域名数', (string) count(Domain::all()));
         }
 
@@ -49,15 +48,13 @@ class SystemInfo
     /**
      * @param string $label
      * @param string $value
-     * @param bool   $wide  是否占满整行（内容较长时使用）
      * @return array
      */
-    private static function item($label, $value, $wide = false)
+    private static function item($label, $value)
     {
         return array(
             'label' => $label,
             'value' => $value,
-            'wide'  => $wide,
         );
     }
 }

@@ -56,7 +56,7 @@
 ### 全新安装
 
 1. 下载 `VanShine1.0.15.zip` 并解压到 Web 目录  
-2. 确保 `config/`、`storage/` 目录可写  
+2. 确保 `config/` 目录可写（在线更新时会自动创建 `storage/` 临时目录）
 3. 创建 MySQL 空数据库  
 4. 浏览器访问 `https://你的域名/install` 完成五步安装  
 

@@ -177,7 +177,7 @@ VanShine/
 - `core/Updater.php`、`admin/update.php`（新增）
 - `assets/js/update-check.js`、`assets/js/modal.js`（扩展 HTML 弹窗）
 - `assets/css/modal.css`、`admin/includes/layout.php`
-- `storage/`（更新临时目录）
+- 在线更新时会**自动创建** `storage/update/` 临时目录（无需纳入仓库、无需手动上传）
 - `core/bootstrap.php`、`core/version.php`、`README.md`
 
 **变更说明：**

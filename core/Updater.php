@@ -29,11 +29,34 @@ class Updater
      */
     public static function updateDir()
     {
-        $dir = VS_ROOT . '/storage/update';
+        $root = VS_ROOT . '/storage';
+        $dir = $root . '/update';
+
+        if (!is_dir($root)) {
+            @mkdir($root, 0755, true);
+            self::writeDenyHtaccess($root);
+        }
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
+        self::writeDenyHtaccess($dir);
+
         return $dir;
+    }
+
+    /**
+     * 写入禁止 Web 访问的 .htaccess（Apache）
+     *
+     * @param string $dir
+     * @return void
+     */
+    public static function writeDenyHtaccess($dir)
+    {
+        $file = rtrim($dir, '/\\') . '/.htaccess';
+        if (is_file($file)) {
+            return;
+        }
+        @file_put_contents($file, "Deny from all\n");
     }
 
     /**

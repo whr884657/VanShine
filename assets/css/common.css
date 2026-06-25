@@ -330,13 +330,49 @@ a:hover {
 
 .vs-footer {
     padding: 24px 0;
-    text-align: center;
-    color: var(--vs-text-secondary);
-    font-size: 13px;
-    border-top: 1px solid var(--vs-border);
     margin-top: auto;
+    border-top: 1px solid var(--vs-border);
 }
 
+.vs-site-footer {
+    width: 100%;
+}
+
+.vs-site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 20px;
+    color: var(--vs-text-secondary);
+    font-size: 13px;
+    text-align: center;
+}
+
+.vs-site-footer__item a {
+    color: var(--vs-text-secondary);
+    text-decoration: none;
+}
+
+.vs-site-footer__item a:hover {
+    color: var(--vs-primary);
+}
+
+.vs-site-footer__gongan-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vs-gongan-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* 兼容旧类名 */
 .vs-beian {
     margin-top: 8px;
     font-size: 12px;
@@ -386,5 +422,10 @@ a:hover {
 
     .vs-nav {
         gap: 16px;
+    }
+
+    .vs-site-footer__inner {
+        flex-direction: column;
+        gap: 8px;
     }
 }

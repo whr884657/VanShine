@@ -145,9 +145,9 @@ class SiteContext
     {
         $code = preg_replace('/\D/', '', $number);
         if ($code === '') {
-            return 'https://www.beian.gov.cn/portal/index.do';
+            return 'https://beian.mps.gov.cn/';
         }
-        return 'http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=' . $code;
+        return 'https://beian.mps.gov.cn/#/query/webSearch?code=' . rawurlencode($code);
     }
 
     /**

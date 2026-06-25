@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.19**
+**当前版本：1.0.20**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.19.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.20.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -139,6 +139,24 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.20（2026-06-26）
+
+**类型：** 用户头像 + 备案页脚优化
+
+**涉及文件：**
+- `core/UserAvatar.php`、`core/Auth.php`、`admin/account.php`
+- `admin/includes/layout.php`、`assets/js/account.js`
+- `core/SiteContext.php`、`core/helpers.php`、`index.php`
+- `assets/css/admin.css`、`assets/css/common.css`
+- `assets/img/gov.png`、`assets/img/avatar/`
+- `install/migrations/1.0.20.sql`
+
+**变更说明：**
+- 顶部栏显示圆形头像（QQ 邮箱自动 QQ 头像 / 自定义链接 / 本地随机）
+- 账号设置可填头像链接并预览；公安备案链接与页脚布局优化
+
+---
 
 ### v1.0.19（2026-06-26）
 

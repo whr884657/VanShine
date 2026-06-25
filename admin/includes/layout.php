@@ -175,7 +175,12 @@ function vs_admin_layout_start($pageTitle, $activeMenu = '')
     echo '<span class="vs-topbar__title">' . vs_e($siteName) . '</span>' . "\n";
     echo '</div>' . "\n";
     echo '<div class="vs-topbar__right">' . "\n";
-    echo '<span class="vs-topbar__user">' . vs_e($admin ? $admin['username'] : '') . '</span>' . "\n";
+    if ($admin) {
+        $avatarUrl = UserAvatar::resolve($admin);
+        echo '<a href="' . vs_e($base) . '/admin/account.php" class="vs-topbar__avatar-link" title="账号设置">' . "\n";
+        echo '<img src="' . vs_e($avatarUrl) . '" alt="" class="vs-topbar__avatar" width="32" height="32">' . "\n";
+        echo '</a>' . "\n";
+    }
     echo '<a href="' . vs_e($base) . '/admin/login.php?action=logout" class="vs-topbar__logout">退出</a>' . "\n";
     echo '</div>' . "\n";
     echo '</header>' . "\n";

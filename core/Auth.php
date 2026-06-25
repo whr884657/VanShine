@@ -169,7 +169,7 @@ class Auth
         try {
             $pdo = Database::connect();
             $table = Database::table('admin');
-            $stmt = $pdo->prepare('SELECT `id`, `username`, `email`, `created_at` FROM `' . $table . '` WHERE `id` = ? LIMIT 1');
+            $stmt = $pdo->prepare('SELECT `id`, `username`, `email`, `avatar_url`, `created_at` FROM `' . $table . '` WHERE `id` = ? LIMIT 1');
             $stmt->execute(array(self::id()));
             return $stmt->fetch() ?: null;
         } catch (Exception $e) {
@@ -183,9 +183,10 @@ class Auth
      * @param string      $email
      * @param string|null $newPassword
      * @param string|null $oldPassword
+     * @param string|null $avatarUrl
      * @return true|string true 成功，string 为错误信息
      */
-    public static function updateAccount($email, $newPassword = null, $oldPassword = null)
+    public static function updateAccount($email, $newPassword = null, $oldPassword = null, $avatarUrl = null)
     {
         if (!self::check()) {
             return '请先登录';
@@ -194,6 +195,11 @@ class Auth
         $email = trim($email);
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return '邮箱格式不正确';
+        }
+
+        $avatarUrl = $avatarUrl === null ? null : trim((string) $avatarUrl);
+        if ($avatarUrl !== null && $avatarUrl !== '' && !filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
+            return '头像链接格式不正确';
         }
 
         if ($newPassword !== null && $newPassword !== '') {
@@ -221,13 +227,14 @@ class Auth
         try {
             $pdo = Database::connect();
             $table = Database::table('admin');
+            $savedAvatar = $avatarUrl !== null ? $avatarUrl : '';
 
             if ($newPassword !== null && $newPassword !== '') {
-                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `password` = ? WHERE `id` = ?');
-                $stmt->execute(array($email, vs_password_hash($newPassword), self::id()));
+                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `avatar_url` = ?, `password` = ? WHERE `id` = ?');
+                $stmt->execute(array($email, $savedAvatar, vs_password_hash($newPassword), self::id()));
             } else {
-                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ? WHERE `id` = ?');
-                $stmt->execute(array($email, self::id()));
+                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `avatar_url` = ? WHERE `id` = ?');
+                $stmt->execute(array($email, $savedAvatar, self::id()));
             }
 
             return true;

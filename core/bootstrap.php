@@ -23,6 +23,7 @@ require_once VS_ROOT . '/core/SystemInfo.php';
 require_once VS_ROOT . '/core/Updater.php';
 require_once VS_ROOT . '/core/DatabaseMigrator.php';
 require_once VS_ROOT . '/core/UpdateLog.php';
+require_once VS_ROOT . '/core/UserAvatar.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     AuthSecurity::configureSessionCookies();

@@ -267,32 +267,54 @@ function vs_render_site_logo($class = 'vs-logo-icon')
 }
 
 /**
- * 渲染页脚备案信息
+ * 渲染页脚（版权 + ICP + 公安备案）
  *
+ * @param string|null $siteName
  * @return void
  */
-function vs_render_beian_footer()
+function vs_render_site_footer($siteName = null)
 {
     if (!InstallChecker::isInstalled()) {
         return;
     }
 
+    $siteName = $siteName !== null ? trim($siteName) : SiteContext::siteName();
     $beian = SiteContext::beianInfo();
-    if ($beian['icp_number'] === '' && $beian['gongan_number'] === '') {
-        return;
+    $base = vs_base_url();
+    $year = date('Y');
+
+    echo '<footer class="vs-site-footer">' . "\n";
+    echo '<div class="vs-container vs-site-footer__inner">' . "\n";
+
+    echo '<div class="vs-site-footer__item vs-site-footer__copyright">';
+    echo vs_e($siteName) . ' &copy; ' . vs_e($year);
+    echo '</div>' . "\n";
+
+    if ($beian['icp_number'] !== '') {
+        echo '<div class="vs-site-footer__item vs-site-footer__icp">';
+        echo '<a href="' . vs_e($beian['icp_link']) . '" target="_blank" rel="noopener noreferrer">' . vs_e($beian['icp_number']) . '</a>';
+        echo '</div>' . "\n";
     }
 
-    echo '<div class="vs-beian">';
-    if ($beian['icp_number'] !== '') {
-        echo '<a href="' . vs_e($beian['icp_link']) . '" target="_blank" rel="noopener noreferrer">' . vs_e($beian['icp_number']) . '</a>';
-    }
     if ($beian['gongan_number'] !== '') {
-        if ($beian['icp_number'] !== '') {
-            echo '<span class="vs-beian__sep">|</span>';
-        }
-        echo '<a href="' . vs_e($beian['gongan_link']) . '" target="_blank" rel="noopener noreferrer">' . vs_e($beian['gongan_number']) . '</a>';
+        echo '<div class="vs-site-footer__item vs-site-footer__gongan">';
+        echo '<a href="' . vs_e($beian['gongan_link']) . '" target="_blank" rel="noopener noreferrer" class="vs-site-footer__gongan-link">';
+        echo '<img src="' . vs_e($base) . '/assets/img/gov.png" alt="" class="vs-gongan-icon" width="16" height="16">';
+        echo '<span>' . vs_e($beian['gongan_number']) . '</span>';
+        echo '</a></div>' . "\n";
     }
-    echo '</div>';
+
+    echo '</div></footer>' . "\n";
+}
+
+/**
+ * 渲染页脚备案信息（兼容旧调用，委托 vs_render_site_footer）
+ *
+ * @return void
+ */
+function vs_render_beian_footer()
+{
+    // 已由 vs_render_site_footer 统一输出，此处保留空实现避免重复
 }
 
 /**

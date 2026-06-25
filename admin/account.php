@@ -1,17 +1,20 @@
 <?php
 /**
  * 文件：admin/account.php
- * 作用：VanShine 后台账号设置（修改邮箱、密码）
- * @version 1.0.5
+ * 作用：VanShine 后台账号设置（邮箱、头像、密码）
+ * @version 1.0.20
  */
 
 require_once __DIR__ . '/init.php';
 
 $error = '';
 $success = '';
+$avatarUrl = $vsAdmin && isset($vsAdmin['avatar_url']) ? trim((string) $vsAdmin['avatar_url']) : '';
+$avatarPreview = UserAvatar::resolve($vsAdmin);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim(isset($_POST['email']) ? $_POST['email'] : '');
+    $avatarUrl = trim(isset($_POST['avatar_url']) ? $_POST['avatar_url'] : '');
     $newPassword = isset($_POST['new_password']) ? $_POST['new_password'] : '';
     $newPassword2 = isset($_POST['new_password2']) ? $_POST['new_password2'] : '';
     $oldPassword = isset($_POST['old_password']) ? $_POST['old_password'] : '';
@@ -22,12 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = Auth::updateAccount(
             $email,
             $newPassword !== '' ? $newPassword : null,
-            $newPassword !== '' ? $oldPassword : null
+            $newPassword !== '' ? $oldPassword : null,
+            $avatarUrl
         );
 
         if ($result === true) {
             $success = '账号信息已保存';
             $vsAdmin = Auth::user();
+            $avatarUrl = $vsAdmin && isset($vsAdmin['avatar_url']) ? trim((string) $vsAdmin['avatar_url']) : '';
+            $avatarPreview = UserAvatar::resolve($vsAdmin);
         } else {
             $error = $result;
         }
@@ -45,7 +51,7 @@ vs_admin_layout_start('账号设置', 'account');
         <div class="vs-alert vs-alert--success"><?php echo vs_e($success); ?></div>
     <?php endif; ?>
 
-    <form method="post" action="" class="vs-form">
+    <form method="post" action="" class="vs-form" id="accountForm">
         <div class="vs-form-section">
             <h3 class="vs-form-section__title">基本信息</h3>
             <div class="vs-form-row">
@@ -57,6 +63,17 @@ vs_admin_layout_start('账号设置', 'account');
                 <label class="vs-label">邮箱</label>
                 <input type="email" name="email" class="vs-input" required
                        value="<?php echo vs_e($vsAdmin ? $vsAdmin['email'] : ''); ?>" placeholder="admin@example.com">
+                <p class="vs-form-tip">绑定 QQ 邮箱（如 123456789@qq.com）时将自动使用 QQ 头像</p>
+            </div>
+            <div class="vs-form-row">
+                <label class="vs-label">头像链接</label>
+                <div class="vs-avatar-field">
+                    <img src="<?php echo vs_e($avatarPreview); ?>" alt="" class="vs-avatar-field__preview" id="avatarPreview"
+                         data-fallback="<?php echo vs_e(UserAvatar::localRandomAvatar($vsAdmin ? (int) $vsAdmin['id'] : 0)); ?>">
+                    <input type="url" name="avatar_url" id="avatarUrlInput" class="vs-input"
+                           value="<?php echo vs_e($avatarUrl); ?>" placeholder="https://example.com/avatar.jpg">
+                </div>
+                <p class="vs-form-tip">填写图片链接后左侧圆圈实时预览；留空且非 QQ 邮箱时使用系统随机默认头像</p>
             </div>
         </div>
 
@@ -83,4 +100,4 @@ vs_admin_layout_start('账号设置', 'account');
     </form>
 </div>
 
-<?php vs_admin_layout_end(); ?>
+<?php vs_admin_layout_end(array('account.js')); ?>

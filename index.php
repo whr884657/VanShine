@@ -65,10 +65,7 @@ vs_render_head('首页', array('index.css'));
     </main>
 
     <footer class="vs-footer">
-        <div class="vs-container">
-            <span><?php echo vs_e($siteName); ?> &copy; <?php echo date('Y'); ?></span>
-            <?php vs_render_beian_footer(); ?>
-        </div>
+        <?php vs_render_site_footer($siteName); ?>
     </footer>
 </div>
 

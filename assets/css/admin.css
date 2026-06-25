@@ -311,6 +311,21 @@
     color: var(--vs-text-secondary);
 }
 
+.vs-topbar__avatar-link {
+    display: inline-flex;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.vs-topbar__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--vs-border);
+    background: var(--vs-content-bg);
+}
+
 .vs-topbar__logout {
     font-size: 14px;
     color: var(--vs-primary);
@@ -522,6 +537,27 @@
 
 .vs-form-tip--block {
     margin-bottom: 12px;
+}
+
+.vs-avatar-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vs-avatar-field__preview {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--vs-border);
+    background: var(--vs-content-bg);
+    flex-shrink: 0;
+}
+
+.vs-avatar-field .vs-input {
+    flex: 1;
+    min-width: 0;
 }
 
 .vs-input--file {
@@ -866,10 +902,6 @@ select.vs-input {
     }
 
     .vs-topbar__title {
-        display: none;
-    }
-
-    .vs-topbar__user {
         display: none;
     }
 

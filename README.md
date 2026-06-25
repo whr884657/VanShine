@@ -6,7 +6,28 @@
 
 ## 项目简介
 
-VanShine 是一个基于 **PHP + MySQL** 的轻量级 Web 管理系统，**不依赖任何第三方 PHP 框架**，全部采用自定义架构开发。提供 Web 一键安装、可收缩侧边栏后台、系统设置、账号设置、邮箱找回密码等功能。UI 为白色主题，图标风格参考 TDesign，全面适配电脑端与手机端。
+VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用**纯自定义 PHP 架构**开发，不依赖 Laravel、ThinkPHP 等第三方 PHP 框架。
+
+**主要能力：**
+
+- Web 五步安装向导，自动创建数据表与初始配置
+- 分组侧边栏后台（控制台、文件管理、CDN、归档、系统设置等）
+- 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
+- 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
+- **Gitee 在线更新**：登录后台自动检测新版本，一键下载安装
+- **数据库增量迁移**：更新后自动执行 `install/migrations/` 脚本
+- 简洁白色后台主题，纯 CSS 矢量图标，适配电脑端与手机端
+
+---
+
+## 发行下载
+
+| 项目 | 说明 |
+|------|------|
+| 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
+| 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.15.zip`** |
+| 发行说明 | 见仓库内 `发行说明/VanShine1.0.15.md` |
 
 ---
 
@@ -413,7 +434,7 @@ VanShine/
 - assets/img/site/.gitkeep（新增）
 
 **变更说明：**
-- 移除 TDesign 框架 CDN 依赖，采用纯自定义 PHP + CSS 架构
+- 移除第三方 UI 框架 CDN 依赖，采用纯自定义 PHP + CSS 架构
 - 新增专属 SVG 图标库（icons.css）
 - 重构后台布局：顶部栏 + 可收缩侧边栏
 - 电脑端侧边栏默认展开，手机端默认收缩，三横线切换

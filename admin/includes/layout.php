@@ -52,6 +52,7 @@ function vs_admin_menu_groups()
             'children' => array(
                 array('id' => 'account', 'title' => '账号设置', 'url' => '/admin/account.php'),
                 array('id' => 'settings', 'title' => '系统设置', 'url' => '/admin/settings.php'),
+                array('id' => 'upgrade', 'title' => '系统升级', 'url' => '/admin/upgrade.php'),
                 array('id' => 'about', 'title' => '关于', 'url' => '/admin/about.php'),
             ),
         ),
@@ -206,6 +207,7 @@ function vs_admin_layout_end(array $extraScripts = array())
     echo '<script>window.VS_BASE_URL = ' . json_encode($vsBase) . ';</script>' . "\n";
     echo '<script>window.VS_CSRF_TOKEN = ' . json_encode(AuthSecurity::csrfToken()) . ';</script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/modal.js?v=' . VS_VERSION . '"></script>' . "\n";
+    echo '<script src="' . vs_e($vsBase) . '/assets/js/vs-update.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/common.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/admin.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/update-check.js?v=' . VS_VERSION . '"></script>' . "\n";

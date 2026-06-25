@@ -83,6 +83,19 @@ class Updater
         $remote = isset($manifest['version']) ? trim($manifest['version']) : '';
         $cmp = version_compare($local, $remote);
 
+        $logRow = UpdateLog::getVersion($remote);
+        if ($logRow !== null) {
+            if (!empty($logRow['title'])) {
+                $manifest['title'] = $logRow['title'];
+            }
+            if (!empty($logRow['date'])) {
+                $manifest['release_date'] = $logRow['date'];
+            }
+            if (!empty($logRow['changes']) && is_array($logRow['changes'])) {
+                $manifest['changes'] = $logRow['changes'];
+            }
+        }
+
         return array(
             'ok'               => true,
             'local_version'    => $local,
@@ -92,6 +105,7 @@ class Updater
             'title'            => isset($manifest['title']) ? $manifest['title'] : '',
             'release_date'     => isset($manifest['release_date']) ? $manifest['release_date'] : '',
             'changes'          => isset($manifest['changes']) && is_array($manifest['changes']) ? $manifest['changes'] : array(),
+            'has_db_changes'   => UpdateLog::rangeHasDbChanges($local, $remote),
             'repo'             => isset($manifest['repo']) ? $manifest['repo'] : self::DEFAULT_REPO,
             'branch'           => isset($manifest['branch']) ? $manifest['branch'] : self::DEFAULT_BRANCH,
             'error'            => '',
@@ -167,18 +181,23 @@ class Updater
 
         self::cleanupPaths(array($zipPath, $extractDir));
 
-        $migration = DatabaseMigrator::runPending();
-        if (empty($migration['ok'])) {
-            return array(
-                'ok'      => false,
-                'msg'     => '文件已更新，但' . $migration['msg'],
-                'version' => $check['remote_version'],
-            );
+        $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过迁移');
+        if (DatabaseMigrator::hasPendingMigrations()) {
+            $migration = DatabaseMigrator::runPending();
+            if (empty($migration['ok'])) {
+                return array(
+                    'ok'      => false,
+                    'msg'     => '文件已更新，但' . $migration['msg'],
+                    'version' => $check['remote_version'],
+                );
+            }
         }
 
         $msg = '更新完成，当前版本 v' . $check['remote_version'];
         if (!empty($migration['applied'])) {
             $msg .= '，已同步数据库（' . implode('、', $migration['applied']) . '）';
+        } else {
+            $msg .= '（本次无数据库结构变更）';
         }
 
         return array(

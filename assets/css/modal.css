@@ -119,6 +119,21 @@ body.vs-modal-open {
     line-height: 1.6;
 }
 
+.vs-update-modal__tip--warn {
+    color: #b45309;
+}
+
+.vs-update-modal__backup-tip {
+    margin: 0 0 10px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #4b5563;
+}
+
+.vs-update-modal__backup-tip:last-child {
+    margin-bottom: 0;
+}
+
 .vs-modal {
     max-width: 480px;
 }

@@ -886,3 +886,92 @@ select.vs-input {
         display: none !important;
     }
 }
+
+/* ── 系统升级页 ── */
+.vs-upgrade-current {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: var(--vs-content-bg);
+    border-radius: 8px;
+}
+
+.vs-upgrade-current__label {
+    font-size: 13px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-upgrade-current__value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--vs-text);
+}
+
+.vs-upgrade-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.vs-upgrade-log {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.vs-upgrade-log__item {
+    border: 1px solid var(--vs-border);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--vs-content-bg);
+}
+
+.vs-upgrade-log__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.vs-upgrade-log__ver {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--vs-text);
+}
+
+.vs-upgrade-log__date {
+    font-size: 12px;
+    color: var(--vs-text-secondary);
+}
+
+.vs-upgrade-log__badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(180, 83, 9, 0.12);
+    color: #b45309;
+}
+
+.vs-upgrade-log__title {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 8px;
+    color: var(--vs-text);
+}
+
+.vs-upgrade-log__list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--vs-text-secondary);
+}
+
+.vs-upgrade-log__list li {
+    margin-bottom: 4px;
+}

@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.16**
+**当前版本：1.0.17**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.16.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.17.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -44,6 +44,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 管理控制台 | `/admin/index.php` | 后台首页 |
 | 账号设置 | `/admin/account.php` | 修改邮箱、密码 |
 | 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱配置 |
+| 系统升级 | `/admin/upgrade.php` | 手动检测更新、安装更新、查看更新记录 |
 | 关于 | `/admin/about.php` | 系统与环境信息 |
 | 忘记密码 | `/admin/forgot.php` | 邮箱验证码重置（需配置邮箱） |
 | 重置密码 | `/admin/reset.php` | 已合并至忘记密码页（自动跳转） |
@@ -121,20 +122,38 @@ VanShine/
 
 **发布新版本时需同步修改：**
 1. `core/version.php` — `VS_VERSION`
-2. `update.json` — 版本号、更新说明（`changes` 数组）
-3. 若数据库结构有变 — 在 `install/migrations/` 新增对应版本 SQL（如 `1.0.16.sql`）
+2. `update.json` — 最新版本清单
+3. `update-log.json` — 追加该版本更新记录（含 `db_changes` 是否含数据库变更）
+4. 若数据库结构有变 — 在 `install/migrations/` 新增 SQL，并将对应版本 `db_changes` 设为 `true`
 
 **更新过程：**
-- 从 `https://gitee.com/xunjinlu/VanShine/repository/archive/main.zip` 下载更新包
-- 解压并覆盖文件，**绝不替换** `config/database.php`（更新前后校验文件指纹）
-- 自动执行 `install/migrations/` 中尚未应用的增量 SQL
-- 完成后自动删除临时 ZIP 与解压目录
+- 从 Gitee 下载更新包并覆盖文件，**绝不替换** `config/database.php`
+- **仅当**版本记录标明含数据库变更且存在待执行迁移 SQL 时，才执行数据库迁移
+- 更新前弹窗**二次确认**是否已备份数据
 
 **服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问 Gitee。
 
 ---
 
 ## 版本记录
+
+### v1.0.17（2026-06-26）
+
+**类型：** 系统升级页面 + 更新记录 + 二次确认
+
+**涉及文件：**
+- `admin/upgrade.php`、`assets/js/upgrade.js`、`assets/js/vs-update.js`
+- `update-log.json`、`core/UpdateLog.php`
+- `core/Updater.php`、`core/DatabaseMigrator.php`
+- `admin/includes/layout.php`、`assets/css/admin.css`
+- `update.json`、`core/version.php`、`README.md`
+
+**变更说明：**
+- 侧边栏「系统」下新增「系统升级」，支持手动检测、安装更新
+- 新增 `update-log.json` 维护各版本更新记录，页面可查看
+- 更新弹窗增加**备份二次确认**；无数据库变更的版本跳过 SQL 迁移
+
+---
 
 ### v1.0.16（2026-06-26）
 

@@ -2,7 +2,7 @@
 /**
  * 文件：admin/update.php
  * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
- * @version 1.0.14
+ * @version 1.0.17
  */
 
 require_once __DIR__ . '/init.php';
@@ -18,6 +18,13 @@ if ($action === 'check') {
     AjaxResponse::success('ok', array_merge($result, array(
         'show_modal' => $showModal,
     )));
+}
+
+if ($action === 'history') {
+    AjaxResponse::success('ok', array(
+        'versions' => UpdateLog::payloadForApi(),
+        'local_version' => VS_VERSION,
+    ));
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

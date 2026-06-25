@@ -1,0 +1,96 @@
+{
+    "repo": "xunjinlu/VanShine",
+    "branch": "main",
+    "versions": [
+        {
+            "version": "1.0.17",
+            "date": "2026-06-26",
+            "title": "系统升级页面与更新体验优化",
+            "db_changes": false,
+            "changes": [
+                "侧边栏「系统」下新增「系统升级」入口",
+                "支持手动检测版本、执行更新、查看完整更新记录",
+                "新增 update-log.json 集中维护各版本更新说明",
+                "更新前增加备份数据库二次确认弹窗",
+                "无数据库结构变更的版本更新时自动跳过 SQL 迁移"
+            ]
+        },
+        {
+            "version": "1.0.16",
+            "date": "2026-06-26",
+            "title": "绑定子域名卡片 UI 优化",
+            "db_changes": false,
+            "changes": [
+                "绑定子域名卡片改为 2×2 信息格布局",
+                "手机端左右两列展示域名、站点名称、备案号",
+                "编辑/删除按钮改为胶囊样式"
+            ]
+        },
+        {
+            "version": "1.0.15",
+            "date": "2026-06-26",
+            "title": "数据库迁移与安全加固",
+            "db_changes": true,
+            "migration": "1.0.15.sql",
+            "changes": [
+                "在线更新后支持 install/migrations 增量 SQL",
+                "config/database.php 双重保护不被覆盖",
+                "移除公开文档中的密码算法说明",
+                "补全 site_logo 配置项迁移"
+            ]
+        },
+        {
+            "version": "1.0.14",
+            "date": "2026-06-26",
+            "title": "Gitee 在线更新机制",
+            "db_changes": false,
+            "changes": [
+                "登录后台自动检测 Gitee 最新版本",
+                "弹窗展示更新说明并支持一键更新",
+                "更新完成自动清理临时文件",
+                "本地版本高于仓库时不提示"
+            ]
+        },
+        {
+            "version": "1.0.13",
+            "date": "2026-06-26",
+            "title": "浏览器标题去重与域名卡片",
+            "db_changes": false,
+            "changes": [
+                "修复浏览器标题重复显示",
+                "绑定子域名列表改为卡片展示"
+            ]
+        },
+        {
+            "version": "1.0.12",
+            "date": "2026-06-26",
+            "title": "退出登录与导航优化",
+            "db_changes": false,
+            "changes": [
+                "修复无法退出登录的问题",
+                "侧边栏与顶部栏增加退出入口",
+                "安装向导数据库默认地址改为 localhost"
+            ]
+        },
+        {
+            "version": "1.0.11",
+            "date": "2026-06-26",
+            "title": "统一弹窗与设置折叠",
+            "db_changes": false,
+            "changes": [
+                "全站统一自定义弹窗替代原生 alert/confirm",
+                "系统设置板块默认折叠"
+            ]
+        },
+        {
+            "version": "1.0.10",
+            "date": "2026-06-26",
+            "title": "AJAX 交互与分组菜单",
+            "db_changes": false,
+            "changes": [
+                "安装与系统设置改为 AJAX 无刷新",
+                "侧边栏分组菜单与占位功能页"
+            ]
+        }
+    ]
+}

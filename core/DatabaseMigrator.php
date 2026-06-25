@@ -98,6 +98,29 @@ class DatabaseMigrator
     }
 
     /**
+     * 是否存在待执行的迁移
+     *
+     * @return bool
+     */
+    public static function hasPendingMigrations()
+    {
+        return count(self::getPendingFiles()) > 0;
+    }
+
+    /**
+     * 指定迁移文件是否尚未执行
+     *
+     * @param string $filename 如 1.0.15.sql
+     * @return bool
+     */
+    public static function isMigrationPending($filename)
+    {
+        $version = preg_replace('/\.sql$/', '', basename($filename));
+        $pending = self::getPendingFiles();
+        return isset($pending[$version]);
+    }
+
+    /**
      * 已应用的迁移版本
      *
      * @return array

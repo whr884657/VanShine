@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.21",
+            "date": "2026-06-26",
+            "title": "修复版本检测 open_basedir 报错",
+            "db_changes": false,
+            "changes": [
+                "修复 open_basedir 下 is_file 访问系统 CA 路径导致 AJAX 检测失败",
+                "优先使用 core/cacert.pem，兼容宝塔面板环境",
+                "恢复升级页检测与登录后更新弹窗"
+            ]
+        },
+        {
             "version": "1.0.20",
             "date": "2026-06-26",
             "title": "用户头像与备案页脚优化",

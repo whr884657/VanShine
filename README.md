@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.20**
+**当前版本：1.0.21**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.20.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.21.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -139,6 +139,20 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.21（2026-06-26）
+
+**类型：** 修复版本检测 open_basedir 报错
+
+**涉及文件：**
+- `core/Updater.php`、`admin/update.php`、`assets/js/vs-update.js`
+- `update.json`、`update-log.json`、`core/version.php`
+
+**变更说明：**
+- 修复宝塔 `open_basedir` 下访问 `/etc/ssl/certs/` 触发 Warning，导致 AJAX 版本检测返回「网络异常」
+- SSL 证书优先使用项目内 `core/cacert.pem`
+
+---
 
 ### v1.0.20（2026-06-26）
 

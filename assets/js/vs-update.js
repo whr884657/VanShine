@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/vs-update.js
  * 作用：系统升级共用逻辑（检测、二次确认、执行更新）
- * @version 1.0.17
+ * @version 1.0.21
  */
 
 (function () {
@@ -15,6 +15,18 @@
 
     function apiUrl() {
         return (window.VS_BASE_URL || '') + '/admin/update.php';
+    }
+
+    function parseJsonResponse(res) {
+        return res.text().then(function (text) {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                var err = new Error('服务器返回异常，请检查 PHP 错误日志');
+                err.raw = text;
+                throw err;
+            }
+        });
     }
 
     function postUpdate(action, extra) {
@@ -31,7 +43,7 @@
             body: body,
             credentials: 'same-origin',
         }).then(function (res) {
-            return res.json();
+            return parseJsonResponse(res);
         });
     }
 
@@ -183,7 +195,7 @@
         options = options || {};
         return fetch(apiUrl() + '?action=check', { credentials: 'same-origin' })
             .then(function (res) {
-                return res.json();
+                return parseJsonResponse(res);
             })
             .then(function (res) {
                 if (options.onResult) {

@@ -2,7 +2,7 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.19
+ * @version 1.0.21
  */
 
 class Updater
@@ -387,27 +387,84 @@ class Updater
     }
 
     /**
-     * 为 cURL 配置 SSL（优先系统/内置 CA 证书）
+     * 路径是否在 open_basedir 允许范围内（避免 is_file 触发 Warning）
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isPathAllowed($path)
+    {
+        if ($path === '' || !is_string($path)) {
+            return false;
+        }
+
+        $path = str_replace('\\', '/', $path);
+        $root = str_replace('\\', '/', VS_ROOT);
+        if (strpos($path, $root . '/') === 0 || $path === $root) {
+            return true;
+        }
+
+        $openBasedir = ini_get('open_basedir');
+        if ($openBasedir === '' || $openBasedir === false) {
+            return true;
+        }
+
+        foreach (explode(PATH_SEPARATOR, $openBasedir) as $base) {
+            $base = rtrim(str_replace('\\', '/', $base), '/');
+            if ($base === '') {
+                continue;
+            }
+            if (strpos($path, $base . '/') === 0 || $path === $base) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 安全判断本地文件是否可读（不触碰 open_basedir 外的路径）
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function isReadableLocalFile($path)
+    {
+        if (!self::isPathAllowed($path)) {
+            return false;
+        }
+        return is_file($path) && is_readable($path);
+    }
+
+    /**
+     * 为 cURL 配置 SSL（优先项目内置 CA，兼容宝塔 open_basedir）
      *
      * @param resource $ch
      * @return void
      */
     public static function configureCurlSsl($ch)
     {
-        $caInfo = ini_get('curl.cainfo');
-        if ($caInfo !== '' && is_file($caInfo)) {
-            curl_setopt($ch, CURLOPT_CAINFO, $caInfo);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            return;
+        $candidates = array(
+            VS_ROOT . '/core/cacert.pem',
+        );
+
+        $iniCa = ini_get('curl.cainfo');
+        if ($iniCa !== '' && $iniCa !== false) {
+            $candidates[] = $iniCa;
         }
 
-        $bundled = VS_ROOT . '/core/cacert.pem';
-        if (is_file($bundled)) {
-            curl_setopt($ch, CURLOPT_CAINFO, $bundled);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            return;
+        $opensslCa = ini_get('openssl.cafile');
+        if ($opensslCa !== '' && $opensslCa !== false) {
+            $candidates[] = $opensslCa;
+        }
+
+        foreach ($candidates as $caFile) {
+            if (self::isReadableLocalFile($caFile)) {
+                curl_setopt($ch, CURLOPT_CAINFO, $caFile);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                return;
+            }
         }
 
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

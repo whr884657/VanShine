@@ -1,14 +1,12 @@
 {
-    "version": "1.0.20",
+    "version": "1.0.21",
     "release_date": "2026-06-26",
-    "title": "用户头像与备案页脚优化",
-    "db_changes": true,
+    "title": "修复版本检测 open_basedir 报错",
+    "db_changes": false,
     "changes": [
-        "顶部栏用户名改为圆形头像（电脑端/手机端）",
-        "QQ 邮箱自动获取 QQ 头像，支持自定义头像链接与本地随机默认头像",
-        "账号设置页新增头像链接配置与实时预览",
-        "公安备案链接更新为 beian.mps.gov.cn 并显示公安图标",
-        "页脚电脑端一行展示版权/ICP/公安备案，手机端三行居中"
+        "修复宝塔等 open_basedir 环境下检测系统 CA 路径触发 Warning 导致 JSON 异常",
+        "SSL 优先使用项目内置 cacert.pem，避免访问 /etc/ssl 目录",
+        "恢复系统升级页、登录弹窗的版本检测与更新提示"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

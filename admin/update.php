@@ -2,12 +2,19 @@
 /**
  * 文件：admin/update.php
  * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
- * @version 1.0.17
+ * @version 1.0.21
  */
 
 require_once __DIR__ . '/init.php';
 
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+
+if ($action === 'check' || $action === 'history') {
+    // 避免 PHP Warning 污染 JSON 响应（如 open_basedir 下检测系统 CA 路径）
+    if (function_exists('ini_set')) {
+        @ini_set('display_errors', '0');
+    }
+}
 
 if ($action === 'check') {
     $result = Updater::checkForUpdate();

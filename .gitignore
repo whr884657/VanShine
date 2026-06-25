@@ -2,6 +2,7 @@ config/database.php
 install/installed.lock
 storage/update/*
 !storage/update/.gitkeep
+release/*.zip
 .DS_Store
 Thumbs.db
 *.log

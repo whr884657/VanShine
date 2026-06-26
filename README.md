@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.44**
+**当前版本：1.0.45**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.44.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.45.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -174,6 +174,16 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.45（2026-06-27）
+
+**类型：** 热修复 — 文件上传
+
+**变更说明：**
+- 修复 `upload-queue.js` 在 v1.0.42 重构时误删 `uid()`，导致点击/拖拽上传时 JavaScript 报错、进度浮层不出现
+- 本地、腾讯云、阿里云等所有储存的上传流程已恢复
+
+---
 
 ### v1.0.44（2026-06-27）
 

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.43
+ * @version 1.0.45
  */
 
 (function () {
@@ -736,13 +736,17 @@
 
     document.getElementById('btnNewFolder').addEventListener('click', openFolderModal);
 
-    folderModal.querySelectorAll('[data-close-modal]').forEach(function (btn) {
-        btn.addEventListener('click', closeFolderModal);
-    });
+    if (folderModal) {
+        folderModal.querySelectorAll('[data-close-modal]').forEach(function (btn) {
+            btn.addEventListener('click', closeFolderModal);
+        });
+    }
 
-    renameModal.querySelectorAll('[data-close-rename]').forEach(function (btn) {
-        btn.addEventListener('click', closeRenameModal);
-    });
+    if (renameModal) {
+        renameModal.querySelectorAll('[data-close-rename]').forEach(function (btn) {
+            btn.addEventListener('click', closeRenameModal);
+        });
+    }
 
     if (filePreview) {
         filePreview.querySelectorAll('[data-close-preview]').forEach(function (btn) {

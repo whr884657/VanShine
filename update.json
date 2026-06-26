@@ -1,12 +1,12 @@
 {
-    "version": "1.0.44",
+    "version": "1.0.45",
     "release_date": "2026-06-27",
-    "title": "Flyfish Viewer 改为本地自托管",
+    "title": "修复文件上传完全无响应",
     "db_changes": false,
     "changes": [
-        "Flyfish Viewer 完整静态资源内置至 assets/vendor/flyfish-viewer/",
-        "不再依赖 jsDelivr 等外部 CDN，内网离线可预览",
-        "Worker/WASM/字体随主脚本同目录自动加载"
+        "修复 upload-queue.js 缺失 uid() 导致上传 enqueue 报错",
+        "恢复拖拽/选择文件后的进度浮层与上传流程",
+        "files.js 弹窗绑定增加空节点防护"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

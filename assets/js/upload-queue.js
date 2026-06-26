@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/upload-queue.js
  * 作用：全局上传进度浮层（可折叠、跨页面同步、桥接窗口后台上传）
- * @version 1.0.42
+ * @version 1.0.45
  */
 
 (function (global) {
@@ -15,6 +15,10 @@
 
     var channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
     var bridgeWindow = null;
+
+    function uid() {
+        return 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    }
 
     function parseJson(text) {
         if (global.VS && global.VS.parseJsonResponse) {

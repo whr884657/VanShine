@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.45",
+            "date": "2026-06-27",
+            "title": "修复文件上传完全无响应",
+            "db_changes": false,
+            "changes": [
+                "修复 upload-queue.js 缺失 uid() 函数",
+                "恢复上传进度浮层与全部储存上传"
+            ]
+        },
+        {
             "version": "1.0.44",
             "date": "2026-06-27",
             "title": "Flyfish Viewer 本地自托管",

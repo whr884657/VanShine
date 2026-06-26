@@ -102,6 +102,11 @@ class StorageManager
         $pathname = str_replace('\\', '/', $pathname);
 
         $storageKey = (int) $folder['storage_key'];
+        if ($storageKey === 1) {
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+            LocalStorageDriver::ensureSymlinkIfMissing(StorageRegistry::loadDriverConfigs(1));
+        }
         $driver = StorageRegistry::driver($storageKey);
 
         $handle = fopen($tmpPath, 'rb');
@@ -182,7 +187,8 @@ class StorageManager
             'svg'  => 'image/svg+xml',
             'pdf'  => 'application/pdf',
             'zip'  => 'application/zip',
-            'txt'  => 'text/plain',
+            'mp3'  => 'audio/mpeg',
+            'wav'  => 'audio/wav',
         );
 
         return isset($map[$ext]) ? $map[$ext] : 'application/octet-stream';

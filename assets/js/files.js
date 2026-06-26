@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.34
+ * @version 1.0.35
  */
 
 (function () {
@@ -207,6 +207,34 @@
         return '<span class="vs-filemgr__file-icon">' + (listMode ? '📄' : '📄') + '</span>';
     }
 
+    function fileTypeLabel(file) {
+        var mime = String(file.mime_type || '');
+        if (mime.indexOf('image/') === 0) return '图片';
+        if (mime.indexOf('audio/') === 0) {
+            var audio = mime.split('/')[1] || '音频';
+            return audio.toUpperCase();
+        }
+        if (mime.indexOf('video/') === 0) return '视频';
+        if (mime.indexOf('text/') === 0) return '文本';
+        if (mime === 'application/pdf') return 'PDF';
+        var ext = '';
+        var name = file.stored_name || file.original_name || '';
+        var dot = name.lastIndexOf('.');
+        if (dot >= 0) ext = name.substring(dot + 1).toUpperCase();
+        return ext || '文件';
+    }
+
+    function storageLabelForFolder(folder) {
+        return folder.storage_key + '. ' + folder.storage_name;
+    }
+
+    function storageLabelForFile() {
+        if (state.currentFolder) {
+            return state.currentFolder.storage_key + '. ' + state.currentFolder.storage_name;
+        }
+        return '—';
+    }
+
     function renderContent() {
         if (!contentEl) return;
 
@@ -231,18 +259,27 @@
         }
 
         state.folders.forEach(function (folder) {
+            if (isList) {
+                html += '<div class="vs-filemgr__item is-folder" data-folder-id="' + folder.id + '">';
+                html += '<button type="button" class="vs-filemgr__cell vs-filemgr__cell--name" data-folder-id="' + folder.id + '">';
+                html += '<span class="vs-filemgr__folder-icon">📁</span>';
+                html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
+                html += '</button>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--type">文件夹</span>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--storage">' + escapeHtml(storageLabelForFolder(folder)) + '</span>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">—</span>';
+                html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
+                html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
+                    + folder.id + '" title="重命名">✎</button>';
+                html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
+                html += '</div></div>';
+                return;
+            }
+
             html += '<div class="vs-filemgr__item is-folder" data-folder-id="' + folder.id + '">';
             html += '<button type="button" class="vs-filemgr__open" data-folder-id="' + folder.id + '">';
-            html += '<span class="vs-filemgr__open-main">';
             html += '<span class="vs-filemgr__folder-icon">📁</span>';
             html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
-            html += '</span>';
-            if (isList) {
-                html += '<span class="vs-filemgr__col vs-filemgr__col--type">文件夹</span>';
-                html += '<span class="vs-filemgr__col vs-filemgr__col--storage">'
-                    + escapeHtml(folder.storage_key) + '. ' + escapeHtml(folder.storage_name) + '</span>';
-                html += '<span class="vs-filemgr__col vs-filemgr__col--size">—</span>';
-            }
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
             html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
@@ -252,18 +289,30 @@
         });
 
         state.files.forEach(function (file) {
+            if (isList) {
+                html += '<div class="vs-filemgr__item is-file" data-file-id="' + file.id + '">';
+                html += '<button type="button" class="vs-filemgr__cell vs-filemgr__cell--name" data-preview-file="' + file.id + '">';
+                html += fileIconHtml(file, true);
+                html += '<span class="vs-filemgr__name-wrap">';
+                html += '<span class="vs-filemgr__name" title="' + escapeHtml(file.original_name) + '">'
+                    + escapeHtml(file.stored_name) + '</span>';
+                html += '<span class="vs-filemgr__size-inline">' + formatSize(file.file_size) + '</span>';
+                html += '</span>';
+                html += '</button>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--type">' + escapeHtml(fileTypeLabel(file)) + '</span>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--storage">' + escapeHtml(storageLabelForFile()) + '</span>';
+                html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">' + formatSize(file.file_size) + '</span>';
+                html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
+                html += '<button type="button" class="vs-filemgr__action" data-delete-file="' + file.id + '" title="删除">×</button>';
+                html += '</div></div>';
+                return;
+            }
+
             html += '<div class="vs-filemgr__item is-file" data-file-id="' + file.id + '">';
             html += '<button type="button" class="vs-filemgr__open" data-preview-file="' + file.id + '">';
-            html += '<span class="vs-filemgr__open-main">';
-            html += fileIconHtml(file, isList);
+            html += fileIconHtml(file, false);
             html += '<span class="vs-filemgr__name" title="' + escapeHtml(file.original_name) + '">'
                 + escapeHtml(file.stored_name) + '</span>';
-            html += '</span>';
-            if (isList) {
-                html += '<span class="vs-filemgr__col vs-filemgr__col--type">' + escapeHtml(file.mime_type || '—') + '</span>';
-                html += '<span class="vs-filemgr__col vs-filemgr__col--storage">—</span>';
-                html += '<span class="vs-filemgr__col vs-filemgr__col--size">' + formatSize(file.file_size) + '</span>';
-            }
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
             html += '<button type="button" class="vs-filemgr__action" data-delete-file="' + file.id + '" title="删除">×</button>';
@@ -276,7 +325,8 @@
     }
 
     function bindContentEvents() {
-        contentEl.querySelectorAll('.vs-filemgr__open[data-folder-id]').forEach(function (btn) {
+        contentEl.querySelectorAll('[data-folder-id]').forEach(function (btn) {
+            if (btn.hasAttribute('data-preview-file')) return;
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 loadFolder(parseInt(btn.getAttribute('data-folder-id'), 10));

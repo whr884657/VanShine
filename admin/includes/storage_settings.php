@@ -49,7 +49,7 @@ function vs_settings_render_storage_section()
             );
             ?>
             <?php if ((int) $key === 1): ?>
-                <p class="vs-form-tip">本地文件访问 URL 将根据当前站点域名自动生成（<code>{站点根}/upload/…</code>），无需手动填写。</p>
+                <p class="vs-form-tip">本地文件对外链接为 <code>{站点域名}/{随机单字母}/{文件名}</code>，不暴露 upload 物理路径；保存设置后自动部署直链网关。</p>
             <?php endif; ?>
             <?php foreach ($type['fields'] as $field):
                 $dbKey = StorageRegistry::configDbKey($key, $field['key']);

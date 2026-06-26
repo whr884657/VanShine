@@ -348,7 +348,10 @@ class StorageRegistry
         }
 
         if ((int) $key === 1) {
-            $configs['url'] = self::localPublicUrl();
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+            $configs['public_slug'] = LocalStorageDriver::publicSlug(false);
+            $configs['url'] = LocalStorageDriver::defaultPublicUrl();
         }
 
         return $configs;
@@ -475,7 +478,10 @@ class StorageRegistry
         }
 
         if ((int) $key === 1) {
-            $configs['url'] = self::localPublicUrl();
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+            $configs['public_slug'] = LocalStorageDriver::publicSlug(false);
+            $configs['url'] = LocalStorageDriver::defaultPublicUrl();
         }
 
         return $configs;
@@ -540,9 +546,10 @@ class StorageRegistry
     public static function allConfigDefaults()
     {
         $defaults = array(
-            'upload_naming_mode'     => 'sequence',
-            'upload_name_sequence'   => '0',
-            'upload_date_sequence'   => '',
+            'upload_naming_mode'          => 'sequence',
+            'upload_name_sequence'        => '0',
+            'upload_date_sequence'        => '',
+            'storage_local_public_slug'   => '',
         );
 
         foreach (self::types() as $key => $type) {

@@ -162,7 +162,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (StorageRegistry::isEnabled(1)) {
                 require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
                 require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
-                LocalStorageDriver::ensureSymlink(StorageRegistry::loadDriverConfigs(1));
+                $oldSlug = Config::get(LocalStorageDriver::CONFIG_SLUG, '');
+                LocalStorageDriver::ensureSymlink(StorageRegistry::loadDriverConfigs(1), $oldSlug);
+                LocalStorageDriver::refreshStoredPublicUrls();
             }
 
             AjaxResponse::success('储存设置已保存');

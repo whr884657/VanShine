@@ -2,7 +2,7 @@
 /**
  * 文件：core/UpdateLog.php
  * 作用：读取版本更新记录（优先 Gitee 云端 update-log.json）
- * @version 1.0.28
+ * @version 1.0.32
  */
 
 class UpdateLog
@@ -190,6 +190,65 @@ class UpdateLog
             }
         }
         return null;
+    }
+
+    /**
+     * 本地版本之后的下一个待升级版本（按版本号递增，不跳版）
+     *
+     * @param string $localVersion
+     * @return string
+     */
+    public static function nextVersionAfter($localVersion)
+    {
+        $candidates = array();
+        $payload = self::loadData();
+        $data = $payload['data'];
+        if ($data === null || empty($data['versions']) || !is_array($data['versions'])) {
+            return '';
+        }
+
+        foreach ($data['versions'] as $row) {
+            if (empty($row['version'])) {
+                continue;
+            }
+            if (version_compare($row['version'], $localVersion, '>')) {
+                $candidates[] = $row['version'];
+            }
+        }
+
+        if (empty($candidates)) {
+            return '';
+        }
+
+        usort($candidates, 'version_compare');
+        return $candidates[0];
+    }
+
+    /**
+     * 本地版本之后尚待升级的版本数量
+     *
+     * @param string $localVersion
+     * @return int
+     */
+    public static function countVersionsAfter($localVersion)
+    {
+        $count = 0;
+        $payload = self::loadData();
+        $data = $payload['data'];
+        if ($data === null || empty($data['versions']) || !is_array($data['versions'])) {
+            return 0;
+        }
+
+        foreach ($data['versions'] as $row) {
+            if (empty($row['version'])) {
+                continue;
+            }
+            if (version_compare($row['version'], $localVersion, '>')) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     /**

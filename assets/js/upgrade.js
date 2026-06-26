@@ -28,7 +28,11 @@
         }
 
         if (res.update_available) {
-            setStatus('发现新版本 v' + res.remote_version + '（当前 v' + res.local_version + '）', 'warning');
+            var tip = '发现新版本 v' + res.remote_version + '（当前 v' + res.local_version + '）';
+            if (res.latest_remote_version && res.latest_remote_version !== res.remote_version) {
+                tip += '，将逐版升级至 v' + res.latest_remote_version;
+            }
+            setStatus(tip, 'warning');
             if (updateBtn) updateBtn.disabled = false;
         } else if (res.ahead_of_remote) {
             setStatus('当前版本 v' + res.local_version + ' 高于仓库版本（测试环境）', 'info');

@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/storage-aliyun-oss",
+    "description": "VanShine 阿里云 OSS 储存依赖（Flysystem OSS）",
+    "require": {
+        "php": "^8.0",
+        "zing/flysystem-oss": "^2.1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

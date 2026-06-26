@@ -2,7 +2,7 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.26
+ * @version 1.0.32
  */
 
 class Updater
@@ -90,7 +90,13 @@ class Updater
             );
         }
 
-        $remote = isset($manifest['version']) ? trim($manifest['version']) : '';
+        $latestRemote = isset($manifest['version']) ? trim($manifest['version']) : '';
+        $nextVersion = UpdateLog::nextVersionAfter($local);
+        if ($nextVersion === '' && $latestRemote !== '') {
+            $nextVersion = $latestRemote;
+        }
+
+        $remote = $nextVersion;
         $cmp = version_compare($local, $remote);
 
         $logRow = UpdateLog::getVersion($remote);
@@ -106,19 +112,23 @@ class Updater
             }
         }
 
+        $pendingUpdates = UpdateLog::countVersionsAfter($local);
+
         return array(
-            'ok'               => true,
-            'local_version'    => $local,
-            'remote_version'   => $remote,
-            'update_available' => ($remote !== '' && $cmp < 0),
-            'ahead_of_remote'  => ($remote !== '' && $cmp > 0),
-            'title'            => isset($manifest['title']) ? $manifest['title'] : '',
-            'release_date'     => isset($manifest['release_date']) ? $manifest['release_date'] : '',
-            'changes'          => isset($manifest['changes']) && is_array($manifest['changes']) ? $manifest['changes'] : array(),
-            'has_db_changes'   => UpdateLog::rangeHasDbChanges($local, $remote),
-            'repo'             => isset($manifest['repo']) ? $manifest['repo'] : self::DEFAULT_REPO,
-            'branch'           => isset($manifest['branch']) ? $manifest['branch'] : self::DEFAULT_BRANCH,
-            'error'            => '',
+            'ok'                   => true,
+            'local_version'        => $local,
+            'remote_version'       => $remote,
+            'latest_remote_version'=> $latestRemote,
+            'pending_updates'      => $pendingUpdates,
+            'update_available'     => ($remote !== '' && $cmp < 0),
+            'ahead_of_remote'      => ($latestRemote !== '' && version_compare($local, $latestRemote, '>')),
+            'title'                => isset($manifest['title']) ? $manifest['title'] : '',
+            'release_date'         => isset($manifest['release_date']) ? $manifest['release_date'] : '',
+            'changes'              => isset($manifest['changes']) && is_array($manifest['changes']) ? $manifest['changes'] : array(),
+            'has_db_changes'       => UpdateLog::versionHasDbChanges($remote),
+            'repo'                 => isset($manifest['repo']) ? $manifest['repo'] : self::DEFAULT_REPO,
+            'branch'               => isset($manifest['branch']) ? $manifest['branch'] : self::DEFAULT_BRANCH,
+            'error'                => '',
         );
     }
 
@@ -233,6 +243,11 @@ class Updater
                 $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
             } else {
                 $msg .= '（本次无数据库结构变更）';
+            }
+
+            $remaining = UpdateLog::countVersionsAfter($check['remote_version']);
+            if ($remaining > 0) {
+                $msg .= '。尚有 ' . $remaining . ' 个版本待升级，请刷新页面后继续执行更新';
             }
 
             return array(

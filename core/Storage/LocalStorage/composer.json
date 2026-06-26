@@ -1,0 +1,13 @@
+{
+    "name": "vanshine/storage-local",
+    "description": "VanShine 本地储存依赖（Flysystem Local）",
+    "require": {
+        "php": "^8.0",
+        "league/flysystem": "^3.0",
+        "league/flysystem-local": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/vs-update.js
  * 作用：系统升级共用逻辑（检测、二次确认、执行更新）
- * @version 1.0.29
+ * @version 1.0.32
  */
 
 (function () {
@@ -52,7 +52,15 @@
     function buildUpdateHtml(data) {
         var html = '<div class="vs-update-modal">';
         html += '<p class="vs-update-modal__ver">当前版本：<strong>v' + escapeHtml(data.local_version) + '</strong>';
-        html += ' → 最新版本：<strong>v' + escapeHtml(data.remote_version) + '</strong></p>';
+        html += ' → 本次升级：<strong>v' + escapeHtml(data.remote_version) + '</strong></p>';
+
+        if (data.latest_remote_version && data.latest_remote_version !== data.remote_version) {
+            html += '<p class="vs-update-modal__tip">仓库最新版本为 v' + escapeHtml(data.latest_remote_version)
+                + '，将按顺序逐版升级，完成本版后请再次执行更新。</p>';
+        } else if (data.pending_updates && data.pending_updates > 1) {
+            html += '<p class="vs-update-modal__tip">共有 ' + escapeHtml(String(data.pending_updates))
+                + ' 个版本待升级，每次仅安装一个版本，完成后请继续更新。</p>';
+        }
 
         if (data.release_date) {
             html += '<p class="vs-update-modal__date">发布日期：' + escapeHtml(data.release_date) + '</p>';

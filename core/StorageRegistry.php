@@ -2,7 +2,7 @@
 /**
  * 文件：core/StorageRegistry.php
  * 作用：七种储存类型注册、配置键映射与驱动加载
- * @version 1.0.31
+ * @version 1.0.32
  */
 
 class StorageRegistry
@@ -22,9 +22,7 @@ class StorageRegistry
                 'dir'      => 'LocalStorage',
                 'fields'   => array(
                     array('key' => 'enabled', 'label' => '启用本地储存', 'type' => 'checkbox'),
-                    array('key' => 'url', 'label' => '访问 URL', 'type' => 'text', 'placeholder' => 'https://example.com/i'),
                     array('key' => 'root', 'label' => '物理根目录', 'type' => 'text', 'placeholder' => '留空则使用项目 upload/'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text', 'placeholder' => '?v=1'),
                 ),
             ),
             2 => array(
@@ -42,7 +40,6 @@ class StorageRegistry
                     array('key' => 'endpoint', 'label' => 'Endpoint', 'type' => 'text'),
                     array('key' => 'region', 'label' => 'Region', 'type' => 'text'),
                     array('key' => 'bucket', 'label' => 'Bucket', 'type' => 'text'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
             3 => array(
@@ -59,7 +56,6 @@ class StorageRegistry
                     array('key' => 'access_key_secret', 'label' => 'AccessKey Secret', 'type' => 'password'),
                     array('key' => 'endpoint', 'label' => 'Endpoint', 'type' => 'text'),
                     array('key' => 'bucket', 'label' => 'Bucket', 'type' => 'text'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
             4 => array(
@@ -77,7 +73,6 @@ class StorageRegistry
                     array('key' => 'secret_key', 'label' => 'SecretKey', 'type' => 'password'),
                     array('key' => 'region', 'label' => 'Region', 'type' => 'text'),
                     array('key' => 'bucket', 'label' => 'Bucket', 'type' => 'text'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
             5 => array(
@@ -93,7 +88,6 @@ class StorageRegistry
                     array('key' => 'access_key', 'label' => 'AccessKey', 'type' => 'text'),
                     array('key' => 'secret_key', 'label' => 'SecretKey', 'type' => 'password'),
                     array('key' => 'bucket', 'label' => 'Bucket', 'type' => 'text'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
             6 => array(
@@ -112,7 +106,6 @@ class StorageRegistry
                     array('key' => 'uuid', 'label' => '设备 UUID', 'type' => 'text', 'placeholder' => '留空自动获取'),
                     array('key' => 'token', 'label' => '登录令牌', 'type' => 'password', 'placeholder' => '留空自动登录'),
                     array('key' => 'ip', 'label' => 'X-Forwarded-For', 'type' => 'text'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
             7 => array(
@@ -128,7 +121,6 @@ class StorageRegistry
                     array('key' => 'base_uri', 'label' => 'WebDAV Base URI', 'type' => 'text'),
                     array('key' => 'username', 'label' => '用户名', 'type' => 'text'),
                     array('key' => 'password', 'label' => '密码', 'type' => 'password'),
-                    array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
         );
@@ -177,7 +169,23 @@ class StorageRegistry
             $configs[$field['key']] = Config::get($dbKey, '');
         }
 
+        if ((int) $key === 1) {
+            $configs['url'] = self::localPublicUrl();
+        }
+
         return $configs;
+    }
+
+    /**
+     * 本地储存公开访问 URL 前缀（随当前站点域名动态生成）
+     *
+     * @return string
+     */
+    public static function localPublicUrl()
+    {
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+        return LocalStorageDriver::defaultPublicUrl();
     }
 
     /**
@@ -286,6 +294,10 @@ class StorageRegistry
             }
 
             $configs[$field['key']] = $value;
+        }
+
+        if ((int) $key === 1) {
+            $configs['url'] = self::localPublicUrl();
         }
 
         return $configs;

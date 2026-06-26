@@ -1,0 +1,13 @@
+{
+    "name": "vanshine/storage-ilanzou",
+    "description": "VanShine 蓝奏云优享版储存（纯 PHP 实现，无运行时 Composer 依赖）",
+    "require": {
+        "php": "^8.0",
+        "ext-curl": "*",
+        "ext-openssl": "*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

@@ -280,14 +280,16 @@ function vs_admin_stub_page($pageTitle, $activeMenu)
  * @param string $title
  * @param string $desc
  * @param bool   $open
+ * @param bool   $nested 嵌套折叠（储存配置子板块）
  * @return void
  */
-function vs_admin_accordion_start($id, $title, $desc = '', $open = false)
+function vs_admin_accordion_start($id, $title, $desc = '', $open = false, $nested = false)
 {
     $openClass = $open ? ' is-open' : '';
+    $nestedClass = $nested ? ' vs-accordion--nested' : '';
     $aria = $open ? 'true' : 'false';
 
-    echo '<section class="vs-panel vs-accordion' . $openClass . '" id="' . vs_e($id) . '" data-accordion>' . "\n";
+    echo '<section class="vs-panel vs-accordion' . $nestedClass . $openClass . '" id="' . vs_e($id) . '" data-accordion>' . "\n";
     echo '<button type="button" class="vs-accordion__trigger" aria-expanded="' . $aria . '">' . "\n";
     echo '<div class="vs-accordion__head">' . "\n";
     echo '<h3 class="vs-accordion__title">' . vs_e($title) . '</h3>' . "\n";

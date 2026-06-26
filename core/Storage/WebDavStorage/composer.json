@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/storage-webdav",
+    "description": "VanShine WebDAV 储存依赖（Flysystem WebDAV + Sabre）",
+    "require": {
+        "php": "^8.0",
+        "league/flysystem-webdav": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

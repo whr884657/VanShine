@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/storage_settings.php
  * 作用：系统设置 — 储存配置折叠板块
- * @version 1.0.31
+ * @version 1.0.32
  */
 
 /**
@@ -43,9 +43,14 @@ function vs_settings_render_storage_section()
             vs_admin_accordion_start(
                 'storage-type-' . $type['slug'],
                 $type['name'],
-                '策略 KEY ' . (int) $key . '，填写后勾选启用即可参与文件管理绑定'
+                '策略 KEY ' . (int) $key . '，填写后勾选启用即可参与文件管理绑定',
+                false,
+                true
             );
             ?>
+            <?php if ((int) $key === 1): ?>
+                <p class="vs-form-tip">本地文件访问 URL 将根据当前站点域名自动生成（<code>{站点根}/upload/…</code>），无需手动填写。</p>
+            <?php endif; ?>
             <?php foreach ($type['fields'] as $field):
                 $dbKey = StorageRegistry::configDbKey($key, $field['key']);
                 $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、重命名）
- * @version 1.0.31
+ * @version 1.0.32
  */
 
 (function () {
@@ -16,7 +16,6 @@
     var folderMetaEl = document.getElementById('folderMeta');
     var uploadWrap = document.getElementById('uploadWrap');
     var uploadInput = document.getElementById('fileUploadInput');
-    var dropHint = document.getElementById('fileDropHint');
     var folderModal = document.getElementById('folderModal');
     var renameModal = document.getElementById('renameModal');
     var folderForm = document.getElementById('folderForm');
@@ -35,7 +34,8 @@
         files: [],
         storages: [],
         view: localStorage.getItem('vs_file_view') || 'grid',
-        uploading: false
+        uploading: false,
+        dragDepth: 0
     };
 
     try {
@@ -431,22 +431,44 @@
         });
     }
 
+    function isFileDrag(e) {
+        if (!e.dataTransfer || !e.dataTransfer.types) return false;
+        var types = e.dataTransfer.types;
+        if (typeof types.contains === 'function') {
+            return types.contains('Files');
+        }
+        for (var i = 0; i < types.length; i++) {
+            if (types[i] === 'Files') return true;
+        }
+        return false;
+    }
+
+    function clearDragState() {
+        state.dragDepth = 0;
+        root.classList.remove('is-dragover');
+    }
+
     ['dragenter', 'dragover'].forEach(function (evtName) {
         root.addEventListener(evtName, function (e) {
-            if (!root.classList.contains('can-upload')) return;
+            if (!root.classList.contains('can-upload') || !isFileDrag(e)) return;
             e.preventDefault();
             e.stopPropagation();
-            root.classList.add('is-dragover');
-            if (dropHint) dropHint.hidden = false;
+            if (evtName === 'dragenter') {
+                state.dragDepth += 1;
+            }
+            if (state.dragDepth > 0) {
+                root.classList.add('is-dragover');
+            }
         });
     });
 
     root.addEventListener('dragleave', function (e) {
         if (!root.classList.contains('can-upload')) return;
         e.preventDefault();
-        if (e.target === root || !root.contains(e.relatedTarget)) {
+        e.stopPropagation();
+        state.dragDepth = Math.max(0, state.dragDepth - 1);
+        if (state.dragDepth === 0) {
             root.classList.remove('is-dragover');
-            if (dropHint) dropHint.hidden = true;
         }
     });
 
@@ -454,10 +476,12 @@
         if (!root.classList.contains('can-upload')) return;
         e.preventDefault();
         e.stopPropagation();
-        root.classList.remove('is-dragover');
-        if (dropHint) dropHint.hidden = true;
+        clearDragState();
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
             uploadFiles(e.dataTransfer.files);
         }
     });
+
+    window.addEventListener('dragend', clearDragState);
+    window.addEventListener('drop', clearDragState);
 })();

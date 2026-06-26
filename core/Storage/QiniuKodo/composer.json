@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/storage-qiniu-kodo",
+    "description": "VanShine 七牛云 Kodo 储存依赖（Flysystem Qiniu）",
+    "require": {
+        "php": "^8.0",
+        "overtrue/flysystem-qiniu": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

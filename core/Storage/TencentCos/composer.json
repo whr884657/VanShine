@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/storage-tencent-cos",
+    "description": "VanShine 腾讯云 COS 储存依赖（Flysystem COS）",
+    "require": {
+        "php": "^8.0",
+        "overtrue/flysystem-cos": "^5.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

@@ -457,9 +457,27 @@
     border-top: 1px solid var(--vs-border);
 }
 
-.vs-accordion.is-open .vs-accordion__body {
+.vs-accordion.is-open > .vs-accordion__body {
     display: block;
     padding-top: 20px;
+}
+
+.vs-accordion--nested {
+    margin-top: 12px;
+    border: 1px solid var(--vs-border);
+    border-radius: var(--vs-radius);
+}
+
+.vs-accordion--nested .vs-accordion__trigger {
+    padding: 14px 18px;
+}
+
+.vs-accordion--nested .vs-accordion__body {
+    padding: 0 18px 18px;
+}
+
+.vs-accordion--nested.is-open > .vs-accordion__body {
+    padding-top: 14px;
 }
 
 .vs-panel__header {

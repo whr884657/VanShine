@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/storage-aws-s3",
+    "description": "VanShine AWS S3 储存依赖（Flysystem S3 + AWS SDK）",
+    "require": {
+        "php": "^8.0",
+        "league/flysystem-aws-s3-v3": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

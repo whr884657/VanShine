@@ -1,8 +1,10 @@
 config/database.php
 config/install.lock
 install/installed.lock
-storage/
+/storage/
+/data/
 release/*.zip
+core/Storage/**/vendor/
 .DS_Store
 Thumbs.db
 *.log

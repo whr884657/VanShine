@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/storage_settings.php
  * 作用：系统设置 — 储存配置折叠板块
- * @version 1.0.32
+ * @version 1.0.34
  */
 
 /**
@@ -65,6 +65,9 @@ function vs_settings_render_storage_section()
                         </label>
                     <?php else: ?>
                         <label class="vs-label"><?php echo vs_e($field['label']); ?></label>
+                        <?php if (!empty($field['hint'])): ?>
+                            <p class="vs-form-tip vs-form-tip--field"><?php echo vs_e($field['hint']); ?></p>
+                        <?php endif; ?>
                         <?php if ($field['type'] === 'password'): ?>
                             <input type="password" name="<?php echo vs_e($postKey); ?>" class="vs-input"
                                    placeholder="留空则不修改">

@@ -1,12 +1,12 @@
 {
-    "version": "1.0.33",
+    "version": "1.0.34",
     "release_date": "2026-06-26",
-    "title": "更新记录修复与 UpdateLog 容错",
+    "title": "文件管理 UI 优化与储存配置说明",
     "db_changes": false,
     "changes": [
-        "修复 update-log.json 中 1.0.31 条目缺失 version 导致更新检测 PHP 报错",
-        "UpdateLog 排序时跳过无效版本记录，增强容错",
-        "发行包继续包含七种储存驱动完整 vendor 依赖"
+        "文件管理：修复列表/网格视图 UI 异常，优化弹窗关闭按钮",
+        "文件管理：点击图片/文件弹出预览（电脑居中弹窗、手机底部抽屉），支持复制分享链接",
+        "储存配置：各字段增加中英文标签与中文填写说明"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

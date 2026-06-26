@@ -582,6 +582,13 @@
     margin-bottom: 12px;
 }
 
+.vs-form-tip--field {
+    margin: 4px 0 8px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--vs-text-secondary);
+}
+
 .vs-avatar-field {
     display: flex;
     align-items: center;

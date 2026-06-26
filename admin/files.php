@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.31
+ * @version 1.0.34
  */
 
 require_once __DIR__ . '/init.php';
@@ -219,7 +219,9 @@ vs_admin_layout_start('文件管理', 'files');
     <div class="vs-modal vs-modal--sm">
         <div class="vs-modal__head">
             <h3 class="vs-modal__title">重命名文件夹</h3>
-            <button type="button" class="vs-modal__close" data-close-rename>&times;</button>
+            <button type="button" class="vs-modal__close" data-close-rename aria-label="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
         </div>
         <form id="renameForm" class="vs-form">
             <input type="hidden" name="target_id" id="renameTargetId" value="">
@@ -241,7 +243,9 @@ vs_admin_layout_start('文件管理', 'files');
     <div class="vs-modal vs-modal--sm">
         <div class="vs-modal__head">
             <h3 class="vs-modal__title">新建文件夹</h3>
-            <button type="button" class="vs-modal__close" data-close-modal>&times;</button>
+            <button type="button" class="vs-modal__close" data-close-modal aria-label="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
         </div>
         <form id="folderForm" class="vs-form">
             <div class="vs-modal__body">
@@ -260,6 +264,30 @@ vs_admin_layout_start('文件管理', 'files');
                 <button type="submit" class="vs-btn vs-btn--primary">创建</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="vs-file-preview" id="filePreview" hidden aria-hidden="true">
+    <div class="vs-file-preview__overlay" data-close-preview></div>
+    <div class="vs-file-preview__panel" role="dialog" aria-modal="true" aria-labelledby="filePreviewTitle">
+        <div class="vs-file-preview__head">
+            <h3 class="vs-file-preview__title" id="filePreviewTitle">文件预览</h3>
+            <button type="button" class="vs-file-preview__close" data-close-preview aria-label="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+        <div class="vs-file-preview__body">
+            <div class="vs-file-preview__media" id="filePreviewMedia"></div>
+            <div class="vs-file-preview__meta" id="filePreviewMeta"></div>
+            <div class="vs-file-preview__link-box">
+                <input type="text" class="vs-file-preview__link-input" id="filePreviewLink" readonly>
+                <button type="button" class="vs-btn vs-btn--primary" id="filePreviewCopy">复制链接</button>
+            </div>
+            <div class="vs-file-preview__actions">
+                <a class="vs-btn vs-btn--default" id="filePreviewOpen" href="#" target="_blank" rel="noopener">新窗口打开</a>
+                <a class="vs-btn vs-btn--default" id="filePreviewDownload" href="#" download>下载文件</a>
+            </div>
+        </div>
     </div>
 </div>
 

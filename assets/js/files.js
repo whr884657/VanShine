@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
- * 作用：后台文件管理页（批量/拖拽上传、重命名）
- * @version 1.0.32
+ * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
+ * @version 1.0.34
  */
 
 (function () {
@@ -25,6 +25,14 @@
     var storageSelect = document.getElementById('folderStorageSelect');
     var storageInheritTip = document.getElementById('storageInheritTip');
     var storagePickRow = document.getElementById('storagePickRow');
+    var filePreview = document.getElementById('filePreview');
+    var filePreviewTitle = document.getElementById('filePreviewTitle');
+    var filePreviewMedia = document.getElementById('filePreviewMedia');
+    var filePreviewMeta = document.getElementById('filePreviewMeta');
+    var filePreviewLink = document.getElementById('filePreviewLink');
+    var filePreviewCopy = document.getElementById('filePreviewCopy');
+    var filePreviewOpen = document.getElementById('filePreviewOpen');
+    var filePreviewDownload = document.getElementById('filePreviewDownload');
 
     var state = {
         folderId: 0,
@@ -35,7 +43,8 @@
         storages: [],
         view: localStorage.getItem('vs_file_view') || 'grid',
         uploading: false,
-        dragDepth: 0
+        dragDepth: 0,
+        previewFile: null
     };
 
     try {
@@ -66,6 +75,14 @@
 
     function isImage(mime) {
         return String(mime || '').indexOf('image/') === 0;
+    }
+
+    function findFile(id) {
+        id = Number(id);
+        for (var i = 0; i < state.files.length; i++) {
+            if (state.files[i].id === id) return state.files[i];
+        }
+        return null;
     }
 
     function applyPayload(data) {
@@ -183,11 +200,11 @@
         }
     }
 
-    function fileIcon(file) {
+    function fileIconHtml(file, listMode) {
         if (isImage(file.mime_type) && file.public_url) {
             return '<img src="' + escapeHtml(file.public_url) + '" alt="" class="vs-filemgr__thumb" loading="lazy">';
         }
-        return '<span class="vs-filemgr__file-icon">📄</span>';
+        return '<span class="vs-filemgr__file-icon">' + (listMode ? '📄' : '📄') + '</span>';
     }
 
     function renderContent() {
@@ -195,6 +212,7 @@
 
         contentEl.className = 'vs-filemgr__content view-' + state.view;
         var hasItems = state.folders.length > 0 || state.files.length > 0;
+        var isList = state.view === 'list';
 
         if (!hasItems) {
             contentEl.innerHTML = '<p class="vs-form-tip vs-filemgr__empty">'
@@ -206,13 +224,20 @@
         }
 
         var html = '<div class="vs-filemgr__grid">';
+        if (isList) {
+            html += '<div class="vs-filemgr__list-head">'
+                + '<span>名称</span><span>类型</span><span>储存</span><span>大小</span><span>操作</span>'
+                + '</div>';
+        }
 
         state.folders.forEach(function (folder) {
             html += '<div class="vs-filemgr__item is-folder" data-folder-id="' + folder.id + '">';
             html += '<button type="button" class="vs-filemgr__open" data-folder-id="' + folder.id + '">';
+            html += '<span class="vs-filemgr__open-main">';
             html += '<span class="vs-filemgr__folder-icon">📁</span>';
             html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
-            if (state.view === 'list') {
+            html += '</span>';
+            if (isList) {
                 html += '<span class="vs-filemgr__col vs-filemgr__col--type">文件夹</span>';
                 html += '<span class="vs-filemgr__col vs-filemgr__col--storage">'
                     + escapeHtml(folder.storage_key) + '. ' + escapeHtml(folder.storage_name) + '</span>';
@@ -228,16 +253,18 @@
 
         state.files.forEach(function (file) {
             html += '<div class="vs-filemgr__item is-file" data-file-id="' + file.id + '">';
-            html += '<a class="vs-filemgr__open" href="' + escapeHtml(file.public_url) + '" target="_blank" rel="noopener">';
-            html += fileIcon(file);
+            html += '<button type="button" class="vs-filemgr__open" data-preview-file="' + file.id + '">';
+            html += '<span class="vs-filemgr__open-main">';
+            html += fileIconHtml(file, isList);
             html += '<span class="vs-filemgr__name" title="' + escapeHtml(file.original_name) + '">'
                 + escapeHtml(file.stored_name) + '</span>';
-            if (state.view === 'list') {
-                html += '<span class="vs-filemgr__col vs-filemgr__col--type">' + escapeHtml(file.mime_type) + '</span>';
+            html += '</span>';
+            if (isList) {
+                html += '<span class="vs-filemgr__col vs-filemgr__col--type">' + escapeHtml(file.mime_type || '—') + '</span>';
                 html += '<span class="vs-filemgr__col vs-filemgr__col--storage">—</span>';
                 html += '<span class="vs-filemgr__col vs-filemgr__col--size">' + formatSize(file.file_size) + '</span>';
             }
-            html += '</a>';
+            html += '</button>';
             html += '<div class="vs-filemgr__actions">';
             html += '<button type="button" class="vs-filemgr__action" data-delete-file="' + file.id + '" title="删除">×</button>';
             html += '</div></div>';
@@ -245,11 +272,22 @@
 
         html += '</div>';
         contentEl.innerHTML = html;
+        bindContentEvents();
+    }
 
+    function bindContentEvents() {
         contentEl.querySelectorAll('.vs-filemgr__open[data-folder-id]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 loadFolder(parseInt(btn.getAttribute('data-folder-id'), 10));
+            });
+        });
+
+        contentEl.querySelectorAll('[data-preview-file]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var file = findFile(btn.getAttribute('data-preview-file'));
+                if (file) openFilePreview(file);
             });
         });
 
@@ -282,6 +320,90 @@
                 });
             });
         });
+    }
+
+    function openFilePreview(file) {
+        if (!filePreview || !file) return;
+        state.previewFile = file;
+
+        var displayName = file.original_name || file.stored_name || '文件';
+        if (filePreviewTitle) filePreviewTitle.textContent = displayName;
+
+        if (filePreviewMedia) {
+            if (isImage(file.mime_type) && file.public_url) {
+                filePreviewMedia.innerHTML = '<img src="' + escapeHtml(file.public_url) + '" alt="' + escapeHtml(displayName) + '">';
+            } else {
+                filePreviewMedia.innerHTML = '<span class="vs-file-preview__file-icon">📄</span>';
+            }
+        }
+
+        if (filePreviewMeta) {
+            filePreviewMeta.innerHTML = ''
+                + metaRow('文件名', file.original_name || file.stored_name)
+                + metaRow('存储名', file.stored_name)
+                + metaRow('类型', file.mime_type || '—')
+                + metaRow('大小', formatSize(file.file_size));
+        }
+
+        var url = file.public_url || '';
+        if (filePreviewLink) filePreviewLink.value = url;
+        if (filePreviewOpen) {
+            filePreviewOpen.href = url || '#';
+            filePreviewOpen.style.display = url ? '' : 'none';
+        }
+        if (filePreviewDownload) {
+            filePreviewDownload.href = url || '#';
+            filePreviewDownload.setAttribute('download', file.stored_name || '');
+            filePreviewDownload.style.display = url ? '' : 'none';
+        }
+
+        filePreview.hidden = false;
+        filePreview.classList.add('is-open');
+        filePreview.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('vs-modal-open');
+    }
+
+    function metaRow(label, value) {
+        return '<div class="vs-file-preview__meta-row">'
+            + '<span class="vs-file-preview__meta-label">' + escapeHtml(label) + '</span>'
+            + '<span class="vs-file-preview__meta-value">' + escapeHtml(value == null ? '—' : value) + '</span>'
+            + '</div>';
+    }
+
+    function closeFilePreview() {
+        if (!filePreview) return;
+        filePreview.classList.remove('is-open');
+        filePreview.hidden = true;
+        filePreview.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('vs-modal-open');
+        state.previewFile = null;
+    }
+
+    function copyPreviewLink() {
+        var url = filePreviewLink ? filePreviewLink.value : '';
+        if (!url) {
+            showFlash('暂无分享链接', 'error');
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function () {
+                showFlash('链接已复制到剪贴板', 'success');
+            }).catch(fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+
+        function fallbackCopy() {
+            if (!filePreviewLink) return;
+            filePreviewLink.select();
+            filePreviewLink.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showFlash('链接已复制到剪贴板', 'success');
+            } catch (e) {
+                showFlash('复制失败，请手动选择链接', 'error');
+            }
+        }
     }
 
     function handleActionResponse(data) {
@@ -382,6 +504,28 @@
 
     renameModal.querySelectorAll('[data-close-rename]').forEach(function (btn) {
         btn.addEventListener('click', closeRenameModal);
+    });
+
+    if (filePreview) {
+        filePreview.querySelectorAll('[data-close-preview]').forEach(function (btn) {
+            btn.addEventListener('click', closeFilePreview);
+        });
+    }
+
+    if (filePreviewCopy) {
+        filePreviewCopy.addEventListener('click', copyPreviewLink);
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            if (filePreview && filePreview.classList.contains('is-open')) {
+                closeFilePreview();
+            } else if (folderModal && folderModal.classList.contains('is-open')) {
+                closeFolderModal();
+            } else if (renameModal && renameModal.classList.contains('is-open')) {
+                closeRenameModal();
+            }
+        }
     });
 
     if (folderForm) {

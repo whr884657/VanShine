@@ -1,12 +1,12 @@
 {
-    "version": "1.0.39",
+    "version": "1.0.40",
     "release_date": "2026-06-26",
-    "title": "修复上传失败与全局上传进度",
-    "db_changes": false,
+    "title": "本地储存改回 upload 直链",
+    "db_changes": true,
     "changes": [
-        "修复上传 FormData 未创建导致进度条不动、上传失败",
-        "全局上传进度浮层，可折叠隐藏，切换后台页面仍继续上传",
-        "桥接窗口 + BroadcastChannel 跨页面同步进度"
+        "移除随机 slug 直链网关，本地文件外链改为 {域名}/upload/路径/文件名",
+        "删除 public-file.php、LocalFileServe 及相关配置字段",
+        "升级后自动清理旧网关并刷新已有文件外链"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

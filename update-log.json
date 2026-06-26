@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.40",
+            "date": "2026-06-26",
+            "title": "本地储存改回 upload 直链",
+            "db_changes": true,
+            "migration": "1.0.40.sql",
+            "changes": [
+                "移除 slug 伪装直链，改回 {域名}/upload/... 直链",
+                "删除 public-file.php、LocalFileServe、storage_local_public_slug",
+                "升级自动清理旧网关并刷新外链"
+            ]
+        },
+        {
             "version": "1.0.39",
             "date": "2026-06-26",
             "title": "修复上传失败与全局上传进度",

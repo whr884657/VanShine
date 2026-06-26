@@ -103,7 +103,6 @@ INSERT INTO `{prefix}config` (`key`, `value`) VALUES
 ('storage_local_url', ''),
 ('storage_local_root', ''),
 ('storage_local_queries', ''),
-('storage_local_public_slug', ''),
 ('storage_s3_enabled', '0'),
 ('storage_s3_url', ''),
 ('storage_s3_access_key_id', ''),

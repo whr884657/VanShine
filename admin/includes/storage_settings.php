@@ -49,7 +49,7 @@ function vs_settings_render_storage_section()
             );
             ?>
             <?php if ((int) $key === 1): ?>
-                <p class="vs-form-tip">本地文件对外链接：<code>{站点域名}/{随机单字母}/{文件名}</code>。slug 为 <strong>a–z 中随机 1 个字母</strong>，首次保存时生成并固定，不暴露 upload 路径。Apache 自动生效；<strong>Nginx 需配置</strong>（见 <code>install/nginx-local-storage.conf.example</code>）。保存后自动部署直链网关。</p>
+                <p class="vs-form-tip">本地文件对外链接为直链：<code>{访问 URL}/{文件夹路径}/{文件名}</code>，默认 <code>{站点域名}/upload/...</code>。Web 服务器需允许直接访问 upload 目录。</p>
             <?php endif; ?>
             <?php foreach ($type['fields'] as $field):
                 $dbKey = StorageRegistry::configDbKey($key, $field['key']);

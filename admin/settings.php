@@ -162,8 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (StorageRegistry::isEnabled(1)) {
                 require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
                 require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
-                $oldSlug = Config::get(LocalStorageDriver::CONFIG_SLUG, '');
-                LocalStorageDriver::ensureSymlink(StorageRegistry::loadDriverConfigs(1), $oldSlug);
+                LocalStorageDriver::cleanupLegacyGateway();
                 LocalStorageDriver::refreshStoredPublicUrls();
             }
 

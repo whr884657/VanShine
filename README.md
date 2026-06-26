@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.39**
+**当前版本：1.0.40**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.39.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.40.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -173,6 +173,17 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.40（2026-06-26）
+
+**类型：** 本地储存直链简化
+
+**变更说明：**
+- 移除随机字母 slug 直链网关，本地分享链接改回 `{域名}/upload/路径/文件名`
+- 删除 `public-file.php`、`LocalFileServe.php`、`storage_local_public_slug` 等
+- 升级后执行 `1.0.40.sql` 并自动刷新已有本地文件外链
+
+---
 
 ### v1.0.39（2026-06-26）
 

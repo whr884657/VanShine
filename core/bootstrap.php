@@ -29,7 +29,6 @@ require_once VS_ROOT . '/core/UploadNaming.php';
 require_once VS_ROOT . '/core/FileFolder.php';
 require_once VS_ROOT . '/core/FileItem.php';
 require_once VS_ROOT . '/core/StorageManager.php';
-require_once VS_ROOT . '/core/LocalFileServe.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     AuthSecurity::configureSessionCookies();

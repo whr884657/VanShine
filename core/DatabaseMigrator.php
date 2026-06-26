@@ -88,6 +88,10 @@ class DatabaseMigrator
                 self::markApplied('1.0.35');
             }
         }
+
+        if (!in_array('1.0.40', $applied, true) && !array_key_exists('storage_local_public_slug', Config::all())) {
+            self::markApplied('1.0.40');
+        }
     }
 
     /**
@@ -227,6 +231,11 @@ class DatabaseMigrator
             return;
         }
 
+        if ($version === '1.0.40') {
+            self::applyLocalStorageDirectUrlMigration($pdo, $prefix);
+            return;
+        }
+
         $sql = file_get_contents($file);
         $sql = str_replace('{prefix}', $prefix, $sql);
         self::assertPrefixedTables($sql, $prefix, basename($file));
@@ -235,6 +244,27 @@ class DatabaseMigrator
         foreach ($statements as $statement) {
             self::execStatement($pdo, $statement);
         }
+    }
+
+    /**
+     * v1.0.40：本地储存改回 upload 直链，清理 slug 网关
+     *
+     * @param PDO    $pdo
+     * @param string $prefix
+     * @return void
+     */
+    public static function applyLocalStorageDirectUrlMigration(PDO $pdo, $prefix)
+    {
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+
+        LocalStorageDriver::cleanupLegacyGateway();
+
+        $table = $prefix . 'config';
+        $pdo->exec("DELETE FROM `" . $table . "` WHERE `key` = 'storage_local_public_slug'");
+
+        Config::clearCache();
+        LocalStorageDriver::refreshStoredPublicUrls();
     }
 
     /**

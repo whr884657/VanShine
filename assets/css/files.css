@@ -807,8 +807,9 @@
 
     .vs-file-preview__panel {
         position: relative;
-        width: 100%;
-        max-width: 560px;
+        width: min(92vw, 960px);
+        max-width: 960px;
+        min-width: min(92vw, 640px);
         max-height: min(88vh, 720px);
         border-radius: 14px;
         transform: scale(0.96);

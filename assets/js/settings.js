@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/settings.js
  * 作用：系统设置页 AJAX 保存与折叠板块
- * @version 1.0.31
+ * @version 1.0.42
  */
 
 (function () {
@@ -10,11 +10,25 @@
     var flashEl = document.getElementById('settingsFlash');
 
     function showFlash(text, type) {
+        if (window.VsToast) {
+            VsToast.show(text, type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'));
+            return;
+        }
         if (!flashEl) return;
         flashEl.textContent = text;
         flashEl.className = 'vs-settings-flash vs-alert vs-alert--' + type;
         flashEl.hidden = false;
         flashEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    function parseResponse(res) {
+        return res.text().then(function (text) {
+            var data = window.VS && VS.parseJsonResponse ? VS.parseJsonResponse(text) : null;
+            if (!data) {
+                throw new Error('invalid_json');
+            }
+            return data;
+        });
     }
 
     function postForm(form) {
@@ -27,7 +41,7 @@
             body: body,
             credentials: 'same-origin'
         })
-            .then(function (res) { return res.json(); })
+            .then(parseResponse)
             .finally(function () {
                 if (submitBtn) submitBtn.disabled = false;
             });
@@ -178,7 +192,7 @@
                     body: body,
                     credentials: 'same-origin'
                 })
-                    .then(function (res) { return res.json(); })
+                    .then(parseResponse)
                     .then(function (data) {
                         showFlash(data.msg || (data.code === 1 ? '测试成功' : '测试失败'), data.code === 1 ? 'success' : 'error');
                     })

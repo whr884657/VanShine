@@ -2,7 +2,7 @@
 /**
  * 文件：admin/upload-bridge.php
  * 作用：后台跨页面文件上传桥接窗口（接收 postMessage 后在后台完成 XHR 上传）
- * @version 1.0.39
+ * @version 1.0.42
  */
 
 require_once __DIR__ . '/init.php';
@@ -24,6 +24,31 @@ $filesUrl = vs_base_url() . '/admin/files.php';
     var channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
     var filesBaseUrl = <?php echo json_encode($filesUrl, JSON_UNESCAPED_UNICODE); ?>;
 
+    function parseJson(text) {
+        var s = String(text || '').replace(/^\uFEFF/, '').trim();
+        if (!s) return null;
+        try {
+            return JSON.parse(s);
+        } catch (e1) {
+            var start = s.indexOf('{');
+            var end = s.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                try {
+                    return JSON.parse(s.substring(start, end + 1));
+                } catch (e2) {}
+            }
+        }
+        return null;
+    }
+
+    function resolveUploadUrl(url) {
+        if (!url) return filesBaseUrl;
+        if (/^https?:\/\//i.test(url)) return url;
+        var origin = window.location.origin;
+        if (url.charAt(0) === '/') return origin + url;
+        return origin + '/' + url;
+    }
+
     function broadcast(data) {
         if (channel) {
             channel.postMessage(data);
@@ -39,7 +64,7 @@ $filesUrl = vs_base_url() . '/admin/files.php';
         var jobId = payload.jobId;
         var file = payload.file;
         var folderId = payload.folderId;
-        var uploadUrl = payload.uploadUrl || filesBaseUrl;
+        var uploadUrl = resolveUploadUrl(payload.uploadUrl || filesBaseUrl);
 
         if (!file || !jobId) {
             return;
@@ -71,10 +96,8 @@ $filesUrl = vs_base_url() . '/admin/files.php';
         });
 
         xhr.addEventListener('load', function () {
-            var data = null;
-            try {
-                data = JSON.parse(xhr.responseText || '{}');
-            } catch (err) {
+            var data = parseJson(xhr.responseText);
+            if (!data) {
                 broadcast({
                     type: 'done',
                     jobId: jobId,

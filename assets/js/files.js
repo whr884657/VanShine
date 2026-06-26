@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.39
+ * @version 1.0.42
  */
 
 (function () {
@@ -58,10 +58,49 @@
     }
 
     function showFlash(text, type) {
+        if (window.VsToast) {
+            VsToast.show(text, type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'));
+            return;
+        }
         if (!flashEl) return;
         flashEl.textContent = text;
         flashEl.className = 'vs-settings-flash vs-alert vs-alert--' + type;
         flashEl.hidden = false;
+    }
+
+    function decodeDisplayUrl(url) {
+        if (!url) return '';
+        try {
+            var parsed = new URL(url, window.location.origin);
+            var parts = parsed.pathname.split('/').map(function (seg) {
+                if (!seg) return seg;
+                try {
+                    return decodeURIComponent(seg);
+                } catch (e) {
+                    return seg;
+                }
+            });
+            parsed.pathname = parts.join('/');
+            return parsed.href;
+        } catch (err) {
+            return String(url).replace(/%[0-9A-Fa-f]{2}/g, function (m) {
+                try {
+                    return decodeURIComponent(m);
+                } catch (e2) {
+                    return m;
+                }
+            });
+        }
+    }
+
+    function parseResponse(res) {
+        return res.text().then(function (text) {
+            var data = window.VS && VS.parseJsonResponse ? VS.parseJsonResponse(text) : null;
+            if (!data) {
+                throw new Error('invalid_json');
+            }
+            return data;
+        });
     }
 
     function escapeHtml(str) {
@@ -120,7 +159,7 @@
             method: 'POST',
             body: body,
             credentials: 'same-origin'
-        }).then(function (res) { return res.json(); });
+        }).then(parseResponse);
     }
 
     function loadFolder(folderId) {
@@ -156,11 +195,15 @@
         if (state.folderId > 0) {
             uploadUrl += '?folder=' + state.folderId;
         }
+        if (window.VS_BASE_URL) {
+            uploadUrl = window.VS_BASE_URL + uploadUrl;
+        }
 
         files.forEach(function (file) {
             window.VsUploadQueue.enqueue(file, {
                 folderId: state.folderId,
-                uploadUrl: uploadUrl
+                uploadUrl: uploadUrl,
+                localOnly: true
             });
         });
     }
@@ -356,7 +399,11 @@
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 confirmDelete('确定删除该文件夹吗？', function () {
-                    post('delete_folder', { target_id: btn.getAttribute('data-delete-folder') }).then(handleActionResponse);
+                    post('delete_folder', { target_id: btn.getAttribute('data-delete-folder') })
+                        .then(handleActionResponse)
+                        .catch(function () {
+                            showFlash('网络异常', 'error');
+                        });
                 });
             });
         });
@@ -364,8 +411,13 @@
         contentEl.querySelectorAll('[data-delete-file]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
+                var fileId = parseInt(btn.getAttribute('data-delete-file'), 10);
                 confirmDelete('确定删除该文件吗？', function () {
-                    post('delete_file', { target_id: btn.getAttribute('data-delete-file') }).then(handleActionResponse);
+                    post('delete_file', { target_id: String(fileId) }).then(function (data) {
+                        handleActionResponse(data, { deletedFileId: fileId });
+                    }).catch(function () {
+                        showFlash('网络异常', 'error');
+                    });
                 });
             });
         });
@@ -375,7 +427,7 @@
         if (!filePreview || !file) return;
         state.previewFile = file;
 
-        var displayName = file.original_name || file.stored_name || '文件';
+        var displayName = file.stored_name || file.original_name || '文件';
         if (filePreviewTitle) filePreviewTitle.textContent = displayName;
 
         if (filePreviewMedia) {
@@ -398,7 +450,8 @@
         }
 
         var url = file.public_url || '';
-        if (filePreviewLink) filePreviewLink.value = url;
+        var displayUrl = decodeDisplayUrl(url);
+        if (filePreviewLink) filePreviewLink.value = displayUrl;
         if (filePreviewOpen) {
             filePreviewOpen.href = url || '#';
             filePreviewOpen.style.display = url ? '' : 'none';
@@ -455,10 +508,10 @@
 
         xhr.addEventListener('load', function () {
             state.replacing = false;
-            var data = null;
-            try {
-                data = JSON.parse(xhr.responseText || '{}');
-            } catch (err) {
+            var data = window.VS && VS.parseJsonResponse
+                ? VS.parseJsonResponse(xhr.responseText)
+                : null;
+            if (!data) {
                 setReplaceProgress(100, '响应异常');
                 showFlash('替换失败', 'error');
                 if (fileReplaceInput) fileReplaceInput.value = '';
@@ -537,10 +590,15 @@
         }
     }
 
-    function handleActionResponse(data) {
+    function handleActionResponse(data, options) {
+        options = options || {};
         if (data.code === 1) {
-            showFlash(data.msg || '操作成功', 'success');
+            if (options.deletedFileId && state.previewFile
+                && Number(state.previewFile.id) === Number(options.deletedFileId)) {
+                closeFilePreview();
+            }
             applyPayload(data);
+            showFlash(data.msg || '操作成功', 'success');
         } else {
             showFlash(data.msg || '操作失败', 'error');
         }
@@ -773,7 +831,6 @@
         }
         if (data.code === 1) {
             applyPayload(data);
-            showFlash(data.msg || '上传完成', 'success');
         }
     };
 })();

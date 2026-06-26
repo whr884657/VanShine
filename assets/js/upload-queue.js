@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/upload-queue.js
  * 作用：全局上传进度浮层（可折叠、跨页面同步、桥接窗口后台上传）
- * @version 1.0.41
+ * @version 1.0.42
  */
 
 (function (global) {
@@ -16,8 +16,29 @@
     var channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
     var bridgeWindow = null;
 
-    function uid() {
-        return 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    function parseJson(text) {
+        if (global.VS && global.VS.parseJsonResponse) {
+            return global.VS.parseJsonResponse(text);
+        }
+        try {
+            return JSON.parse(String(text || '').replace(/^\uFEFF/, '').trim() || '{}');
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function resolveUploadUrl(url) {
+        if (!url) {
+            return global.location.pathname + global.location.search;
+        }
+        if (/^https?:\/\//i.test(url)) {
+            return url;
+        }
+        var base = global.VS_BASE_URL || '';
+        if (url.charAt(0) === '/') {
+            return base + url;
+        }
+        return base + '/' + url;
     }
 
     function loadJobs() {
@@ -131,6 +152,9 @@
 
                 if (data.ok && data.payload && typeof global.vsFilesOnUploadComplete === 'function') {
                     global.vsFilesOnUploadComplete(data.folderId, data.payload);
+                }
+                if (data.ok && global.VsToast) {
+                    global.VsToast.show(data.message || '上传完成', 'success');
                 }
             }
         },
@@ -386,8 +410,16 @@
         },
 
         startUpload: function (job, file, options) {
+            options = options || {};
+            var onFilesPage = /\/files\.php$/i.test(global.location.pathname);
+
+            if (options.localOnly || onFilesPage) {
+                this.uploadLocal(job, file, options);
+                return;
+            }
+
             var bridge = this.getBridge();
-            var uploadUrl = options.uploadUrl || (global.location.pathname + global.location.search);
+            var uploadUrl = resolveUploadUrl(options.uploadUrl);
             var payload = {
                 type: 'vs-upload-start',
                 jobId: job.id,
@@ -424,7 +456,7 @@
             body.append('file[]', file);
 
             var xhr = new global.XMLHttpRequest();
-            xhr.open('POST', options.uploadUrl || (global.location.pathname + global.location.search), true);
+            xhr.open('POST', resolveUploadUrl(options.uploadUrl), true);
             xhr.withCredentials = true;
 
             xhr.upload.addEventListener('progress', function (e) {
@@ -442,10 +474,8 @@
             });
 
             xhr.addEventListener('load', function () {
-                var data = null;
-                try {
-                    data = JSON.parse(xhr.responseText || '{}');
-                } catch (err) {
+                var data = parseJson(xhr.responseText);
+                if (!data) {
                     self.handleEvent({
                         type: 'done',
                         jobId: job.id,

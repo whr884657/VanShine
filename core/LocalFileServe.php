@@ -2,23 +2,42 @@
 /**
  * 文件：core/LocalFileServe.php
  * 作用：本地储存对外直链（/{slug}/{文件名}）读取与输出
- * @version 1.0.35
+ * @version 1.0.37
  */
 
 class LocalFileServe
 {
+    /**
+     * @param string $slug
+     * @param string $storedName
+     * @return void
+     */
+    public static function outputBySlugAndName($slug, $storedName)
+    {
+        $slug = strtolower(trim((string) $slug));
+        if (!preg_match('/^[a-z]$/', $slug)) {
+            self::notFound();
+        }
+
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+        require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+
+        $expected = LocalStorageDriver::publicSlug(false);
+        if ($expected === '' || $slug !== $expected) {
+            self::notFound();
+        }
+
+        self::outputByStoredName($storedName);
+    }
+
     /**
      * @param string $storedName
      * @return void
      */
     public static function outputByStoredName($storedName)
     {
-        $storedName = basename(str_replace('\\', '/', trim($storedName)));
+        $storedName = rawurldecode(basename(str_replace('\\', '/', trim((string) $storedName))));
         if ($storedName === '' || preg_match('/[\/\\\\]/', $storedName)) {
-            self::notFound();
-        }
-
-        if (!StorageRegistry::isEnabled(1)) {
             self::notFound();
         }
 
@@ -43,7 +62,8 @@ class LocalFileServe
 
         $configs = StorageRegistry::loadDriverConfigs(1);
         $root = LocalStorageDriver::resolveRootPath($configs);
-        $physical = rtrim($root, '/\\') . '/' . str_replace('\\', '/', $item['pathname']);
+        $pathname = str_replace('\\', '/', (string) $item['pathname']);
+        $physical = rtrim($root, '/\\') . '/' . ltrim($pathname, '/');
 
         if (!is_file($physical) || !is_readable($physical)) {
             self::notFound();

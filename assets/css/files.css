@@ -1,7 +1,7 @@
 /**
  * 文件：assets/css/files.css
  * 作用：后台文件管理页样式
- * @version 1.0.35
+ * @version 1.0.37
  */
 
 .vs-filemgr {
@@ -772,4 +772,83 @@
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* 上传进度浮层（右下角） */
+.vs-upload-queue {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(320px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.vs-upload-item {
+    pointer-events: auto;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.vs-upload-item__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.vs-upload-item__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.vs-upload-item__status {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.vs-upload-item.is-done .vs-upload-item__status {
+    color: #16a34a;
+}
+
+.vs-upload-item.is-error .vs-upload-item__status {
+    color: #dc2626;
+}
+
+.vs-upload-item__bar {
+    height: 4px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.vs-upload-item__fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    transition: width 0.15s ease;
+}
+
+.vs-upload-item.is-done .vs-upload-item__fill {
+    background: #22c55e;
+}
+
+.vs-upload-item.is-error .vs-upload-item__fill {
+    background: #ef4444;
 }

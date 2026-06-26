@@ -1,11 +1,12 @@
 {
-    "version": "1.0.36",
+    "version": "1.0.37",
     "release_date": "2026-06-26",
-    "title": "修复 1.0.35 数据库迁移表前缀",
-    "db_changes": true,
+    "title": "本地直链 404 修复与上传进度",
+    "db_changes": false,
     "changes": [
-        "修复 1.0.35.sql 未使用 {prefix} 导致 config 表找不到",
-        "DatabaseMigrator 增加表前缀校验，避免同类迁移脚本错误"
+        "新增 public-file.php 根路由，修复 Nginx/Apache 下 /{slug}/{文件名} 404",
+        "文件上传右下角进度浮层，多文件独立进度条",
+        "补充本地直链 slug 规则与 Nginx 配置说明"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.37",
+            "date": "2026-06-26",
+            "title": "本地直链 404 修复与上传进度",
+            "db_changes": false,
+            "changes": [
+                "public-file.php 根路由修复 /{slug}/{文件名} 404",
+                "上传右下角进度浮层，多文件独立进度",
+                "LocalStorage 文档说明 slug 随机规则与 Nginx 配置"
+            ]
+        },
+        {
             "version": "1.0.36",
             "date": "2026-06-26",
             "title": "修复 1.0.35 数据库迁移表前缀",

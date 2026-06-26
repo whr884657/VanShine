@@ -3,9 +3,11 @@
     RewriteEngine On
     RewriteBase /
 
+    # 本地储存对外直链：/{单字母}/{文件名} → public-file.php
+    RewriteRule ^([a-z])/([^/]+)$ public-file.php?slug=$1&name=$2 [L,QSA]
+
     # 禁止直接访问 config 目录
     RewriteRule ^config/ - [F,L]
 </IfModule>
-
 # 禁止目录浏览
 Options -Indexes

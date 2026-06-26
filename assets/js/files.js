@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.35
+ * @version 1.0.37
  */
 
 (function () {
@@ -43,6 +43,7 @@
         storages: [],
         view: localStorage.getItem('vs_file_view') || 'grid',
         uploading: false,
+        uploadActive: 0,
         dragDepth: 0,
         previewFile: null
     };
@@ -137,33 +138,128 @@
             showFlash('请先进入已绑定储存的文件夹再上传', 'error');
             return;
         }
-        if (!fileList || !fileList.length || state.uploading) {
+        if (!fileList || !fileList.length) {
             return;
         }
 
+        var files = Array.prototype.slice.call(fileList);
+        if (uploadInput) uploadInput.value = '';
+
+        files.forEach(function (file) {
+            uploadOneFile(file);
+        });
+    }
+
+    function ensureUploadQueue() {
+        var queue = document.getElementById('uploadQueue');
+        if (!queue) {
+            queue = document.createElement('div');
+            queue.id = 'uploadQueue';
+            queue.className = 'vs-upload-queue';
+            queue.setAttribute('aria-live', 'polite');
+            document.body.appendChild(queue);
+        }
+        return queue;
+    }
+
+    function createUploadItem(file) {
+        var id = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        var item = document.createElement('div');
+        item.className = 'vs-upload-item is-uploading';
+        item.id = id;
+        item.innerHTML = ''
+            + '<div class="vs-upload-item__head">'
+            + '<span class="vs-upload-item__name">' + escapeHtml(file.name) + '</span>'
+            + '<span class="vs-upload-item__status">上传中…</span>'
+            + '</div>'
+            + '<div class="vs-upload-item__bar"><span class="vs-upload-item__fill"></span></div>';
+        return { id: id, el: item, file: file };
+    }
+
+    function setUploadItemState(item, percent, status, message) {
+        if (!item || !item.el) return;
+        var fill = item.el.querySelector('.vs-upload-item__fill');
+        var statusEl = item.el.querySelector('.vs-upload-item__status');
+        if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+        if (statusEl) statusEl.textContent = message || status;
+        item.el.classList.remove('is-uploading', 'is-done', 'is-error');
+        if (status === 'done') {
+            item.el.classList.add('is-done');
+        } else if (status === 'error') {
+            item.el.classList.add('is-error');
+        } else {
+            item.el.classList.add('is-uploading');
+        }
+    }
+
+    function removeUploadItemLater(item) {
+        if (!item || !item.el) return;
+        window.setTimeout(function () {
+            if (item.el && item.el.parentNode) {
+                item.el.parentNode.removeChild(item.el);
+            }
+            var queue = document.getElementById('uploadQueue');
+            if (queue && !queue.children.length) {
+                queue.parentNode.removeChild(queue);
+            }
+        }, 3200);
+    }
+
+    function uploadOneFile(file) {
+        var queue = ensureUploadQueue();
+        var item = createUploadItem(file);
+        queue.appendChild(item.el);
+
+        state.uploadActive++;
         state.uploading = true;
-        var body = new FormData();
         body.append('action', 'upload');
         body.append('folder_id', String(state.folderId));
-        for (var i = 0; i < fileList.length; i++) {
-            body.append('file[]', fileList[i]);
+        body.append('file[]', file);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', window.location.href, true);
+        xhr.withCredentials = true;
+
+        xhr.upload.addEventListener('progress', function (e) {
+            if (!e.lengthComputable) return;
+            var pct = Math.round((e.loaded / e.total) * 100);
+            setUploadItemState(item, pct, 'uploading', '上传中 ' + pct + '%');
+        });
+
+        function finishUploadItem(item, percent, status, message, flashMsg, flashType) {
+            state.uploadActive = Math.max(0, state.uploadActive - 1);
+            if (state.uploadActive === 0) {
+                state.uploading = false;
+            }
+            setUploadItemState(item, percent, status, message);
+            removeUploadItemLater(item);
+            if (flashMsg) {
+                showFlash(flashMsg, flashType || 'error');
+            }
         }
 
-        fetch(window.location.href, {
-            method: 'POST',
-            body: body,
-            credentials: 'same-origin'
-        }).then(function (res) { return res.json(); })
-            .then(function (data) {
-                state.uploading = false;
-                if (uploadInput) uploadInput.value = '';
-                handleActionResponse(data);
-            })
-            .catch(function () {
-                state.uploading = false;
-                if (uploadInput) uploadInput.value = '';
-                showFlash('上传失败', 'error');
-            });
+        xhr.addEventListener('load', function () {
+            var data = null;
+            try {
+                data = JSON.parse(xhr.responseText || '{}');
+            } catch (err) {
+                finishUploadItem(item, 100, 'error', '响应异常', '上传失败', 'error');
+                return;
+            }
+
+            if (data.code === 1) {
+                applyPayload(data);
+                finishUploadItem(item, 100, 'done', '上传完成');
+            } else {
+                finishUploadItem(item, 100, 'error', data.msg || '上传失败', data.msg || '上传失败', 'error');
+            }
+        });
+
+        xhr.addEventListener('error', function () {
+            finishUploadItem(item, 100, 'error', '网络异常', '上传失败', 'error');
+        });
+
+        xhr.send(body);
     }
 
     function renderBreadcrumb() {

@@ -2,7 +2,7 @@
 /**
  * 文件：core/UpdateLog.php
  * 作用：读取版本更新记录（优先 Gitee 云端 update-log.json）
- * @version 1.0.32
+ * @version 1.0.33
  */
 
 class UpdateLog

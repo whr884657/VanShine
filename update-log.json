@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.33",
+            "date": "2026-06-26",
+            "title": "更新记录修复与 UpdateLog 容错",
+            "db_changes": false,
+            "changes": [
+                "修复 update-log.json 中 1.0.31 缺失 version 导致 version_compare 报错",
+                "UpdateLog 排序跳过无效版本记录",
+                "发行包含七种储存驱动完整 vendor"
+            ]
+        },
+        {
             "version": "1.0.32",
             "date": "2026-06-26",
             "title": "文件管理与升级流程修复",

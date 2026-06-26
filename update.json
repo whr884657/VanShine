@@ -1,14 +1,12 @@
 {
-    "version": "1.0.32",
+    "version": "1.0.33",
     "release_date": "2026-06-26",
-    "title": "文件管理与升级流程修复",
+    "title": "更新记录修复与 UpdateLog 容错",
     "db_changes": false,
     "changes": [
-        "修复文件管理页进入即显示拖拽上传遮罩的问题",
-        "修复储存配置子板块无法折叠的问题",
-        "本地储存访问 URL 随站点域名自动生成，移除 URL 后缀参数配置项",
-        "在线更新改为逐版升级，避免跳过中间版本的数据库迁移",
-        "发行包与仓库已包含七种储存驱动完整 vendor 依赖，无需手动 composer install"
+        "修复 update-log.json 中 1.0.31 条目缺失 version 导致更新检测 PHP 报错",
+        "UpdateLog 排序时跳过无效版本记录，增强容错",
+        "发行包继续包含七种储存驱动完整 vendor 依赖"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

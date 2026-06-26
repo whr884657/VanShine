@@ -38,6 +38,7 @@
 .is-active .vs-icon--folder,
 .is-active .vs-icon--cloud,
 .is-active .vs-icon--archive,
+.is-active .vs-icon--ai,
 .vs-sidebar__link.is-active .vs-icon,
 .vs-sidebar__group-btn.is-active .vs-icon {
     filter: brightness(0) saturate(100%);
@@ -62,6 +63,10 @@
 
 .vs-icon--archive {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='4' rx='1'/%3E%3Cpath d='M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8'/%3E%3Cpath d='M10 12h4'/%3E%3C/svg%3E");
+}
+
+.vs-icon--ai {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z'/%3E%3Cpath d='M5 19l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z'/%3E%3Cpath d='M19 13l.8 1.6L21.4 15l-1.6.8L19 17.4l-.8-1.6L16.6 15l1.6-.8L19 13z'/%3E%3C/svg%3E");
 }
 
 .vs-icon--chevron {

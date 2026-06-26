@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.29",
+            "date": "2026-06-26",
+            "title": "侧边栏新增 AI 大类",
+            "db_changes": false,
+            "changes": [
+                "侧边栏新增 AI 大类及 DeepSeek 等子菜单",
+                "各 AI 页面为占位，功能开发中",
+                "新增 AI 侧边栏图标"
+            ]
+        },
+        {
             "version": "1.0.28",
             "date": "2026-06-26",
             "title": "更新记录改为云端读取",

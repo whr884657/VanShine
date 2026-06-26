@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/layout.php
  * 作用：VanShine 后台自定义布局（分组侧边栏）
- * @version 1.0.14
+ * @version 1.0.29
  */
 
 /**
@@ -43,6 +43,17 @@ function vs_admin_menu_groups()
                 array('id' => 'archive_notes', 'title' => '记事本', 'url' => '/admin/archive/notes.php'),
                 array('id' => 'archive_library', 'title' => '资料库', 'url' => '/admin/archive/library.php'),
                 array('id' => 'archive_secrets', 'title' => '密钥管理', 'url' => '/admin/archive/secrets.php'),
+            ),
+        ),
+        array(
+            'id'       => 'ai',
+            'title'    => 'AI',
+            'icon'     => 'ai',
+            'children' => array(
+                array('id' => 'ai_deepseek', 'title' => 'DeepSeek', 'url' => '/admin/ai/deepseek.php'),
+                array('id' => 'ai_chatgpt', 'title' => 'ChatGPT', 'url' => '/admin/ai/chatgpt.php'),
+                array('id' => 'ai_claude', 'title' => 'Claude', 'url' => '/admin/ai/claude.php'),
+                array('id' => 'ai_gemini', 'title' => 'Gemini', 'url' => '/admin/ai/gemini.php'),
             ),
         ),
         array(

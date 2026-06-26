@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.28**
+**当前版本：1.0.29**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -13,7 +13,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 **主要能力：**
 
 - Web 五步安装向导，自动创建数据表与初始配置
-- 分组侧边栏后台（控制台、文件管理、CDN、归档、系统设置等）
+- 分组侧边栏后台（控制台、文件管理、CDN、归档、AI、系统设置等）
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
 - **Gitee 在线更新**：登录后台自动检测新版本，一键下载安装
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.28.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.29.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -48,6 +48,10 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 关于 | `/admin/about.php` | 系统与环境信息 |
 | 忘记密码 | `/admin/forgot.php` | 邮箱验证码重置（需配置邮箱） |
 | 重置密码 | `/admin/reset.php` | 已合并至忘记密码页（自动跳转） |
+| AI · DeepSeek | `/admin/ai/deepseek.php` | 占位（开发中） |
+| AI · ChatGPT | `/admin/ai/chatgpt.php` | 占位（开发中） |
+| AI · Claude | `/admin/ai/claude.php` | 占位（开发中） |
+| AI · Gemini | `/admin/ai/gemini.php` | 占位（开发中） |
 
 ---
 
@@ -143,6 +147,16 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.29（2026-06-26）
+
+**类型：** 侧边栏新增 AI 大类
+
+**变更说明：**
+- 侧边栏新增 **AI** 大类，子菜单：DeepSeek、ChatGPT、Claude、Gemini
+- 各子页面为占位页，显示「功能开发中」
+
+---
 
 ### v1.0.28（2026-06-26）
 

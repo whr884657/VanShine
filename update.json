@@ -1,12 +1,12 @@
 {
-    "version": "1.0.28",
+    "version": "1.0.29",
     "release_date": "2026-06-26",
-    "title": "更新记录改为云端读取",
+    "title": "侧边栏新增 AI 大类",
     "db_changes": false,
     "changes": [
-        "系统升级页更新记录优先从 Gitee 云端拉取 update-log.json",
-        "版本检测与数据库变更判断同步使用云端记录",
-        "云端不可用时回退本地文件并提示"
+        "侧边栏新增 AI 大类，含 DeepSeek、ChatGPT、Claude、Gemini 子菜单",
+        "各 AI 子页面为占位页，功能开发中",
+        "新增 AI 侧边栏图标"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

@@ -1,12 +1,12 @@
 {
-    "version": "1.0.37",
+    "version": "1.0.38",
     "release_date": "2026-06-26",
-    "title": "本地直链 404 修复与上传进度",
+    "title": "文件替换（重传）机制",
     "db_changes": false,
     "changes": [
-        "新增 public-file.php 根路由，修复 Nginx/Apache 下 /{slug}/{文件名} 404",
-        "文件上传右下角进度浮层，多文件独立进度条",
-        "补充本地直链 slug 规则与 Nginx 配置说明"
+        "预览抽屉支持替换文件：先删后传，保留存储名与外链",
+        "本地与云储存均按相同 pathname 覆盖写入",
+        "替换过程显示进度条"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

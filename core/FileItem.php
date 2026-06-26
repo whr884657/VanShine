@@ -2,7 +2,7 @@
 /**
  * 文件：core/FileItem.php
  * 作用：文件管理记录
- * @version 1.0.30
+ * @version 1.0.38
  */
 
 class FileItem
@@ -70,6 +70,35 @@ class FileItem
         ));
 
         return (int) $pdo->lastInsertId();
+    }
+
+    /**
+     * @param int   $id
+     * @param array $data
+     * @return void
+     * @throws Exception
+     */
+    public static function update($id, array $data)
+    {
+        $item = self::find($id);
+        if ($item === null) {
+            throw new Exception('文件不存在');
+        }
+
+        $pdo = Database::connect();
+        $table = Database::table('file_item');
+        $stmt = $pdo->prepare(
+            'UPDATE `' . $table . '` SET '
+            . '`original_name` = ?, `mime_type` = ?, `file_size` = ?, `public_url` = ? '
+            . 'WHERE `id` = ?'
+        );
+        $stmt->execute(array(
+            (string) $data['original_name'],
+            (string) $data['mime_type'],
+            (int) $data['file_size'],
+            (string) $data['public_url'],
+            (int) $id,
+        ));
     }
 
     /**

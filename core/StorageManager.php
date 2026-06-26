@@ -2,7 +2,7 @@
 /**
  * 文件：core/StorageManager.php
  * 作用：文件上传、删除与储存驱动调度
- * @version 1.0.31
+ * @version 1.0.38
  */
 
 class StorageManager
@@ -148,6 +148,81 @@ class StorageManager
             'file_size'     => $size,
             'public_url'    => $publicUrl,
         );
+    }
+
+    /**
+     * 替换已有文件：先删储存内旧文件，再以相同 stored_name / pathname 写入新内容
+     *
+     * @param int   $fileId
+     * @param array $upload $_FILES 单项
+     * @return array
+     * @throws Exception
+     */
+    public static function replaceFile($fileId, array $upload)
+    {
+        $item = FileItem::find($fileId);
+        if ($item === null) {
+            throw new Exception('文件不存在');
+        }
+
+        if (!isset($upload['error']) || (int) $upload['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('文件上传失败');
+        }
+
+        $tmpPath = isset($upload['tmp_name']) ? $upload['tmp_name'] : '';
+        if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+            throw new Exception('无效的上传文件');
+        }
+
+        $storageKey = (int) $item['storage_key'];
+        $pathname = str_replace('\\', '/', (string) $item['pathname']);
+        if ($pathname === '') {
+            throw new Exception('文件路径无效');
+        }
+
+        if ($storageKey === 1) {
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+            LocalStorageDriver::ensureSymlinkIfMissing(StorageRegistry::loadDriverConfigs(1));
+        }
+
+        $driver = StorageRegistry::driver($storageKey);
+
+        if ($driver->exists($pathname)) {
+            $driver->delete($pathname);
+        }
+
+        $handle = fopen($tmpPath, 'rb');
+        if ($handle === false) {
+            throw new Exception('无法读取上传文件');
+        }
+
+        try {
+            $driver->writeStream($pathname, $handle);
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+        }
+
+        $originalName = isset($upload['name']) ? basename($upload['name']) : (string) $item['original_name'];
+        $mimeType = self::detectMime($tmpPath, $originalName);
+        $size = isset($upload['size']) ? (int) $upload['size'] : (int) @filesize($tmpPath);
+        $publicUrl = StorageRegistry::buildUrl($storageKey, $pathname);
+
+        FileItem::update((int) $fileId, array(
+            'original_name' => $originalName,
+            'mime_type'     => $mimeType,
+            'file_size'     => $size,
+            'public_url'    => $publicUrl,
+        ));
+
+        $updated = FileItem::find($fileId);
+        if ($updated === null) {
+            throw new Exception('文件记录更新失败');
+        }
+
+        return $updated;
     }
 
     /**

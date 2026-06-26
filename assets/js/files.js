@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.37
+ * @version 1.0.38
  */
 
 (function () {
@@ -33,6 +33,10 @@
     var filePreviewCopy = document.getElementById('filePreviewCopy');
     var filePreviewOpen = document.getElementById('filePreviewOpen');
     var filePreviewDownload = document.getElementById('filePreviewDownload');
+    var fileReplaceInput = document.getElementById('fileReplaceInput');
+    var fileReplaceProgress = document.getElementById('fileReplaceProgress');
+    var fileReplaceFill = document.getElementById('fileReplaceFill');
+    var fileReplaceStatus = document.getElementById('fileReplaceStatus');
 
     var state = {
         folderId: 0,
@@ -44,6 +48,7 @@
         view: localStorage.getItem('vs_file_view') || 'grid',
         uploading: false,
         uploadActive: 0,
+        replacing: false,
         dragDepth: 0,
         previewFile: null
     };
@@ -477,7 +482,10 @@
 
         if (filePreviewMedia) {
             if (isImage(file.mime_type) && file.public_url) {
-                filePreviewMedia.innerHTML = '<img src="' + escapeHtml(file.public_url) + '" alt="' + escapeHtml(displayName) + '">';
+                var previewSrc = file.public_url
+                    + (file.public_url.indexOf('?') >= 0 ? '&' : '?')
+                    + 'v=' + encodeURIComponent(String(file.id) + '-' + (file.file_size || 0));
+                filePreviewMedia.innerHTML = '<img src="' + escapeHtml(previewSrc) + '" alt="' + escapeHtml(displayName) + '">';
             } else {
                 filePreviewMedia.innerHTML = '<span class="vs-file-preview__file-icon">📄</span>';
             }
@@ -507,6 +515,84 @@
         filePreview.classList.add('is-open');
         filePreview.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vs-modal-open');
+        resetReplaceProgress();
+    }
+
+    function resetReplaceProgress() {
+        state.replacing = false;
+        if (fileReplaceProgress) fileReplaceProgress.hidden = true;
+        if (fileReplaceFill) fileReplaceFill.style.width = '0%';
+        if (fileReplaceStatus) fileReplaceStatus.textContent = '替换中…';
+        if (fileReplaceInput) fileReplaceInput.value = '';
+    }
+
+    function setReplaceProgress(percent, message) {
+        if (fileReplaceProgress) fileReplaceProgress.hidden = false;
+        if (fileReplaceFill) fileReplaceFill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+        if (fileReplaceStatus) fileReplaceStatus.textContent = message;
+    }
+
+    function replaceCurrentFile(uploadFile) {
+        if (!state.previewFile || state.replacing) return;
+        if (!uploadFile) return;
+
+        state.replacing = true;
+        setReplaceProgress(0, '正在删除旧文件并上传…');
+
+        var body = new FormData();
+        body.append('action', 'replace_file');
+        body.append('folder_id', String(state.folderId));
+        body.append('target_id', String(state.previewFile.id));
+        body.append('file', uploadFile);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', window.location.href, true);
+        xhr.withCredentials = true;
+
+        xhr.upload.addEventListener('progress', function (e) {
+            if (!e.lengthComputable) return;
+            var pct = Math.round((e.loaded / e.total) * 100);
+            setReplaceProgress(pct, '替换上传中 ' + pct + '%');
+        });
+
+        xhr.addEventListener('load', function () {
+            state.replacing = false;
+            var data = null;
+            try {
+                data = JSON.parse(xhr.responseText || '{}');
+            } catch (err) {
+                setReplaceProgress(100, '响应异常');
+                showFlash('替换失败', 'error');
+                if (fileReplaceInput) fileReplaceInput.value = '';
+                return;
+            }
+
+            if (data.code === 1) {
+                setReplaceProgress(100, '替换完成');
+                applyPayload(data);
+                var updated = findFile(state.previewFile.id);
+                if (updated) {
+                    openFilePreview(updated);
+                } else {
+                    closeFilePreview();
+                }
+                showFlash(data.msg || '文件已替换', 'success');
+                window.setTimeout(resetReplaceProgress, 2000);
+            } else {
+                setReplaceProgress(100, data.msg || '替换失败');
+                showFlash(data.msg || '替换失败', 'error');
+                if (fileReplaceInput) fileReplaceInput.value = '';
+            }
+        });
+
+        xhr.addEventListener('error', function () {
+            state.replacing = false;
+            setReplaceProgress(100, '网络异常');
+            showFlash('替换失败', 'error');
+            if (fileReplaceInput) fileReplaceInput.value = '';
+        });
+
+        xhr.send(body);
     }
 
     function metaRow(label, value) {
@@ -523,6 +609,7 @@
         filePreview.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('vs-modal-open');
         state.previewFile = null;
+        resetReplaceProgress();
     }
 
     function copyPreviewLink() {
@@ -718,6 +805,13 @@
         uploadInput.addEventListener('change', function () {
             if (!uploadInput.files || !uploadInput.files.length) return;
             uploadFiles(uploadInput.files);
+        });
+    }
+
+    if (fileReplaceInput) {
+        fileReplaceInput.addEventListener('change', function () {
+            if (!fileReplaceInput.files || !fileReplaceInput.files.length) return;
+            replaceCurrentFile(fileReplaceInput.files[0]);
         });
     }
 

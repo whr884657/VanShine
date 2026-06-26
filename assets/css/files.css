@@ -1,7 +1,7 @@
 /**
  * 文件：assets/css/files.css
  * 作用：后台文件管理页样式
- * @version 1.0.37
+ * @version 1.0.38
  */
 
 .vs-filemgr {
@@ -667,6 +667,53 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.vs-file-preview__replace {
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.vs-file-preview__replace-tip {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+.vs-file-preview__replace-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.vs-file-preview__replace-progress {
+    margin-top: 12px;
+}
+
+.vs-file-preview__replace-bar {
+    height: 4px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.vs-file-preview__replace-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    transition: width 0.15s ease;
+}
+
+.vs-file-preview__replace-status {
+    font-size: 12px;
+    color: #64748b;
 }
 
 .vs-file-preview__actions .vs-btn {

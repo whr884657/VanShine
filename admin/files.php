@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.37
+ * @version 1.0.38
  */
 
 require_once __DIR__ . '/init.php';
@@ -170,6 +170,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'replace_file') {
+        if ($folderId <= 0) {
+            AjaxResponse::error('请先进入已绑定储存的文件夹');
+        }
+        $targetId = (int) (isset($_POST['target_id']) ? $_POST['target_id'] : 0);
+        if ($targetId <= 0) {
+            AjaxResponse::error('未指定要替换的文件');
+        }
+        if (!isset($_FILES['file'])) {
+            AjaxResponse::error('未选择文件');
+        }
+        $uploads = StorageManager::normalizeUploadedFiles($_FILES['file']);
+        if (count($uploads) === 0) {
+            AjaxResponse::error('未选择文件');
+        }
+        if (count($uploads) > 1) {
+            AjaxResponse::error('一次只能替换一个文件');
+        }
+        try {
+            $existing = FileItem::find($targetId);
+            if ($existing === null || (int) $existing['folder_id'] !== $folderId) {
+                AjaxResponse::error('文件不存在或不属于当前文件夹');
+            }
+            StorageManager::replaceFile($targetId, $uploads[0]);
+            $folders = FileFolder::listByParent($folderId);
+            $files = FileItem::listByFolder($folderId);
+            AjaxResponse::success(
+                '文件已替换，存储名「' . $existing['stored_name'] . '」保持不变',
+                vs_files_payload($folders, $files, $folderId)
+            );
+        } catch (Exception $e) {
+            AjaxResponse::error($e->getMessage());
+        }
+    }
+
     AjaxResponse::error('未知操作', 400);
 }
 
@@ -282,6 +317,17 @@ vs_admin_layout_start('文件管理', 'files');
             <div class="vs-file-preview__link-box">
                 <input type="text" class="vs-file-preview__link-input" id="filePreviewLink" readonly>
                 <button type="button" class="vs-btn vs-btn--primary" id="filePreviewCopy">复制链接</button>
+            </div>
+            <div class="vs-file-preview__replace" id="filePreviewReplace">
+                <p class="vs-file-preview__replace-tip">替换将<strong>先删除</strong>原文件再上传新内容，保留当前存储名与外链地址。</p>
+                <label class="vs-btn vs-btn--primary vs-file-preview__replace-btn">
+                    选择替换文件
+                    <input type="file" id="fileReplaceInput" hidden>
+                </label>
+                <div class="vs-file-preview__replace-progress" id="fileReplaceProgress" hidden>
+                    <div class="vs-file-preview__replace-bar"><span id="fileReplaceFill"></span></div>
+                    <span class="vs-file-preview__replace-status" id="fileReplaceStatus">替换中…</span>
+                </div>
             </div>
             <div class="vs-file-preview__actions">
                 <a class="vs-btn vs-btn--default" id="filePreviewOpen" href="#" target="_blank" rel="noopener">新窗口打开</a>

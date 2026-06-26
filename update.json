@@ -1,14 +1,13 @@
 {
-    "version": "1.0.42",
+    "version": "1.0.43",
     "release_date": "2026-06-27",
-    "title": "文件管理交互修复与全局胶囊提示",
+    "title": "接入 Flyfish Viewer 多格式在线预览",
     "db_changes": false,
     "changes": [
-        "删除文件后立即刷新列表，预览中删除自动关闭弹窗",
-        "预览链接显示解码后的中文路径",
-        "电脑端预览弹窗加宽，标题显示存储名",
-        "修复本地上传误报「响应异常」但文件已上传",
-        "保存/复制/上传等成功提示改为顶部胶囊 Toast"
+        "文件管理弹窗集成 Flyfish Viewer，支持 150+ 格式纯前端预览",
+        "Office/PDF/CAD/压缩包/Markdown/音视频等按需加载 renderer",
+        "新增 admin/file-stream.php 鉴权文件流，跨域储存可走同源代理",
+        "本地储存预览支持 HTTP Range，PDF 可渐进加载"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

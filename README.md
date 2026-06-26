@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.42**
+**当前版本：1.0.43**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.42.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.43.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -173,6 +173,18 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.43（2026-06-27）
+
+**类型：** Flyfish Viewer 多格式在线预览
+
+**变更说明：**
+- 文件管理预览弹窗集成 [Flyfish Viewer](https://doc.flyfish.dev/)，纯前端预览 **150+** 种格式
+- 覆盖 Office、PDF、CAD、压缩包、Markdown、代码、音视频、邮件、电子书等
+- 新增 `admin/file-stream.php` 鉴权文件流；跨域云储存走同源代理，本地 PDF 支持 Range
+- 点击或双击文件即可在弹窗内预览；详见 `docs/flyfish-viewer.md`
+
+---
 
 ### v1.0.42（2026-06-27）
 

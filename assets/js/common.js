@@ -1,14 +1,14 @@
 /**
  * 文件：assets/js/common.js
  * 作用：VanShine 全局公共脚本（Toast、JSON 解析）
- * @version 1.0.42
+ * @version 1.0.43
  */
 
 (function (global) {
     'use strict';
 
     global.VS = global.VS || {};
-    global.VS.version = '1.0.42';
+    global.VS.version = '1.0.43';
 
     /**
      * 从可能含 BOM / 杂讯的响应文本中解析 JSON

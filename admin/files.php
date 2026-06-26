@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.38
+ * @version 1.0.43
  */
 
 require_once __DIR__ . '/init.php';
@@ -312,7 +312,12 @@ vs_admin_layout_start('文件管理', 'files');
             </button>
         </div>
         <div class="vs-file-preview__body">
-            <div class="vs-file-preview__media" id="filePreviewMedia"></div>
+            <div class="vs-file-preview__viewer-shell" id="filePreviewViewerShell">
+                <div class="vs-file-preview__viewer-mount" id="filePreviewViewerMount"></div>
+                <div class="vs-file-preview__viewer-state" id="filePreviewViewerState">正在加载预览组件…</div>
+            </div>
+            <details class="vs-file-preview__details" open>
+                <summary class="vs-file-preview__details-toggle">文件信息与操作</summary>
             <div class="vs-file-preview__meta" id="filePreviewMeta"></div>
             <div class="vs-file-preview__link-box">
                 <input type="text" class="vs-file-preview__link-input" id="filePreviewLink" readonly>
@@ -333,8 +338,16 @@ vs_admin_layout_start('文件管理', 'files');
                 <a class="vs-btn vs-btn--default" id="filePreviewOpen" href="#" target="_blank" rel="noopener">新窗口打开</a>
                 <a class="vs-btn vs-btn--default" id="filePreviewDownload" href="#" download>下载文件</a>
             </div>
+            </details>
         </div>
     </div>
 </div>
 
-<?php vs_admin_layout_end(array('files.js')); ?>
+<script>
+window.VS_FLYFISH_VIEWER = <?php echo json_encode(array(
+    'scriptUrl'  => 'https://cdn.jsdelivr.net/npm/@file-viewer/web-full@2.1.3/dist/flyfish-file-viewer-web-full.iife.js',
+    'streamBase' => $vsBase . '/admin/file-stream.php',
+), JSON_UNESCAPED_UNICODE); ?>;
+</script>
+
+<?php vs_admin_layout_end(array('flyfish-viewer.js', 'files.js')); ?>

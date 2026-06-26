@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.42
+ * @version 1.0.43
  */
 
 (function () {
@@ -27,7 +27,8 @@
     var storagePickRow = document.getElementById('storagePickRow');
     var filePreview = document.getElementById('filePreview');
     var filePreviewTitle = document.getElementById('filePreviewTitle');
-    var filePreviewMedia = document.getElementById('filePreviewMedia');
+    var filePreviewViewerMount = document.getElementById('filePreviewViewerMount');
+    var filePreviewViewerState = document.getElementById('filePreviewViewerState');
     var filePreviewMeta = document.getElementById('filePreviewMeta');
     var filePreviewLink = document.getElementById('filePreviewLink');
     var filePreviewCopy = document.getElementById('filePreviewCopy');
@@ -381,6 +382,12 @@
                 var file = findFile(btn.getAttribute('data-preview-file'));
                 if (file) openFilePreview(file);
             });
+            btn.addEventListener('dblclick', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var file = findFile(btn.getAttribute('data-preview-file'));
+                if (file) openFilePreview(file);
+            });
         });
 
         contentEl.querySelectorAll('[data-rename-folder]').forEach(function (btn) {
@@ -423,6 +430,56 @@
         });
     }
 
+    function setViewerState(message, isError) {
+        if (!filePreviewViewerState) return;
+        filePreviewViewerState.hidden = false;
+        filePreviewViewerState.textContent = message || '';
+        filePreviewViewerState.classList.toggle('is-error', !!isError);
+    }
+
+    function clearViewerState() {
+        if (!filePreviewViewerState) return;
+        filePreviewViewerState.hidden = true;
+        filePreviewViewerState.textContent = '';
+        filePreviewViewerState.classList.remove('is-error');
+    }
+
+    function destroyFileViewer() {
+        if (window.VsFlyfishViewer) {
+            VsFlyfishViewer.destroy();
+        }
+        if (filePreviewViewerMount) {
+            filePreviewViewerMount.innerHTML = '';
+        }
+        clearViewerState();
+    }
+
+    function mountFileViewer(file) {
+        if (!filePreviewViewerMount || !file || !file.public_url) {
+            setViewerState('暂无可用预览地址', true);
+            return;
+        }
+
+        if (!window.VsFlyfishViewer) {
+            setViewerState('预览组件未加载', true);
+            return;
+        }
+
+        destroyFileViewer();
+        setViewerState('正在加载预览…', false);
+
+        VsFlyfishViewer.mount(filePreviewViewerMount, file, {
+            onReady: function () {
+                clearViewerState();
+            },
+            onError: function () {
+                setViewerState('预览加载失败，可尝试新窗口打开或下载', true);
+            }
+        }).catch(function () {
+            setViewerState('预览组件加载失败，请检查网络或稍后重试', true);
+        });
+    }
+
     function openFilePreview(file) {
         if (!filePreview || !file) return;
         state.previewFile = file;
@@ -430,16 +487,7 @@
         var displayName = file.stored_name || file.original_name || '文件';
         if (filePreviewTitle) filePreviewTitle.textContent = displayName;
 
-        if (filePreviewMedia) {
-            if (isImage(file.mime_type) && file.public_url) {
-                var previewSrc = file.public_url
-                    + (file.public_url.indexOf('?') >= 0 ? '&' : '?')
-                    + 'v=' + encodeURIComponent(String(file.id) + '-' + (file.file_size || 0));
-                filePreviewMedia.innerHTML = '<img src="' + escapeHtml(previewSrc) + '" alt="' + escapeHtml(displayName) + '">';
-            } else {
-                filePreviewMedia.innerHTML = '<span class="vs-file-preview__file-icon">📄</span>';
-            }
-        }
+        mountFileViewer(file);
 
         if (filePreviewMeta) {
             filePreviewMeta.innerHTML = ''
@@ -555,6 +603,7 @@
 
     function closeFilePreview() {
         if (!filePreview) return;
+        destroyFileViewer();
         filePreview.classList.remove('is-open');
         filePreview.hidden = true;
         filePreview.setAttribute('aria-hidden', 'true');

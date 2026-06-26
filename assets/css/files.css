@@ -597,17 +597,67 @@
     flex: 1 1 auto;
     overflow: auto;
     padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
 }
 
-.vs-file-preview__media {
+.vs-file-preview__viewer-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: min(52vh, 520px);
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.vs-file-preview__viewer-mount {
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+}
+
+.vs-file-preview__viewer-state {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 160px;
-    margin-bottom: 16px;
-    background: #f8fafc;
-    border-radius: 10px;
-    overflow: hidden;
+    padding: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+    background: rgba(248, 250, 252, 0.92);
+    pointer-events: none;
+}
+
+.vs-file-preview__viewer-state.is-error {
+    color: #b91c1c;
+}
+
+.vs-file-preview__viewer-state[hidden] {
+    display: none !important;
+}
+
+.vs-file-preview__details {
+    flex: 0 0 auto;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 8px;
+}
+
+.vs-file-preview__details-toggle {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+    user-select: none;
+}
+
+.vs-file-preview__media {
+    display: none;
 }
 
 .vs-file-preview__media img {
@@ -807,13 +857,17 @@
 
     .vs-file-preview__panel {
         position: relative;
-        width: min(92vw, 960px);
-        max-width: 960px;
-        min-width: min(92vw, 640px);
-        max-height: min(88vh, 720px);
+        width: min(96vw, 1120px);
+        max-width: 1120px;
+        min-width: min(96vw, 720px);
+        max-height: min(92vh, 860px);
         border-radius: 14px;
         transform: scale(0.96);
         opacity: 0;
+    }
+
+    .vs-file-preview__viewer-shell {
+        min-height: min(58vh, 560px);
     }
 
     .vs-file-preview.is-open .vs-file-preview__panel {

@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.43",
+            "date": "2026-06-27",
+            "title": "接入 Flyfish Viewer 多格式在线预览",
+            "db_changes": false,
+            "changes": [
+                "文件管理集成 Flyfish Viewer 150+ 格式纯前端预览",
+                "Office/PDF/CAD/压缩包/Markdown/音视频等",
+                "新增 file-stream.php 鉴权代理与 Range 支持",
+                "支持点击/双击打开预览弹窗"
+            ]
+        },
+        {
             "version": "1.0.42",
             "date": "2026-06-27",
             "title": "文件管理交互修复与全局胶囊提示",

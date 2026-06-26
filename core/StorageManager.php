@@ -2,7 +2,7 @@
 /**
  * 文件：core/StorageManager.php
  * 作用：文件上传、删除与储存驱动调度
- * @version 1.0.38
+ * @version 1.0.43
  */
 
 class StorageManager
@@ -230,6 +230,147 @@ class StorageManager
         if ($driver->exists($item['pathname'])) {
             $driver->delete($item['pathname']);
         }
+    }
+
+    /**
+     * 向浏览器输出文件内容（预览用，不做格式转码）
+     *
+     * @param array $item file_item 行
+     * @return void
+     * @throws Exception
+     */
+    public static function streamFileItem(array $item)
+    {
+        $storageKey = (int) $item['storage_key'];
+        $pathname = str_replace('\\', '/', (string) $item['pathname']);
+        if ($pathname === '') {
+            throw new Exception('文件路径无效');
+        }
+
+        $driver = StorageRegistry::driver($storageKey);
+        if (!$driver->exists($pathname)) {
+            throw new Exception('文件不存在');
+        }
+
+        $mime = isset($item['mime_type']) && $item['mime_type'] !== ''
+            ? (string) $item['mime_type']
+            : 'application/octet-stream';
+        $name = isset($item['stored_name']) && $item['stored_name'] !== ''
+            ? (string) $item['stored_name']
+            : 'file';
+
+        if ($storageKey === 1) {
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+            require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+            $configs = StorageRegistry::loadDriverConfigs(1);
+            $root = LocalStorageDriver::resolveRootPath($configs);
+            $fullPath = rtrim(str_replace('\\', '/', $root), '/')
+                . '/' . ltrim($pathname, '/');
+            if (!is_file($fullPath)) {
+                throw new Exception('本地文件不存在');
+            }
+            self::outputLocalFileWithRange($fullPath, $mime, $name);
+            return;
+        }
+
+        $content = $driver->read($pathname);
+        if (!is_string($content)) {
+            throw new Exception('无法读取文件');
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: inline; filename="' . self::escapeFilename($name) . '"');
+        header('Content-Length: ' . strlen($content));
+        header('Accept-Ranges: bytes');
+        header('Cache-Control: private, max-age=3600');
+        echo $content;
+        exit;
+    }
+
+    /**
+     * @param string $fullPath
+     * @param string $mime
+     * @param string $name
+     * @return void
+     */
+    private static function outputLocalFileWithRange($fullPath, $mime, $name)
+    {
+        $size = filesize($fullPath);
+        if ($size === false) {
+            throw new Exception('无法读取文件大小');
+        }
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: inline; filename="' . self::escapeFilename($name) . '"');
+        header('Accept-Ranges: bytes');
+        header('Cache-Control: private, max-age=3600');
+
+        $start = 0;
+        $end = $size - 1;
+        $length = $size;
+
+        if (isset($_SERVER['HTTP_RANGE']) && preg_match('/bytes=(\d*)-(\d*)/', $_SERVER['HTTP_RANGE'], $matches)) {
+            if ($matches[1] !== '') {
+                $start = (int) $matches[1];
+            }
+            if ($matches[2] !== '') {
+                $end = (int) $matches[2];
+            }
+            if ($start > $end || $start >= $size) {
+                header('HTTP/1.1 416 Range Not Satisfiable');
+                header('Content-Range: bytes */' . $size);
+                exit;
+            }
+            if ($end >= $size) {
+                $end = $size - 1;
+            }
+            $length = $end - $start + 1;
+            header('HTTP/1.1 206 Partial Content');
+            header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+            header('Content-Length: ' . $length);
+        } else {
+            header('Content-Length: ' . $size);
+        }
+
+        $handle = fopen($fullPath, 'rb');
+        if ($handle === false) {
+            throw new Exception('无法打开文件');
+        }
+
+        if ($start > 0) {
+            fseek($handle, $start);
+        }
+
+        $remaining = $length;
+        while ($remaining > 0 && !feof($handle)) {
+            $read = ($remaining > 8192) ? 8192 : $remaining;
+            $buffer = fread($handle, $read);
+            if ($buffer === false) {
+                break;
+            }
+            echo $buffer;
+            $remaining -= strlen($buffer);
+        }
+
+        fclose($handle);
+        exit;
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private static function escapeFilename($name)
+    {
+        return str_replace(array('"', "\r", "\n"), '', (string) $name);
     }
 
     /**

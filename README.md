@@ -13,7 +13,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 **主要能力：**
 
 - Web 五步安装向导，自动创建数据表与初始配置
-- 分组侧边栏后台（控制台、文件管理、CDN、归档、AI、系统设置等）
+- 分组侧边栏后台（控制台、文件管理、七种储存、CDN、归档、AI、系统设置等）
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
 - **Gitee 在线更新**：登录后台自动检测新版本，一键下载安装
@@ -135,8 +135,8 @@ VanShine/
   `https://gitee.com/xunjinlu/VanShine/releases/download/v{版本}/VanShine{版本}.zip`
 - 出站 HTTPS 仅连接 Gitee 白名单域名，**不依赖**本地 CA 证书包
 - 下载后校验 **ZIP 文件头**（`PK` 魔数），再解压覆盖
-- 更新完成后自动清理 `storage/update/` 临时文件（ZIP 与解压目录）
-- 覆盖项目文件，**绝不替换** `config/database.php`，**不覆盖** 运行时 `storage/` 目录
+- 更新完成后自动清理 `data/update/` 临时文件（ZIP 与解压目录）
+- 覆盖项目文件，**绝不替换** `config/database.php`，**不覆盖** 运行时 `data/`、`upload/` 目录
 - **仅当**存在未执行的结构更新 SQL 时，才对数据库执行 ADD/ALTER 等命令（字段已存在则自动跳过）
 - 更新前弹窗**二次确认**是否已备份数据
 
@@ -147,6 +147,18 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.30（2026-06-26）
+
+**类型：** 文件管理与七种储存配置
+
+**变更说明：**
+- 系统设置新增第四折叠板块「储存配置」，七种储存可同时启用，各含独立子折叠表单
+- 全局上传命名：保留原名、全局递增、时间戳、毫秒时间戳、UUID、日期递增
+- 文件管理页：创建文件夹并绑定储存，子文件夹继承；支持大图标/小图标/列表视图
+- 数据库新增 `file_folder`、`file_item` 表及储存相关 `config` 字段（迁移 `1.0.30.sql`）
+
+---
 
 ### v1.0.29（2026-06-26）
 
@@ -357,7 +369,7 @@ VanShine/
 - `core/Updater.php`、`admin/update.php`（新增）
 - `assets/js/update-check.js`、`assets/js/modal.js`（扩展 HTML 弹窗）
 - `assets/css/modal.css`、`admin/includes/layout.php`
-- 在线更新时会**自动创建** `storage/update/` 临时目录（无需纳入仓库、无需手动上传）
+- 在线更新时会**自动创建** `data/update/` 临时目录（无需纳入仓库、无需手动上传）
 - `core/bootstrap.php`、`core/version.php`、`README.md`
 
 **变更说明：**

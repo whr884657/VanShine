@@ -2,10 +2,11 @@
 /**
  * 文件：admin/settings.php
  * 作用：VanShine 后台系统设置（站点信息、域名绑定、邮箱发信）
- * @version 1.0.16
+ * @version 1.0.30
  */
 
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/includes/storage_settings.php';
 
 /**
  * 渲染绑定域名卡片列表
@@ -150,6 +151,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ));
         } catch (Exception $e) {
             AjaxResponse::error($e->getMessage());
+        }
+    }
+
+    if ($action === 'save_storage') {
+        try {
+            $items = StorageRegistry::configsFromPost($_POST);
+            Config::setMany($items);
+
+            if (StorageRegistry::isEnabled(1)) {
+                require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
+                require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
+                LocalStorageDriver::ensureSymlink(StorageRegistry::loadDriverConfigs(1));
+            }
+
+            AjaxResponse::success('储存设置已保存');
+        } catch (Exception $e) {
+            AjaxResponse::error('保存失败：' . $e->getMessage());
         }
     }
 
@@ -391,6 +409,8 @@ vs_admin_accordion_start(
         </div>
     </form>
 <?php vs_admin_accordion_end(); ?>
+
+<?php vs_settings_render_storage_section(); ?>
 
 <script>window.VS_SETTINGS_BASE = <?php echo json_encode($vsBase, JSON_UNESCAPED_UNICODE); ?>;</script>
 

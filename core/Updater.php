@@ -39,7 +39,7 @@ class Updater
      */
     public static function updateDir()
     {
-        $root = VS_ROOT . '/storage';
+        $root = VS_ROOT . '/data';
         $dir = $root . '/update';
 
         if (!is_dir($root)) {
@@ -429,11 +429,11 @@ class Updater
      * - 本地 CA 根证书包会随时间过时，且受 open_basedir 限制
      * - 仅对白名单域名放宽链校验，下载后仍校验 ZIP 文件头
      *
-     * @param resource $ch
-     * @param string   $url
+     * @param \CurlHandle $ch
+     * @param string      $url
      * @return void
      */
-    public static function configureCurlSsl($ch, $url = '')
+    public static function configureCurlSsl(\CurlHandle $ch, $url = '')
     {
         if ($url !== '' && self::isTrustedUpdateUrl($url)) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -574,7 +574,8 @@ class Updater
         return array(
             'config/database.php',
             'config/install.lock',
-            'storage',
+            'data',
+            'upload',
         );
     }
 
@@ -737,7 +738,7 @@ class Updater
     public static function cleanupUpdateWorkspace($updateDir = null)
     {
         if ($updateDir === null) {
-            $updateDir = VS_ROOT . '/storage/update';
+            $updateDir = VS_ROOT . '/data/update';
         }
         if (!is_dir($updateDir)) {
             return;

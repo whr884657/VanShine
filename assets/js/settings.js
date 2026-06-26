@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/settings.js
  * 作用：系统设置页 AJAX 保存与折叠板块
- * @version 1.0.16
+ * @version 1.0.30
  */
 
 (function () {
@@ -165,7 +165,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         bindAccordions();
 
-        ['siteForm', 'domainForm', 'mailForm', 'testMailForm'].forEach(function (id) {
+        ['siteForm', 'domainForm', 'mailForm', 'testMailForm', 'storageForm'].forEach(function (id) {
             bindAjaxForm(document.getElementById(id));
         });
 

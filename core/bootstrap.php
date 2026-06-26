@@ -2,7 +2,7 @@
 /**
  * 文件：core/bootstrap.php
  * 作用：VanShine 系统引导入口，加载核心依赖
- * @version 1.0.5
+ * @version 1.0.30
  */
 
 defined('VS_ROOT') or define('VS_ROOT', dirname(__DIR__));
@@ -24,6 +24,11 @@ require_once VS_ROOT . '/core/Updater.php';
 require_once VS_ROOT . '/core/DatabaseMigrator.php';
 require_once VS_ROOT . '/core/UpdateLog.php';
 require_once VS_ROOT . '/core/UserAvatar.php';
+require_once VS_ROOT . '/core/StorageRegistry.php';
+require_once VS_ROOT . '/core/UploadNaming.php';
+require_once VS_ROOT . '/core/FileFolder.php';
+require_once VS_ROOT . '/core/FileItem.php';
+require_once VS_ROOT . '/core/StorageManager.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     AuthSecurity::configureSessionCookies();

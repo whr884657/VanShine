@@ -3,6 +3,19 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.30",
+            "date": "2026-06-26",
+            "title": "文件管理与七种储存配置",
+            "db_changes": true,
+            "migration": "1.0.30.sql",
+            "changes": [
+                "系统设置新增储存配置折叠板块，七种储存可同时启用",
+                "全局上传命名方式：递增、时间戳、UUID、保留原名等",
+                "文件管理页：文件夹绑定储存、上传、三种视图",
+                "新增 file_folder、file_item 表及储存 config 字段"
+            ]
+        },
+        {
             "version": "1.0.29",
             "date": "2026-06-26",
             "title": "侧边栏新增 AI 大类",

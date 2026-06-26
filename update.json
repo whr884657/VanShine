@@ -1,12 +1,14 @@
 {
-    "version": "1.0.29",
+    "version": "1.0.30",
     "release_date": "2026-06-26",
-    "title": "侧边栏新增 AI 大类",
-    "db_changes": false,
+    "title": "文件管理与七种储存配置",
+    "db_changes": true,
     "changes": [
-        "侧边栏新增 AI 大类，含 DeepSeek、ChatGPT、Claude、Gemini 子菜单",
-        "各 AI 子页面为占位页，功能开发中",
-        "新增 AI 侧边栏图标"
+        "系统设置新增「储存配置」折叠板块，七种储存可同时启用",
+        "储存配置含全局上传命名方式（递增、时间戳、保留原名等）",
+        "文件管理页支持创建文件夹并绑定储存，子文件夹继承上级储存",
+        "文件管理支持大图标、小图标、列表三种视图",
+        "新增 file_folder、file_item 表及储存相关 config 字段"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

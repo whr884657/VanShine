@@ -4,7 +4,6 @@ install/installed.lock
 /storage/
 /data/
 release/*.zip
-core/Storage/**/vendor/
 .DS_Store
 Thumbs.db
 *.log

@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.35**
+**当前版本：1.0.36**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.35.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.36.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -173,6 +173,17 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.36（2026-06-26）
+
+**类型：** 热修复 — 数据库迁移
+
+**变更说明：**
+- 修复 `1.0.35.sql` 写入 `config` 表时未使用 `{prefix}` 占位符，导致升级报 `Table 'xxx.config' doesn't exist`
+- `DatabaseMigrator` 增加表前缀校验，防止迁移脚本遗漏前缀
+- 从 1.0.35 升级失败的用户，更新到本版后会自动重试 `1.0.35` 结构更新
+
+---
 
 ### v1.0.35（2026-06-26）
 

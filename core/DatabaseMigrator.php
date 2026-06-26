@@ -2,7 +2,7 @@
 /**
  * 文件：core/DatabaseMigrator.php
  * 作用：版本更新时执行 install/migrations 下的增量 SQL（数据库结构更新）
- * @version 1.0.23
+ * @version 1.0.36
  */
 
 class DatabaseMigrator
@@ -80,6 +80,13 @@ class DatabaseMigrator
 
         if (!in_array('1.0.20', $applied, true) && self::tableColumnExists('admin', 'avatar_url')) {
             self::markApplied('1.0.20');
+        }
+
+        if (!in_array('1.0.35', $applied, true)) {
+            $all = Config::all();
+            if (array_key_exists('storage_local_public_slug', $all)) {
+                self::markApplied('1.0.35');
+            }
         }
     }
 
@@ -222,10 +229,33 @@ class DatabaseMigrator
 
         $sql = file_get_contents($file);
         $sql = str_replace('{prefix}', $prefix, $sql);
+        self::assertPrefixedTables($sql, $prefix, basename($file));
         $statements = DatabaseInstaller::parseSqlStatements($sql);
 
         foreach ($statements as $statement) {
             self::execStatement($pdo, $statement);
+        }
+    }
+
+    /**
+     * 校验迁移脚本是否使用了表前缀占位符
+     *
+     * @param string $sql
+     * @param string $prefix
+     * @param string $filename
+     * @return void
+     * @throws Exception
+     */
+    public static function assertPrefixedTables($sql, $prefix, $filename)
+    {
+        $shortTables = array('admin', 'config', 'file_folder', 'file_item');
+        foreach ($shortTables as $table) {
+            if (preg_match('/`' . preg_quote($table, '/') . '`/i', $sql)
+                && !preg_match('/`' . preg_quote($prefix . $table, '/') . '`/i', $sql)) {
+                throw new Exception(
+                    '结构更新脚本 ' . $filename . ' 未使用 {prefix} 表前缀（检测到 `' . $table . '`）'
+                );
+            }
         }
     }
 

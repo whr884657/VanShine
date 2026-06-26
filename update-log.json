@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.36",
+            "date": "2026-06-26",
+            "title": "修复 1.0.35 数据库迁移表前缀",
+            "db_changes": true,
+            "migration": "1.0.35.sql",
+            "changes": [
+                "修复 1.0.35 迁移脚本 config 表未加 {prefix} 占位符",
+                "升级时自动重试未完成的 1.0.35 结构更新",
+                "DatabaseMigrator 增加表前缀校验"
+            ]
+        },
+        {
             "version": "1.0.35",
             "date": "2026-06-26",
             "title": "文件管理列表修复与本地直链网关",

@@ -1,12 +1,11 @@
 {
-    "version": "1.0.35",
+    "version": "1.0.36",
     "release_date": "2026-06-26",
-    "title": "文件管理列表修复与本地直链网关",
+    "title": "修复 1.0.35 数据库迁移表前缀",
     "db_changes": true,
     "changes": [
-        "修复文件管理列表视图列错位，补全类型/储存/大小/操作列",
-        "手机端列表显示文件大小，预览与弹窗统一为四分之三屏高",
-        "本地储存对外链接改为 /{随机单字母}/{文件名}，不暴露 upload 路径"
+        "修复 1.0.35.sql 未使用 {prefix} 导致 config 表找不到",
+        "DatabaseMigrator 增加表前缀校验，避免同类迁移脚本错误"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

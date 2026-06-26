@@ -2,11 +2,77 @@
 /**
  * 文件：core/StorageManager.php
  * 作用：文件上传、删除与储存驱动调度
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 class StorageManager
 {
+    /**
+     * @param mixed $fileField $_FILES['file']
+     * @return array<int, array>
+     */
+    public static function normalizeUploadedFiles($fileField)
+    {
+        if (!is_array($fileField) || !isset($fileField['name'])) {
+            return array();
+        }
+
+        if (!is_array($fileField['name'])) {
+            return array($fileField);
+        }
+
+        $list = array();
+        $count = count($fileField['name']);
+        for ($i = 0; $i < $count; $i++) {
+            if ((int) $fileField['error'][$i] === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            $list[] = array(
+                'name'     => $fileField['name'][$i],
+                'type'     => $fileField['type'][$i],
+                'tmp_name' => $fileField['tmp_name'][$i],
+                'error'    => $fileField['error'][$i],
+                'size'     => $fileField['size'][$i],
+            );
+        }
+
+        return $list;
+    }
+
+    /**
+     * @param int   $folderId
+     * @param array $uploads
+     * @return array{uploaded:int, errors:array}
+     * @throws Exception
+     */
+    public static function uploadBatchToFolder($folderId, array $uploads)
+    {
+        if (count($uploads) === 0) {
+            throw new Exception('未选择文件');
+        }
+
+        $uploaded = 0;
+        $errors = array();
+        foreach ($uploads as $upload) {
+            try {
+                self::uploadToFolder($folderId, $upload);
+                $uploaded++;
+            } catch (Exception $e) {
+                $name = isset($upload['name']) ? basename($upload['name']) : 'file';
+                $errors[] = $name . '：' . $e->getMessage();
+            }
+        }
+
+        if ($uploaded === 0) {
+            throw new Exception(implode('；', $errors));
+        }
+
+        return array(
+            'uploaded' => $uploaded,
+            'errors'   => $errors,
+        );
+    }
+
     /**
      * @param int   $folderId
      * @param array $upload  $_FILES 单项

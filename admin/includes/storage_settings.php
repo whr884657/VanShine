@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/storage_settings.php
  * 作用：系统设置 — 储存配置折叠板块
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 /**
@@ -71,6 +71,10 @@ function vs_settings_render_storage_section()
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
+            <div class="vs-form-actions vs-form-actions--inline">
+                <button type="button" class="vs-btn vs-btn--default vs-storage-test-btn"
+                        data-storage-key="<?php echo (int) $key; ?>">测试连接</button>
+            </div>
             <?php vs_admin_accordion_end(); ?>
         <?php endforeach; ?>
 

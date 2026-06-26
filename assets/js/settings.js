@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/settings.js
  * 作用：系统设置页 AJAX 保存与折叠板块
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 (function () {
@@ -162,6 +162,36 @@
         });
     }
 
+    function bindStorageTestButtons() {
+        document.querySelectorAll('.vs-storage-test-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var form = document.getElementById('storageForm');
+                if (!form) return;
+
+                var body = new FormData(form);
+                body.set('action', 'test_storage');
+                body.set('storage_key', btn.getAttribute('data-storage-key') || '');
+
+                btn.disabled = true;
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: body,
+                    credentials: 'same-origin'
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        showFlash(data.msg || (data.code === 1 ? '测试成功' : '测试失败'), data.code === 1 ? 'success' : 'error');
+                    })
+                    .catch(function () {
+                        showFlash('网络异常，请稍后重试', 'error');
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                    });
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         bindAccordions();
 
@@ -169,6 +199,7 @@
             bindAjaxForm(document.getElementById(id));
         });
 
+        bindStorageTestButtons();
         document.querySelectorAll('.vs-domain-delete-form').forEach(bindDeleteForm);
     });
 })();

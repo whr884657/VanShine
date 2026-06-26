@@ -2,7 +2,7 @@
 /**
  * 文件：core/StorageRegistry.php
  * 作用：七种储存类型注册、配置键映射与驱动加载
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 class StorageRegistry
@@ -115,8 +115,8 @@ class StorageRegistry
                     array('key' => 'queries', 'label' => 'URL 后缀参数', 'type' => 'text'),
                 ),
             ),
-            9 => array(
-                'key'      => 9,
+            7 => array(
+                'key'      => 7,
                 'slug'     => 'webdav',
                 'name'     => 'WebDAV',
                 'driver'   => 'WebDavStorageDriver',
@@ -231,6 +231,96 @@ class StorageRegistry
 
         $driverClass = $type['driver'];
         return $driverClass::fromConfigs(self::loadDriverConfigs($key));
+    }
+
+    /**
+     * @param int   $key
+     * @param array $configs
+     * @return object
+     * @throws Exception
+     */
+    public static function driverWithConfigs($key, array $configs)
+    {
+        $type = self::type($key);
+        if ($type === null) {
+            throw new Exception('未知的储存类型');
+        }
+
+        $base = VS_ROOT . '/core/Storage/' . $type['dir'];
+        require_once $base . '/' . $type['options'] . '.php';
+        require_once $base . '/' . $type['driver'] . '.php';
+
+        $driverClass = $type['driver'];
+        return $driverClass::fromConfigs($configs);
+    }
+
+    /**
+     * @param int        $key
+     * @param array|null $post
+     * @return array<string, string>
+     */
+    public static function resolveDriverConfigs($key, array $post = null)
+    {
+        $type = self::type($key);
+        if ($type === null) {
+            return array();
+        }
+
+        $configs = array();
+        foreach ($type['fields'] as $field) {
+            if ($field['key'] === 'enabled') {
+                continue;
+            }
+
+            $dbKey = self::configDbKey($key, $field['key']);
+            $value = '';
+
+            if ($post !== null) {
+                $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];
+                $value = trim(isset($post[$postKey]) ? $post[$postKey] : '');
+                if ($field['type'] === 'password' && $value === '') {
+                    $value = Config::get($dbKey, '');
+                }
+            } else {
+                $value = Config::get($dbKey, '');
+            }
+
+            $configs[$field['key']] = $value;
+        }
+
+        return $configs;
+    }
+
+    /**
+     * @param int        $key
+     * @param array|null $post
+     * @return void
+     * @throws Exception
+     */
+    public static function testConnection($key, array $post = null)
+    {
+        $type = self::type($key);
+        if ($type === null) {
+            throw new Exception('未知的储存类型');
+        }
+
+        $configs = self::resolveDriverConfigs($key, $post);
+        if (trim(isset($configs['url']) ? $configs['url'] : '') === '' && (int) $key !== 1) {
+            throw new Exception('请先填写访问 URL');
+        }
+
+        $driver = self::driverWithConfigs($key, $configs);
+        $probe = '.vanshine-probe/' . str_replace('.', '', uniqid('', true)) . '.txt';
+
+        try {
+            $driver->write($probe, 'VanShine storage probe');
+            if (!$driver->exists($probe)) {
+                throw new Exception('写入探测文件后无法确认存在');
+            }
+            $driver->delete($probe);
+        } catch (Exception $e) {
+            throw new Exception($type['name'] . ' 连接失败：' . $e->getMessage());
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
- * 作用：后台文件管理页
- * @version 1.0.30
+ * 作用：后台文件管理页（批量/拖拽上传、重命名）
+ * @version 1.0.31
  */
 
 (function () {
@@ -13,12 +13,16 @@
     var flashEl = document.getElementById('filesFlash');
     var breadcrumbEl = document.getElementById('fileBreadcrumb');
     var contentEl = document.getElementById('fileContent');
-    var emptyTipEl = document.getElementById('fileEmptyTip');
     var folderMetaEl = document.getElementById('folderMeta');
     var uploadWrap = document.getElementById('uploadWrap');
     var uploadInput = document.getElementById('fileUploadInput');
+    var dropHint = document.getElementById('fileDropHint');
     var folderModal = document.getElementById('folderModal');
+    var renameModal = document.getElementById('renameModal');
     var folderForm = document.getElementById('folderForm');
+    var renameForm = document.getElementById('renameForm');
+    var renameInput = document.getElementById('renameInput');
+    var renameTargetId = document.getElementById('renameTargetId');
     var storageSelect = document.getElementById('folderStorageSelect');
     var storageInheritTip = document.getElementById('storageInheritTip');
     var storagePickRow = document.getElementById('storagePickRow');
@@ -30,12 +34,12 @@
         folders: [],
         files: [],
         storages: [],
-        view: localStorage.getItem('vs_file_view') || 'grid'
+        view: localStorage.getItem('vs_file_view') || 'grid',
+        uploading: false
     };
 
     try {
-        var initial = JSON.parse(root.getAttribute('data-initial') || '{}');
-        applyPayload(initial);
+        applyPayload(JSON.parse(root.getAttribute('data-initial') || '{}'));
     } catch (e) {
         showFlash('初始化失败', 'error');
     }
@@ -111,6 +115,40 @@
         });
     }
 
+    function uploadFiles(fileList) {
+        if (state.folderId <= 0) {
+            showFlash('请先进入已绑定储存的文件夹再上传', 'error');
+            return;
+        }
+        if (!fileList || !fileList.length || state.uploading) {
+            return;
+        }
+
+        state.uploading = true;
+        var body = new FormData();
+        body.append('action', 'upload');
+        body.append('folder_id', String(state.folderId));
+        for (var i = 0; i < fileList.length; i++) {
+            body.append('file[]', fileList[i]);
+        }
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: body,
+            credentials: 'same-origin'
+        }).then(function (res) { return res.json(); })
+            .then(function (data) {
+                state.uploading = false;
+                if (uploadInput) uploadInput.value = '';
+                handleActionResponse(data);
+            })
+            .catch(function () {
+                state.uploading = false;
+                if (uploadInput) uploadInput.value = '';
+                showFlash('上传失败', 'error');
+            });
+    }
+
     function renderBreadcrumb() {
         if (!breadcrumbEl) return;
         var html = '';
@@ -132,12 +170,16 @@
         if (state.currentFolder) {
             folderMetaEl.hidden = false;
             folderMetaEl.innerHTML = '当前文件夹绑定储存：<strong>'
-                + escapeHtml(state.currentFolder.storage_name) + '</strong>';
+                + escapeHtml(state.currentFolder.storage_key) + '. '
+                + escapeHtml(state.currentFolder.storage_name) + '</strong>'
+                + ' · 支持拖拽文件到下方区域批量上传';
             if (uploadWrap) uploadWrap.hidden = false;
+            root.classList.add('can-upload');
         } else {
             folderMetaEl.hidden = true;
             folderMetaEl.innerHTML = '';
             if (uploadWrap) uploadWrap.hidden = true;
+            root.classList.remove('can-upload');
         }
     }
 
@@ -155,8 +197,10 @@
         var hasItems = state.folders.length > 0 || state.files.length > 0;
 
         if (!hasItems) {
-            contentEl.innerHTML = '<p class="vs-form-tip">'
-                + (state.folderId > 0 ? '此文件夹暂无内容，可上传文件或创建子文件夹。' : '根目录暂无文件夹，请先新建文件夹并绑定储存。')
+            contentEl.innerHTML = '<p class="vs-form-tip vs-filemgr__empty">'
+                + (state.folderId > 0
+                    ? '此文件夹暂无内容。可拖拽文件到此处、点击「上传文件」批量选择，或新建子文件夹。'
+                    : '根目录暂无文件夹，请先新建文件夹并绑定储存（KEY 1–7）。')
                 + '</p>';
             return;
         }
@@ -170,11 +214,14 @@
             html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
             if (state.view === 'list') {
                 html += '<span class="vs-filemgr__col vs-filemgr__col--type">文件夹</span>';
-                html += '<span class="vs-filemgr__col vs-filemgr__col--storage">' + escapeHtml(folder.storage_name) + '</span>';
+                html += '<span class="vs-filemgr__col vs-filemgr__col--storage">'
+                    + escapeHtml(folder.storage_key) + '. ' + escapeHtml(folder.storage_name) + '</span>';
                 html += '<span class="vs-filemgr__col vs-filemgr__col--size">—</span>';
             }
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
+            html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
+                + folder.id + '" title="重命名">✎</button>';
             html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
             html += '</div></div>';
         });
@@ -206,12 +253,23 @@
             });
         });
 
+        contentEl.querySelectorAll('[data-rename-folder]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var id = parseInt(btn.getAttribute('data-rename-folder'), 10);
+                var folder = null;
+                state.folders.forEach(function (f) {
+                    if (f.id === id) folder = f;
+                });
+                openRenameModal(id, folder ? folder.name : '');
+            });
+        });
+
         contentEl.querySelectorAll('[data-delete-folder]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                var id = btn.getAttribute('data-delete-folder');
                 confirmDelete('确定删除该文件夹吗？', function () {
-                    post('delete_folder', { target_id: id }).then(handleActionResponse);
+                    post('delete_folder', { target_id: btn.getAttribute('data-delete-folder') }).then(handleActionResponse);
                 });
             });
         });
@@ -219,9 +277,8 @@
         contentEl.querySelectorAll('[data-delete-file]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                var id = btn.getAttribute('data-delete-file');
                 confirmDelete('确定删除该文件吗？', function () {
-                    post('delete_file', { target_id: id }).then(handleActionResponse);
+                    post('delete_file', { target_id: btn.getAttribute('data-delete-file') }).then(handleActionResponse);
                 });
             });
         });
@@ -271,7 +328,7 @@
         state.storages.forEach(function (item) {
             var opt = document.createElement('option');
             opt.value = String(item.key);
-            opt.textContent = item.name;
+            opt.textContent = item.key + '. ' + item.name;
             storageSelect.appendChild(opt);
         });
     }
@@ -279,12 +336,10 @@
     function openFolderModal() {
         if (!folderModal) return;
         renderStorageSelect();
-
         var isRoot = state.folderId <= 0;
         if (storagePickRow) storagePickRow.hidden = !isRoot;
         if (storageInheritTip) storageInheritTip.hidden = isRoot;
         if (storageSelect) storageSelect.required = isRoot;
-
         folderModal.hidden = false;
         folderModal.classList.add('is-open');
     }
@@ -294,6 +349,22 @@
         folderModal.hidden = true;
         folderModal.classList.remove('is-open');
         if (folderForm) folderForm.reset();
+    }
+
+    function openRenameModal(id, name) {
+        if (!renameModal) return;
+        renameTargetId.value = id;
+        renameInput.value = name || '';
+        renameModal.hidden = false;
+        renameModal.classList.add('is-open');
+        renameInput.focus();
+    }
+
+    function closeRenameModal() {
+        if (!renameModal) return;
+        renameModal.hidden = true;
+        renameModal.classList.remove('is-open');
+        if (renameForm) renameForm.reset();
     }
 
     function render() {
@@ -307,6 +378,10 @@
 
     folderModal.querySelectorAll('[data-close-modal]').forEach(function (btn) {
         btn.addEventListener('click', closeFolderModal);
+    });
+
+    renameModal.querySelectorAll('[data-close-rename]').forEach(function (btn) {
+        btn.addEventListener('click', closeRenameModal);
     });
 
     if (folderForm) {
@@ -330,28 +405,59 @@
         });
     }
 
+    if (renameForm) {
+        renameForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            post('rename_folder', {
+                target_id: renameTargetId.value,
+                name: renameInput.value
+            }).then(function (data) {
+                if (data.code === 1) {
+                    closeRenameModal();
+                    handleActionResponse(data);
+                } else {
+                    showFlash(data.msg || '重命名失败', 'error');
+                }
+            }).catch(function () {
+                showFlash('网络异常', 'error');
+            });
+        });
+    }
+
     if (uploadInput) {
         uploadInput.addEventListener('change', function () {
             if (!uploadInput.files || !uploadInput.files.length) return;
-            var file = uploadInput.files[0];
-            var body = new FormData();
-            body.append('action', 'upload');
-            body.append('folder_id', String(state.folderId));
-            body.append('file', file);
-
-            fetch(window.location.href, {
-                method: 'POST',
-                body: body,
-                credentials: 'same-origin'
-            }).then(function (res) { return res.json(); })
-                .then(function (data) {
-                    uploadInput.value = '';
-                    handleActionResponse(data);
-                })
-                .catch(function () {
-                    uploadInput.value = '';
-                    showFlash('上传失败', 'error');
-                });
+            uploadFiles(uploadInput.files);
         });
     }
+
+    ['dragenter', 'dragover'].forEach(function (evtName) {
+        root.addEventListener(evtName, function (e) {
+            if (!root.classList.contains('can-upload')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            root.classList.add('is-dragover');
+            if (dropHint) dropHint.hidden = false;
+        });
+    });
+
+    root.addEventListener('dragleave', function (e) {
+        if (!root.classList.contains('can-upload')) return;
+        e.preventDefault();
+        if (e.target === root || !root.contains(e.relatedTarget)) {
+            root.classList.remove('is-dragover');
+            if (dropHint) dropHint.hidden = true;
+        }
+    });
+
+    root.addEventListener('drop', function (e) {
+        if (!root.classList.contains('can-upload')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        root.classList.remove('is-dragover');
+        if (dropHint) dropHint.hidden = true;
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+            uploadFiles(e.dataTransfer.files);
+        }
+    });
 })();

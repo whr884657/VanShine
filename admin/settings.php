@@ -2,7 +2,7 @@
 /**
  * 文件：admin/settings.php
  * 作用：VanShine 后台系统设置（站点信息、域名绑定、邮箱发信）
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 require_once __DIR__ . '/init.php';
@@ -168,6 +168,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             AjaxResponse::success('储存设置已保存');
         } catch (Exception $e) {
             AjaxResponse::error('保存失败：' . $e->getMessage());
+        }
+    }
+
+    if ($action === 'test_storage') {
+        $storageKey = (int) (isset($_POST['storage_key']) ? $_POST['storage_key'] : 0);
+        try {
+            StorageRegistry::testConnection($storageKey, $_POST);
+            $type = StorageRegistry::type($storageKey);
+            $name = $type ? $type['name'] : '储存';
+            AjaxResponse::success($name . ' 连接测试成功');
+        } catch (Exception $e) {
+            AjaxResponse::error($e->getMessage());
         }
     }
 

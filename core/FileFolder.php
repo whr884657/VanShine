@@ -2,7 +2,7 @@
 /**
  * 文件：core/FileFolder.php
  * 作用：文件管理虚拟文件夹
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 class FileFolder
@@ -144,6 +144,38 @@ class FileFolder
         );
         $stmt->execute(array((int) $parentId, $name));
         return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * @param int   $id
+     * @param string $name
+     * @return void
+     * @throws Exception
+     */
+    public static function rename($id, $name)
+    {
+        $folder = self::find($id);
+        if ($folder === null) {
+            throw new Exception('文件夹不存在');
+        }
+
+        $name = trim($name);
+        if ($name === '') {
+            throw new Exception('请填写文件夹名称');
+        }
+        if (preg_match('/[\\\\\\/:*?"<>|]/', $name)) {
+            throw new Exception('文件夹名称不能包含 \\ / : * ? " < > |');
+        }
+
+        $parentId = (int) $folder['parent_id'];
+        if (self::existsName($parentId, $name) && $folder['name'] !== $name) {
+            throw new Exception('同级目录下已存在同名文件夹');
+        }
+
+        $pdo = Database::connect();
+        $table = Database::table('file_folder');
+        $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `name` = ? WHERE `id` = ?');
+        $stmt->execute(array($name, (int) $id));
     }
 
     /**

@@ -3,6 +3,19 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.31",
+            "date": "2026-06-26",
+            "title": "储存 KEY 1-7 与文件管理增强",
+            "db_changes": true,
+            "migration": "1.0.31.sql",
+            "changes": [
+                "七种储存 KEY 统一为 1–7",
+                "文件管理：批量/拖拽上传、文件夹重命名",
+                "储存配置新增连接测试",
+                "修正 README 目录结构"
+            ]
+        },
+        {
             "version": "1.0.30",
             "date": "2026-06-26",
             "title": "文件管理与七种储存配置",

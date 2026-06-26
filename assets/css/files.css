@@ -1,7 +1,7 @@
 /**
  * 文件：assets/css/files.css
  * 作用：后台文件管理页样式
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 .vs-filemgr {
@@ -234,10 +234,44 @@
     line-height: 1;
 }
 
-#folderModal.is-open {
+#folderModal.is-open,
+#renameModal.is-open {
     display: flex;
 }
 
-#folderModal .vs-modal {
+#folderModal .vs-modal,
+#renameModal .vs-modal {
     margin: auto;
+}
+
+.vs-filemgr.can-upload .vs-filemgr__content {
+    min-height: 180px;
+}
+
+.vs-filemgr.is-dragover .vs-filemgr__content {
+    outline: 2px dashed #2563eb;
+    outline-offset: -6px;
+    background: #eff6ff;
+}
+
+.vs-filemgr__drop-hint {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    font-size: 18px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 1200;
+}
+
+.vs-filemgr__action--edit {
+    right: 28px;
+}
+
+.vs-filemgr__empty {
+    padding: 24px 12px;
 }

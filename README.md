@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.29**
+**当前版本：1.0.31**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.29.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.31.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -43,7 +43,8 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 管理员注册 | `/admin/register.php` | 注册界面（账号在安装时创建） |
 | 管理控制台 | `/admin/index.php` | 后台首页 |
 | 账号设置 | `/admin/account.php` | 修改邮箱、密码 |
-| 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱配置 |
+| 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱、七种储存配置 |
+| 文件管理 | `/admin/files.php` | 文件夹绑定储存、批量/拖拽上传、三种视图 |
 | 系统升级 | `/admin/upgrade.php` | 手动检测更新、安装更新、查看更新记录 |
 | 关于 | `/admin/about.php` | 系统与环境信息 |
 | 忘记密码 | `/admin/forgot.php` | 邮箱验证码重置（需配置邮箱） |
@@ -80,34 +81,59 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 ```
 VanShine/
 ├── README.md
-├── index.php
-├── admin/
-│   ├── init.php              # 后台统一引导
-│   ├── includes/layout.php   # 后台自定义布局
-│   ├── login.php             # 登录
-│   ├── index.php             # 控制台
-│   ├── account.php           # 账号设置
-│   ├── settings.php          # 系统设置
-│   ├── forgot.php
-│   └── reset.php
-├── install/
-│   ├── index.php
-│   └── database.sql          # 数据库结构（独立维护）
+├── LICENSE
+├── update.json                 # 远程版本清单（在线更新检测）
+├── update-log.json             # 版本更新记录
+├── index.php                   # 前台首页
+├── .gitattributes
+├── admin/                      # 后台
+│   ├── init.php                # 后台统一引导
+│   ├── includes/
+│   │   ├── layout.php          # 侧边栏布局
+│   │   ├── auth_layout.php     # 登录/注册布局
+│   │   └── storage_settings.php
+│   ├── index.php               # 控制台
+│   ├── files.php               # 文件管理
+│   ├── settings.php            # 系统设置
+│   ├── account.php             # 账号设置
+│   ├── upgrade.php             # 系统升级
+│   ├── about.php
+│   ├── login.php / register.php / forgot.php
+│   ├── ai/                     # AI 子菜单（占位）
+│   ├── archive/                # 归档（占位）
+│   └── cdn/                    # CDN（占位）
+├── assets/
+│   ├── css/                    # common, admin, modal, icons, files …
+│   ├── js/
+│   └── img/site/               # 站点 Favicon 等
 ├── config/
+│   └── database.php            # 安装后生成（勿覆盖）
 ├── core/
 │   ├── bootstrap.php
 │   ├── version.php
-│   ├── Config.php
-│   ├── Auth.php
-│   ├── Database.php
-│   ├── DatabaseInstaller.php
-│   ├── Mailer.php
-│   └── helpers.php
-└── assets/
-    ├── css/（common, admin, icons, ...）
-    ├── js/
-    └── img/site/             # 站点 Favicon 上传目录
+│   ├── Config.php / Auth.php / Database.php …
+│   ├── StorageRegistry.php     # 七种储存注册（KEY 1–7）
+│   ├── StorageManager.php
+│   ├── FileFolder.php / FileItem.php
+│   ├── UploadNaming.php
+│   └── Storage/                # 七种储存驱动（各自 vendor/）
+│       ├── LocalStorage/       # KEY 1
+│       ├── AwsS3/              # KEY 2
+│       ├── AliyunOss/          # KEY 3
+│       ├── TencentCos/         # KEY 4
+│       ├── QiniuKodo/          # KEY 5
+│       ├── ILanZou/            # KEY 6
+│       └── WebDavStorage/      # KEY 7
+├── data/                       # 运行时数据（在线更新临时文件等，自动创建）
+├── upload/                     # 本地上传默认目录
+├── install/
+│   ├── index.php               # 五步安装向导
+│   ├── database.sql            # 全新安装数据库结构
+│   └── migrations/             # 在线升级增量 SQL（如 1.0.31.sql）
+└── 发行说明/                   # 各版本发行说明 Markdown
 ```
+
+**储存 KEY 对照：** 1 本地 · 2 AWS S3 · 3 阿里云 OSS · 4 腾讯云 COS · 5 七牛 Kodo · 6 蓝奏优享 · 7 WebDAV
 
 ---
 
@@ -147,6 +173,18 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.31（2026-06-26）
+
+**类型：** 储存 KEY 修正与文件管理增强
+
+**变更说明：**
+- 七种储存 KEY 统一为 **1–7**（WebDAV 由 9 改为 7）
+- 文件管理：批量上传、拖拽上传、文件夹重命名
+- 系统设置各储存板块新增「测试连接」
+- 修正 README 目录结构说明
+
+---
 
 ### v1.0.30（2026-06-26）
 

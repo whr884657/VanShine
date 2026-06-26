@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.30
+ * @version 1.0.31
  */
 
 require_once __DIR__ . '/init.php';
@@ -117,10 +117,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             AjaxResponse::error('未选择文件');
         }
         try {
-            StorageManager::uploadToFolder($folderId, $_FILES['file']);
+            $batch = StorageManager::uploadBatchToFolder(
+                $folderId,
+                StorageManager::normalizeUploadedFiles($_FILES['file'])
+            );
             $folders = FileFolder::listByParent($folderId);
             $files = FileItem::listByFolder($folderId);
-            AjaxResponse::success('上传成功', vs_files_payload($folders, $files, $folderId));
+            $msg = '成功上传 ' . $batch['uploaded'] . ' 个文件';
+            if (!empty($batch['errors'])) {
+                $msg .= '，部分失败：' . implode('；', $batch['errors']);
+            }
+            AjaxResponse::success($msg, vs_files_payload($folders, $files, $folderId));
+        } catch (Exception $e) {
+            AjaxResponse::error($e->getMessage());
+        }
+    }
+
+    if ($action === 'rename_folder') {
+        $targetId = (int) (isset($_POST['target_id']) ? $_POST['target_id'] : 0);
+        $name = isset($_POST['name']) ? $_POST['name'] : '';
+        try {
+            FileFolder::rename($targetId, $name);
+            $folders = FileFolder::listByParent($folderId);
+            $files = $folderId > 0 ? FileItem::listByFolder($folderId) : array();
+            AjaxResponse::success('文件夹已重命名', vs_files_payload($folders, $files, $folderId));
         } catch (Exception $e) {
             AjaxResponse::error($e->getMessage());
         }
@@ -188,8 +208,32 @@ vs_admin_layout_start('文件管理', 'files');
 
     <div class="vs-filemgr__meta" id="folderMeta" hidden></div>
 
+    <div class="vs-filemgr__drop-hint" id="fileDropHint" hidden>松开鼠标以上传文件</div>
+
     <div class="vs-filemgr__content view-grid" id="fileContent">
         <p class="vs-form-tip" id="fileEmptyTip">加载中…</p>
+    </div>
+</div>
+
+<div class="vs-modal-shell" id="renameModal" hidden>
+    <div class="vs-modal vs-modal--sm">
+        <div class="vs-modal__head">
+            <h3 class="vs-modal__title">重命名文件夹</h3>
+            <button type="button" class="vs-modal__close" data-close-rename>&times;</button>
+        </div>
+        <form id="renameForm" class="vs-form">
+            <input type="hidden" name="target_id" id="renameTargetId" value="">
+            <div class="vs-modal__body">
+                <div class="vs-form-row">
+                    <label class="vs-label">新名称</label>
+                    <input type="text" name="name" id="renameInput" class="vs-input" required maxlength="100">
+                </div>
+            </div>
+            <div class="vs-modal__foot">
+                <button type="button" class="vs-btn vs-btn--default" data-close-rename>取消</button>
+                <button type="submit" class="vs-btn vs-btn--primary">保存</button>
+            </div>
+        </form>
     </div>
 </div>
 

@@ -1078,3 +1078,8 @@ select.vs-input {
 .vs-upgrade-log__list li {
     margin-bottom: 4px;
 }
+
+.vs-form-actions--inline {
+    margin-top: 4px;
+    padding-top: 0;
+}

@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.39",
+            "date": "2026-06-26",
+            "title": "修复上传失败与全局上传进度",
+            "db_changes": false,
+            "changes": [
+                "修复 uploadOneFile 遗漏 FormData 导致上传完全失败",
+                "全局 upload-queue 进度浮层，支持折叠/展开",
+                "upload-bridge 后台窗口，切换管理页面不中断上传"
+            ]
+        },
+        {
             "version": "1.0.38",
             "date": "2026-06-26",
             "title": "文件替换（重传）机制",

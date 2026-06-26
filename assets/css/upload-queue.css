@@ -1,0 +1,177 @@
+/**
+ * 文件：assets/css/upload-queue.css
+ * 作用：全局上传进度浮层（可折叠、跨页面）
+ * @version 1.0.39
+ */
+
+.vs-upload-queue {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1200;
+    pointer-events: none;
+}
+
+.vs-upload-queue__panel {
+    pointer-events: auto;
+    width: min(340px, calc(100vw - 32px));
+    max-height: min(360px, 50vh);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    overflow: hidden;
+}
+
+.vs-upload-queue.is-collapsed .vs-upload-queue__panel {
+    display: none;
+}
+
+.vs-upload-queue__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.vs-upload-queue__title {
+    flex: 1 1 auto;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.vs-upload-queue__badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.vs-upload-queue__toggle {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.vs-upload-queue__toggle:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.vs-upload-queue__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.vs-upload-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+}
+
+.vs-upload-item__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.vs-upload-item__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.vs-upload-item__status {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.vs-upload-item.is-done .vs-upload-item__status {
+    color: #16a34a;
+}
+
+.vs-upload-item.is-error .vs-upload-item__status {
+    color: #dc2626;
+}
+
+.vs-upload-item__bar {
+    height: 4px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.vs-upload-item__fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    transition: width 0.15s ease;
+}
+
+.vs-upload-item.is-done .vs-upload-item__fill {
+    background: #22c55e;
+}
+
+.vs-upload-item.is-error .vs-upload-item__fill {
+    background: #ef4444;
+}
+
+.vs-upload-queue__fab {
+    pointer-events: auto;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.vs-upload-queue__fab em {
+    font-style: normal;
+    font-weight: 700;
+}
+
+.vs-upload-queue__fab:hover {
+    background: #1d4ed8;
+}

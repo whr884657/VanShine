@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.38
+ * @version 1.0.39
  */
 
 (function () {
@@ -46,8 +46,6 @@
         files: [],
         storages: [],
         view: localStorage.getItem('vs_file_view') || 'grid',
-        uploading: false,
-        uploadActive: 0,
         replacing: false,
         dragDepth: 0,
         previewFile: null
@@ -146,125 +144,25 @@
         if (!fileList || !fileList.length) {
             return;
         }
+        if (!window.VsUploadQueue) {
+            showFlash('上传组件未加载', 'error');
+            return;
+        }
 
         var files = Array.prototype.slice.call(fileList);
         if (uploadInput) uploadInput.value = '';
 
+        var uploadUrl = window.location.pathname;
+        if (state.folderId > 0) {
+            uploadUrl += '?folder=' + state.folderId;
+        }
+
         files.forEach(function (file) {
-            uploadOneFile(file);
+            window.VsUploadQueue.enqueue(file, {
+                folderId: state.folderId,
+                uploadUrl: uploadUrl
+            });
         });
-    }
-
-    function ensureUploadQueue() {
-        var queue = document.getElementById('uploadQueue');
-        if (!queue) {
-            queue = document.createElement('div');
-            queue.id = 'uploadQueue';
-            queue.className = 'vs-upload-queue';
-            queue.setAttribute('aria-live', 'polite');
-            document.body.appendChild(queue);
-        }
-        return queue;
-    }
-
-    function createUploadItem(file) {
-        var id = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-        var item = document.createElement('div');
-        item.className = 'vs-upload-item is-uploading';
-        item.id = id;
-        item.innerHTML = ''
-            + '<div class="vs-upload-item__head">'
-            + '<span class="vs-upload-item__name">' + escapeHtml(file.name) + '</span>'
-            + '<span class="vs-upload-item__status">上传中…</span>'
-            + '</div>'
-            + '<div class="vs-upload-item__bar"><span class="vs-upload-item__fill"></span></div>';
-        return { id: id, el: item, file: file };
-    }
-
-    function setUploadItemState(item, percent, status, message) {
-        if (!item || !item.el) return;
-        var fill = item.el.querySelector('.vs-upload-item__fill');
-        var statusEl = item.el.querySelector('.vs-upload-item__status');
-        if (fill) fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
-        if (statusEl) statusEl.textContent = message || status;
-        item.el.classList.remove('is-uploading', 'is-done', 'is-error');
-        if (status === 'done') {
-            item.el.classList.add('is-done');
-        } else if (status === 'error') {
-            item.el.classList.add('is-error');
-        } else {
-            item.el.classList.add('is-uploading');
-        }
-    }
-
-    function removeUploadItemLater(item) {
-        if (!item || !item.el) return;
-        window.setTimeout(function () {
-            if (item.el && item.el.parentNode) {
-                item.el.parentNode.removeChild(item.el);
-            }
-            var queue = document.getElementById('uploadQueue');
-            if (queue && !queue.children.length) {
-                queue.parentNode.removeChild(queue);
-            }
-        }, 3200);
-    }
-
-    function uploadOneFile(file) {
-        var queue = ensureUploadQueue();
-        var item = createUploadItem(file);
-        queue.appendChild(item.el);
-
-        state.uploadActive++;
-        state.uploading = true;
-        body.append('action', 'upload');
-        body.append('folder_id', String(state.folderId));
-        body.append('file[]', file);
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', window.location.href, true);
-        xhr.withCredentials = true;
-
-        xhr.upload.addEventListener('progress', function (e) {
-            if (!e.lengthComputable) return;
-            var pct = Math.round((e.loaded / e.total) * 100);
-            setUploadItemState(item, pct, 'uploading', '上传中 ' + pct + '%');
-        });
-
-        function finishUploadItem(item, percent, status, message, flashMsg, flashType) {
-            state.uploadActive = Math.max(0, state.uploadActive - 1);
-            if (state.uploadActive === 0) {
-                state.uploading = false;
-            }
-            setUploadItemState(item, percent, status, message);
-            removeUploadItemLater(item);
-            if (flashMsg) {
-                showFlash(flashMsg, flashType || 'error');
-            }
-        }
-
-        xhr.addEventListener('load', function () {
-            var data = null;
-            try {
-                data = JSON.parse(xhr.responseText || '{}');
-            } catch (err) {
-                finishUploadItem(item, 100, 'error', '响应异常', '上传失败', 'error');
-                return;
-            }
-
-            if (data.code === 1) {
-                applyPayload(data);
-                finishUploadItem(item, 100, 'done', '上传完成');
-            } else {
-                finishUploadItem(item, 100, 'error', data.msg || '上传失败', data.msg || '上传失败', 'error');
-            }
-        });
-
-        xhr.addEventListener('error', function () {
-            finishUploadItem(item, 100, 'error', '网络异常', '上传失败', 'error');
-        });
-
-        xhr.send(body);
     }
 
     function renderBreadcrumb() {
@@ -868,4 +766,14 @@
 
     window.addEventListener('dragend', clearDragState);
     window.addEventListener('drop', clearDragState);
+
+    window.vsFilesOnUploadComplete = function (folderId, data) {
+        if (Number(folderId) !== Number(state.folderId) || !data) {
+            return;
+        }
+        if (data.code === 1) {
+            applyPayload(data);
+            showFlash(data.msg || '上传完成', 'success');
+        }
+    };
 })();

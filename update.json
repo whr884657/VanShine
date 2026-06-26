@@ -1,12 +1,12 @@
 {
-    "version": "1.0.38",
+    "version": "1.0.39",
     "release_date": "2026-06-26",
-    "title": "文件替换（重传）机制",
+    "title": "修复上传失败与全局上传进度",
     "db_changes": false,
     "changes": [
-        "预览抽屉支持替换文件：先删后传，保留存储名与外链",
-        "本地与云储存均按相同 pathname 覆盖写入",
-        "替换过程显示进度条"
+        "修复上传 FormData 未创建导致进度条不动、上传失败",
+        "全局上传进度浮层，可折叠隐藏，切换后台页面仍继续上传",
+        "桥接窗口 + BroadcastChannel 跨页面同步进度"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

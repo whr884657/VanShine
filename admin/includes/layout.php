@@ -132,6 +132,7 @@ function vs_admin_layout_start($pageTitle, $activeMenu = '')
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/modal.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/icons.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/admin.css?v=' . VS_VERSION . '">' . "\n";
+    echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/upload-queue.css?v=' . VS_VERSION . '">' . "\n";
     echo '</head>' . "\n";
     echo '<body class="vs-body vs-admin-body">' . "\n";
     echo '<div class="vs-admin-shell" id="vsAdminShell">' . "\n";
@@ -250,6 +251,7 @@ function vs_admin_layout_end(array $extraScripts = array())
     echo '<script src="' . vs_e($vsBase) . '/assets/js/vs-update.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/common.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/admin.js?v=' . VS_VERSION . '"></script>' . "\n";
+    echo '<script src="' . vs_e($vsBase) . '/assets/js/upload-queue.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/update-check.js?v=' . VS_VERSION . '"></script>' . "\n";
     foreach ($extraScripts as $js) {
         echo '<script src="' . vs_e($vsBase) . '/assets/js/' . vs_e($js) . '?v=' . VS_VERSION . '"></script>' . "\n";

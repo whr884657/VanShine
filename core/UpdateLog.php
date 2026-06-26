@@ -168,7 +168,19 @@ class UpdateLog
             return array();
         }
 
-        $versions = $data['versions'];
+        $versions = array();
+        foreach ($data['versions'] as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $ver = isset($row['version']) ? trim((string) $row['version']) : '';
+            if ($ver === '') {
+                continue;
+            }
+            $row['version'] = $ver;
+            $versions[] = $row;
+        }
+
         usort($versions, function ($a, $b) {
             return version_compare($b['version'], $a['version']);
         });

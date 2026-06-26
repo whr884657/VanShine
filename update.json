@@ -1,5 +1,5 @@
 {
-    "version": "1.0.30",
+    "version": "1.0.31",
     "release_date": "2026-06-26",
     "title": "储存 KEY 1-7 与文件管理增强",
     "db_changes": true,

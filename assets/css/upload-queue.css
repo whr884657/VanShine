@@ -1,28 +1,36 @@
 /**
  * 文件：assets/css/upload-queue.css
  * 作用：全局上传进度浮层（可折叠、跨页面）
- * @version 1.0.39
+ * @version 1.0.41
  */
 
 .vs-upload-queue {
     position: fixed;
-    right: 16px;
-    bottom: 16px;
+    right: 20px;
+    bottom: 20px;
     z-index: 1200;
     pointer-events: none;
 }
 
 .vs-upload-queue__panel {
     pointer-events: auto;
-    width: min(340px, calc(100vw - 32px));
-    max-height: min(360px, 50vh);
+    width: min(320px, calc(100vw - 40px));
+    max-height: min(320px, 46vh);
     display: flex;
     flex-direction: column;
     background: #fff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    border-radius: 12px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
     overflow: hidden;
+    transform: translateY(0);
+    opacity: 1;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.vs-upload-queue.is-hiding .vs-upload-queue__panel {
+    opacity: 0;
+    transform: translateY(8px);
 }
 
 .vs-upload-queue.is-collapsed .vs-upload-queue__panel {
@@ -35,7 +43,7 @@
     gap: 8px;
     padding: 10px 12px;
     border-bottom: 1px solid #f1f5f9;
-    background: #f8fafc;
+    background: #fafbfc;
 }
 
 .vs-upload-queue__title {
@@ -46,26 +54,27 @@
 }
 
 .vs-upload-queue__badge {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
     border-radius: 999px;
-    background: #2563eb;
+    background: #0f172a;
     color: #fff;
     font-size: 11px;
-    line-height: 20px;
+    line-height: 18px;
     text-align: center;
 }
 
 .vs-upload-queue__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 28px;
     height: 28px;
     border: none;
     border-radius: 8px;
     background: transparent;
     color: #64748b;
-    font-size: 18px;
-    line-height: 1;
     cursor: pointer;
 }
 
@@ -84,9 +93,9 @@
 
 .vs-upload-item {
     padding: 10px 12px;
-    border-radius: 10px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
 }
 
 .vs-upload-item__head {
@@ -123,7 +132,7 @@
 }
 
 .vs-upload-item__bar {
-    height: 4px;
+    height: 3px;
     border-radius: 999px;
     background: #e2e8f0;
     overflow: hidden;
@@ -134,7 +143,7 @@
     height: 100%;
     width: 0;
     border-radius: inherit;
-    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    background: #0f172a;
     transition: width 0.15s ease;
 }
 
@@ -146,32 +155,49 @@
     background: #ef4444;
 }
 
+/* 最小化 pill：仅上传进行中且用户主动折叠时显示 */
 .vs-upload-queue__fab {
     pointer-events: auto;
     position: absolute;
     right: 0;
     bottom: 0;
-    min-width: 48px;
-    height: 48px;
-    padding: 0 14px;
-    border: none;
-    border-radius: 999px;
-    background: #2563eb;
-    color: #fff;
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
-    font-size: 14px;
+    height: 36px;
+    padding: 0 12px 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
 }
 
-.vs-upload-queue__fab em {
-    font-style: normal;
-    font-weight: 700;
+.vs-upload-queue__fab-icon {
+    flex: 0 0 auto;
+    color: #0f172a;
+}
+
+.vs-upload-queue__fab-text {
+    color: #64748b;
+}
+
+.vs-upload-queue__fab-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
 }
 
 .vs-upload-queue__fab:hover {
-    background: #1d4ed8;
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
 }

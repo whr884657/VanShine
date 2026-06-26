@@ -1,12 +1,12 @@
 {
-    "version": "1.0.40",
-    "release_date": "2026-06-26",
-    "title": "本地储存改回 upload 直链",
-    "db_changes": true,
+    "version": "1.0.41",
+    "release_date": "2026-06-27",
+    "title": "上传进度浮层自动消失与样式优化",
+    "db_changes": false,
     "changes": [
-        "移除随机 slug 直链网关，本地文件外链改为 {域名}/upload/路径/文件名",
-        "删除 public-file.php、LocalFileServe 及相关配置字段",
-        "升级后自动清理旧网关并刷新已有文件外链"
+        "上传完成后约 0.7 秒自动关闭进度浮层",
+        "最小化按钮改为简洁 pill 样式，仅上传进行中显示",
+        "失败时保留 4 秒便于查看错误"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

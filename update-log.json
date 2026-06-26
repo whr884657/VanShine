@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.41",
+            "date": "2026-06-27",
+            "title": "上传进度浮层自动消失与样式优化",
+            "db_changes": false,
+            "changes": [
+                "上传完成自动关闭进度窗口",
+                "重做最小化 pill 样式，去除大号蓝色圆形按钮",
+                "上传失败保留 4 秒提示"
+            ]
+        },
+        {
             "version": "1.0.40",
             "date": "2026-06-26",
             "title": "本地储存改回 upload 直链",

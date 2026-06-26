@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/upload-queue.js
  * 作用：全局上传进度浮层（可折叠、跨页面同步、桥接窗口后台上传）
- * @version 1.0.39
+ * @version 1.0.41
  */
 
 (function (global) {
@@ -10,6 +10,8 @@
     var CHANNEL = 'vs-upload-queue';
     var STORAGE_JOBS = 'vs_upload_jobs';
     var STORAGE_COLLAPSED = 'vs_upload_collapsed';
+    var DONE_HIDE_MS = 700;
+    var ERROR_HIDE_MS = 4000;
 
     var channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CHANNEL) : null;
     var bridgeWindow = null;
@@ -40,9 +42,13 @@
         shell: null,
         listEl: null,
         activeCount: 0,
+        hideTimer: null,
 
         init: function () {
-            this.jobs = loadJobs();
+            this.jobs = loadJobs().filter(function (job) {
+                return job.status === 'uploading';
+            });
+            saveJobs(this.jobs);
             this.renderShell();
             this.syncFromJobs();
             this.bindStorageFallback();
@@ -62,7 +68,9 @@
                 return;
             }
             global.setInterval(function () {
-                self.syncFromJobs();
+                if (self.countActive() > 0) {
+                    self.syncFromJobs();
+                }
             }, 800);
         },
 
@@ -105,7 +113,7 @@
 
             if (data.type === 'progress') {
                 job.percent = data.percent || 0;
-                job.status = data.status || 'uploading';
+                job.status = 'uploading';
                 job.message = data.message || '';
                 this.updateJobEl(job);
                 saveJobs(this.jobs);
@@ -119,7 +127,7 @@
                 this.activeCount = Math.max(0, this.activeCount - 1);
                 this.updateJobEl(job);
                 saveJobs(this.jobs);
-                this.scheduleRemove(job.id);
+                this.scheduleRemove(job.id, !data.ok);
 
                 if (data.ok && data.payload && typeof global.vsFilesOnUploadComplete === 'function') {
                     global.vsFilesOnUploadComplete(data.folderId, data.payload);
@@ -152,12 +160,18 @@
                 + '<div class="vs-upload-queue__head">'
                 + '<span class="vs-upload-queue__title">文件上传</span>'
                 + '<span class="vs-upload-queue__badge" id="vsUploadBadge">0</span>'
-                + '<button type="button" class="vs-upload-queue__toggle" id="vsUploadToggle" title="折叠/展开">−</button>'
+                + '<button type="button" class="vs-upload-queue__toggle" id="vsUploadToggle" title="最小化">'
+                + '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+                + '</button>'
                 + '</div>'
                 + '<div class="vs-upload-queue__list"></div>'
                 + '</div>'
                 + '<button type="button" class="vs-upload-queue__fab" id="vsUploadFab" title="展开上传进度" hidden>'
-                + '<span>↑</span><em id="vsUploadFabCount">0</em>'
+                + '<svg class="vs-upload-queue__fab-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">'
+                + '<path d="M8 2.5v7M5 6.5L8 3.5 11 6.5M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+                + '</svg>'
+                + '<span class="vs-upload-queue__fab-text">上传中</span>'
+                + '<span class="vs-upload-queue__fab-count" id="vsUploadFabCount">0</span>'
                 + '</button>';
 
             document.body.appendChild(shell);
@@ -166,7 +180,7 @@
 
             var self = this;
             shell.querySelector('#vsUploadToggle').addEventListener('click', function () {
-                self.setCollapsed(!self.collapsed);
+                self.setCollapsed(true);
             });
             shell.querySelector('#vsUploadFab').addEventListener('click', function () {
                 self.setCollapsed(false);
@@ -189,19 +203,15 @@
             }
             var fab = this.shell.querySelector('#vsUploadFab');
             var active = this.countActive();
-            if (this.collapsed && (active > 0 || this.hasRecentJobs())) {
+            if (this.collapsed && active > 0) {
                 fab.hidden = false;
                 var fabCount = this.shell.querySelector('#vsUploadFabCount');
                 if (fabCount) {
-                    fabCount.textContent = String(active || this.jobs.length);
+                    fabCount.textContent = String(active);
                 }
             } else {
                 fab.hidden = true;
             }
-        },
-
-        hasRecentJobs: function () {
-            return this.jobs.length > 0;
         },
 
         countActive: function () {
@@ -236,16 +246,40 @@
             }
             if (this.jobs.length > 0) {
                 this.shell.hidden = false;
-            } else if (active === 0) {
-                this.shell.hidden = true;
+                this.shell.classList.remove('is-hiding');
             }
             this.updateFab();
+        },
+
+        hidePanel: function () {
+            if (!this.shell || this.shell.hidden) {
+                return;
+            }
+            var self = this;
+            this.shell.classList.add('is-hiding');
+            if (this.hideTimer) {
+                clearTimeout(this.hideTimer);
+            }
+            this.hideTimer = global.setTimeout(function () {
+                self.shell.hidden = true;
+                self.shell.classList.remove('is-hiding');
+                self.collapsed = false;
+                sessionStorage.setItem(STORAGE_COLLAPSED, '0');
+                self.shell.classList.remove('is-collapsed');
+                self.updateFab();
+                self.hideTimer = null;
+            }, 260);
         },
 
         enqueue: function (file, options) {
             options = options || {};
             if (!file) {
                 return null;
+            }
+
+            if (this.hideTimer) {
+                clearTimeout(this.hideTimer);
+                this.hideTimer = null;
             }
 
             var job = {
@@ -261,9 +295,9 @@
             this.activeCount++;
             saveJobs(this.jobs);
             this.renderShell();
+            this.setCollapsed(false);
             this.appendJobEl(job);
             this.updateVisibility();
-            this.setCollapsed(this.collapsed);
 
             this.startUpload(job, file, options);
             return job.id;
@@ -314,8 +348,9 @@
             this.updateVisibility();
         },
 
-        scheduleRemove: function (jobId) {
+        scheduleRemove: function (jobId, isError) {
             var self = this;
+            var delay = isError ? ERROR_HIDE_MS : DONE_HIDE_MS;
             global.setTimeout(function () {
                 self.jobs = self.jobs.filter(function (j) { return j.id !== jobId; });
                 saveJobs(self.jobs);
@@ -325,8 +360,12 @@
                         el.parentNode.removeChild(el);
                     }
                 }
-                self.updateVisibility();
-            }, 3200);
+                if (self.jobs.length === 0) {
+                    self.hidePanel();
+                } else {
+                    self.updateVisibility();
+                }
+            }, delay);
         },
 
         getBridge: function () {

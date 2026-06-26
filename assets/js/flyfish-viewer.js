@@ -1,14 +1,14 @@
 /**
  * 文件：assets/js/flyfish-viewer.js
- * 作用：Flyfish Viewer 懒加载与挂载封装（150+ 格式纯前端预览）
- * @version 1.0.43
+ * 作用：Flyfish Viewer 懒加载与挂载封装（150+ 格式纯前端预览，自托管静态资源）
+ * @version 1.0.44
  * @see https://doc.flyfish.dev/
  */
 
 (function (global) {
     'use strict';
 
-    var PINNED_VERSION = '2.1.3';
+    var LOCAL_SCRIPT = '/assets/vendor/flyfish-viewer/flyfish-file-viewer-web-full.iife.js';
     var state = {
         controller: null,
         scriptPromise: null
@@ -23,9 +23,8 @@
         if (c.scriptUrl) {
             return c.scriptUrl;
         }
-        return 'https://cdn.jsdelivr.net/npm/@file-viewer/web-full@'
-            + PINNED_VERSION
-            + '/dist/flyfish-file-viewer-web-full.iife.js';
+        var base = global.VS_BASE_URL || '';
+        return base + LOCAL_SCRIPT;
     }
 
     function isSameOrigin(url) {
@@ -102,12 +101,6 @@
     }
 
     global.VsFlyfishViewer = {
-        /**
-         * @param {HTMLElement} container
-         * @param {object} file { id, stored_name, original_name, public_url, mime_type }
-         * @param {object} callbacks { onReady, onError }
-         * @returns {Promise}
-         */
         mount: function (container, file, callbacks) {
             callbacks = callbacks || {};
             var self = this;

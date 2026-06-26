@@ -1,13 +1,12 @@
 {
-    "version": "1.0.43",
+    "version": "1.0.44",
     "release_date": "2026-06-27",
-    "title": "接入 Flyfish Viewer 多格式在线预览",
+    "title": "Flyfish Viewer 改为本地自托管",
     "db_changes": false,
     "changes": [
-        "文件管理弹窗集成 Flyfish Viewer，支持 150+ 格式纯前端预览",
-        "Office/PDF/CAD/压缩包/Markdown/音视频等按需加载 renderer",
-        "新增 admin/file-stream.php 鉴权文件流，跨域储存可走同源代理",
-        "本地储存预览支持 HTTP Range，PDF 可渐进加载"
+        "Flyfish Viewer 完整静态资源内置至 assets/vendor/flyfish-viewer/",
+        "不再依赖 jsDelivr 等外部 CDN，内网离线可预览",
+        "Worker/WASM/字体随主脚本同目录自动加载"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

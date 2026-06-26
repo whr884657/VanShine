@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.43**
+**当前版本：1.0.44**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -28,7 +28,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.43.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.44.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -105,6 +105,7 @@ VanShine/
 ├── assets/
 │   ├── css/                    # common, admin, modal, icons, files …
 │   ├── js/
+│   ├── vendor/flyfish-viewer/  # Flyfish Viewer 自托管预览资源
 │   └── img/site/               # 站点 Favicon 等
 ├── config/
 │   └── database.php            # 安装后生成（勿覆盖）
@@ -173,6 +174,17 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.44（2026-06-27）
+
+**类型：** Flyfish Viewer 本地自托管
+
+**变更说明：**
+- 将 `@file-viewer/web-full@2.1.3` 完整静态资源内置至 `assets/vendor/flyfish-viewer/`
+- 文件预览**不再依赖 jsDelivr 等外部 CDN**，内网/离线环境可直接使用
+- Worker、WASM、字体等资源随主脚本同目录自动加载
+
+---
 
 ### v1.0.43（2026-06-27）
 

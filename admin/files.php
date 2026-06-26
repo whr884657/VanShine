@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.43
+ * @version 1.0.44
  */
 
 require_once __DIR__ . '/init.php';
@@ -345,7 +345,8 @@ vs_admin_layout_start('文件管理', 'files');
 
 <script>
 window.VS_FLYFISH_VIEWER = <?php echo json_encode(array(
-    'scriptUrl'  => 'https://cdn.jsdelivr.net/npm/@file-viewer/web-full@2.1.3/dist/flyfish-file-viewer-web-full.iife.js',
+    'scriptUrl'  => $vsBase . '/assets/vendor/flyfish-viewer/flyfish-file-viewer-web-full.iife.js',
+    'assetsBase' => $vsBase . '/assets/vendor/flyfish-viewer/',
     'streamBase' => $vsBase . '/admin/file-stream.php',
 ), JSON_UNESCAPED_UNICODE); ?>;
 </script>

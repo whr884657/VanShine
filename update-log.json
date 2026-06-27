@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.57",
+            "date": "2026-06-27",
+            "title": "分享 PATH 链接与伪静态彻底简化",
+            "db_changes": false,
+            "changes": [
+                "分享链接改为 /d/index.php/{token}，无需 ?token= 与额外 Nginx 规则",
+                "伪静态文档仅保留站点通用 try_files，不写 PHP 版本号",
+                "移除 /d/ 专用 rewrite；旧版 ?token= 链接 301 跳转",
+                "修复错误 Nginx 配置导致 index.php 源码被下载的问题说明"
+            ]
+        },
+        {
             "version": "1.0.56",
             "date": "2026-06-27",
             "title": "分享链接 query 化与 PHP 源码下载修复",

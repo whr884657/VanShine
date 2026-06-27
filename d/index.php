@@ -1,8 +1,8 @@
 <?php
 /**
  * 文件：d/index.php
- * 作用：公开分享页（短链接 /d/{token}）
- * @version 1.0.56
+ * 作用：公开分享页（入口 /d/index.php 或 /d/index.php/{token}）
+ * @version 1.0.57
  */
 
 require __DIR__ . '/boot.php';
@@ -13,7 +13,7 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('X-Content-Type-Options: nosniff');
 
-ShareRouter::redirectLegacyIfNeeded();
+ShareRouter::redirectQueryToPathIfNeeded();
 
 if (ShareRouter::isStreamRequest()) {
     require __DIR__ . '/stream-handler.php';
@@ -61,10 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_password'])) {
 $base = vs_base_url();
 $siteName = SiteContext::siteName();
 $shareTitle = (string) $share['title'];
-$streamBase = rtrim($base, '/') . '/d/index.php?' . http_build_query(array(
-    'token'  => $token,
-    'stream' => 1,
-));
+$streamBase = rtrim($base, '/') . '/d/index.php/' . rawurlencode($token) . '/stream';
 
 if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
     FileShare::recordView((int) $share['id']);

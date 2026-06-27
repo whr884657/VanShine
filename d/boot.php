@@ -2,7 +2,7 @@
 /**
  * 文件：d/boot.php
  * 作用：分享目录统一引导（避免 VS_ROOT 重复定义）
- * @version 1.0.55
+ * @version 1.0.57
  */
 
 if (!defined('VS_ROOT')) {

@@ -1,12 +1,23 @@
 <?php
 /**
  * 文件：core/ShareRouter.php
- * 作用：分享链接路由解析（query 参数 + 旧版路径兼容）
- * @version 1.0.56
+ * 作用：分享入口 d/index.php 路由解析（PATH_INFO，无需额外伪静态）
+ * @version 1.0.57
  */
 
 class ShareRouter
 {
+    /**
+     * @return string
+     */
+    public static function pathInfo()
+    {
+        if (empty($_SERVER['PATH_INFO'])) {
+            return '';
+        }
+        return trim((string) $_SERVER['PATH_INFO'], '/');
+    }
+
     /**
      * 当前请求是否为分享文件流
      *
@@ -14,20 +25,13 @@ class ShareRouter
      */
     public static function isStreamRequest()
     {
+        $path = self::pathInfo();
+        if ($path !== '' && preg_match('/^[A-Za-z0-9]{16,64}\/stream$/', $path) === 1) {
+            return true;
+        }
+
         if (isset($_GET['stream']) && (string) $_GET['stream'] === '1') {
             return true;
-        }
-
-        $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
-        if ($uri !== '' && preg_match('#/d/[A-Za-z0-9]{16,64}/stream(?:/|\?|$)#', $uri) === 1) {
-            return true;
-        }
-
-        if (!empty($_SERVER['PATH_INFO'])) {
-            $path = trim((string) $_SERVER['PATH_INFO'], '/');
-            if (preg_match('/^[A-Za-z0-9]{16,64}\/stream$/', $path) === 1) {
-                return true;
-            }
         }
 
         return false;
@@ -40,6 +44,11 @@ class ShareRouter
      */
     public static function parseToken()
     {
+        $path = self::pathInfo();
+        if ($path !== '' && preg_match('/^([A-Za-z0-9]{16,64})(?:\/stream)?$/', $path, $matches)) {
+            return $matches[1];
+        }
+
         if (isset($_GET['token'])) {
             $token = trim((string) $_GET['token']);
             if ($token !== '' && self::isValidToken($token)) {
@@ -47,39 +56,26 @@ class ShareRouter
             }
         }
 
-        if (!empty($_SERVER['PATH_INFO'])) {
-            $path = trim((string) $_SERVER['PATH_INFO'], '/');
-            if (preg_match('/^([A-Za-z0-9]{16,64})(?:\/stream)?$/', $path, $matches)) {
-                return $matches[1];
-            }
-        }
-
-        $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
-        if ($uri !== '') {
-            $path = parse_url($uri, PHP_URL_PATH);
-            if (is_string($path) && $path !== '') {
-                if (preg_match('#/d/([A-Za-z0-9]{16,64})(?:/stream)?/?$#', $path, $matches)) {
-                    return $matches[1];
-                }
-            }
-        }
-
         return '';
     }
 
     /**
-     * 旧版 /d/{token} 路径 → 标准 query 链接
+     * 旧版 ?token= 链接 → 标准 PATH 链接
      *
      * @return void
      */
-    public static function redirectLegacyIfNeeded()
+    public static function redirectQueryToPathIfNeeded()
     {
-        if (isset($_GET['token'])) {
+        if (!isset($_GET['token'])) {
             return;
         }
 
-        $token = self::parseToken();
-        if ($token === '') {
+        $token = trim((string) $_GET['token']);
+        if ($token === '' || !self::isValidToken($token)) {
+            return;
+        }
+
+        if (self::pathInfo() !== '') {
             return;
         }
 

@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.56**
+**当前版本：1.0.57**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 
 - Web 五步安装向导，自动创建数据表与初始配置
 - 分组侧边栏后台（控制台、文件、七种储存、CDN、归档、AI、系统设置等）
-- **文件分享**：单文件/文件夹短链接 `{域名}/d/index.php?token=...`，可选密码
+- **文件分享**：单文件/文件夹分享 `{域名}/d/index.php/{token}`，可选密码
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
 - **云端在线更新**：登录后台自动检测新版本，分步进度一键安装
@@ -29,7 +29,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.56.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.57.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -153,26 +153,24 @@ VanShine/
 
 ## 伪静态 / URL 重写
 
-分享链接标准格式为 `{域名}/d/index.php?token={token}`。若 Web 服务器未正确配置 PHP 解释器，访问 `/d/index.php` 可能被**当作静态文件下载**（严重）。
+分享功能**不需要**单独 Nginx 规则，与全站 PHP 共用面板默认解释器（任意 PHP 版本均可）。
 
-| 服务器 | 说明 |
-|--------|------|
-| **Nginx** | 必须为 `^/d/.+\.php$` 配置 FastCGI + 通用 `try_files` |
-| **Apache** | 根目录与 `d/.htaccess` 已内置，需启用 `mod_rewrite` |
+| 地址 | 说明 |
+|------|------|
+| `/d/index.php` | 安全提醒页 |
+| `/d/index.php/{token}` | 公开分享页 |
 
-**完整配置见：** [`伪静态配置.md`](伪静态配置.md)
+**完整说明见：** [`伪静态配置.md`](伪静态配置.md)
 
-Nginx 关键配置（**防止 PHP 源码下载**）：
+站点只需保留通用伪静态：
 
 ```nginx
-location ~ ^/d/.+\.php$ {
-    include enable-php-82.conf;
-}
-
 location / {
     try_files $uri $uri/ $uri.php$is_args$args;
 }
 ```
+
+切勿为 `/d/` 单独添加 `try_files $uri` 规则，否则可能导致 `index.php` 源码被下载。
 
 ---
 
@@ -200,6 +198,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.57（2026-06-27）
+
+**类型：** 分享链接与伪静态简化
+
+**变更说明：**
+- 分享链接改为 `/d/index.php/{token}`（PATH_INFO，无 `?token=`）
+- 伪静态仅需站点通用 `try_files`，无需 `/d/` 专用规则或 PHP 版本号配置
+- 移除根目录分享 rewrite；旧版 `?token=` 链接自动 301 跳转
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.56（2026-06-27）
 

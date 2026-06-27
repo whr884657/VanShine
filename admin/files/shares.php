@@ -87,7 +87,7 @@ vs_admin_layout_start('分享管理', 'file_shares');
      data-initial="<?php echo vs_e(json_encode(array('shares' => $initialRows), JSON_UNESCAPED_UNICODE)); ?>">
 
     <div class="vs-shares__toolbar">
-        <p class="vs-form-tip vs-shares__tip">分享短链接格式：<code>{域名}/d/index.php?token={token}</code></p>
+        <p class="vs-form-tip vs-shares__tip">分享链接格式：<code>{域名}/d/index.php/{token}</code>（无 token 访问 <code>/d/index.php</code> 为安全提醒页）</p>
     </div>
 
     <div class="vs-shares__cards" id="sharesCardList"></div>

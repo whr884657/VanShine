@@ -1,16 +1,2 @@
-RewriteEngine On
-RewriteBase /d/
-
 Options -Indexes
-
-# 已有物理文件（除需统一入口的路径外）直接访问
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# 旧版路径兼容 → 标准 query 链接
-RewriteRule ^([A-Za-z0-9]{16,64})/stream/?$ index.php?token=$1&stream=1 [L,QSA]
-RewriteRule ^([A-Za-z0-9]{16,64})/?$ index.php?token=$1 [L,QSA]
-
-# /d/ 或 /d/index.php 无 token → 由 index.php 显示安全提醒
-RewriteRule ^$ index.php [L]
-RewriteRule ^index\.php$ index.php [L]
+AcceptPathInfo On

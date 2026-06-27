@@ -5,10 +5,6 @@
 
     # 禁止直接访问 config 目录
     RewriteRule ^config/ - [F,L]
-
-    # 旧版 /d/{token} → 标准 query 链接
-    RewriteRule ^d/([A-Za-z0-9]{16,64})/stream/?$ d/index.php?token=$1&stream=1 [L,QSA]
-    RewriteRule ^d/([A-Za-z0-9]{16,64})/?$ d/index.php?token=$1 [L,R=301,QSA]
 </IfModule>
 
 # 禁止目录浏览

@@ -1,7 +1,7 @@
 -- ============================================================
 -- 文件：install/database.sql
 -- 作用：VanShine 数据库结构定义（安装时执行）
--- 版本：1.0.46
+-- 版本：1.0.47
 -- 说明：{prefix} 为表前缀占位符，安装时自动替换
 -- ============================================================
 
@@ -26,18 +26,6 @@ CREATE TABLE IF NOT EXISTS `{prefix}config` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
-
--- 绑定域名表（子域名独立站点名称与备案信息）
-CREATE TABLE IF NOT EXISTS `{prefix}domain` (
-    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `domain` varchar(255) NOT NULL COMMENT '绑定域名，不含协议与端口',
-    `site_name` varchar(100) NOT NULL DEFAULT '',
-    `icp_number` varchar(100) NOT NULL DEFAULT '' COMMENT 'ICP备案号',
-    `gongan_number` varchar(100) NOT NULL DEFAULT '' COMMENT '公安备案号',
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_domain` (`domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='绑定域名表';
 
 -- 文件管理文件夹
 CREATE TABLE IF NOT EXISTS `{prefix}file_folder` (
@@ -74,6 +62,7 @@ INSERT INTO `{prefix}config` (`key`, `value`) VALUES
 ('site_favicon', ''),
 ('site_logo', ''),
 ('primary_domain', ''),
+('bound_domains', '[]'),
 ('site_icp', ''),
 ('site_gongan', ''),
 ('mail_enabled', '0'),

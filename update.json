@@ -1,12 +1,13 @@
 {
-    "version": "1.0.46",
+    "version": "1.0.47",
     "release_date": "2026-06-27",
-    "title": "移除废弃 token 密码重置",
+    "title": "绑定域名迁入配置表与储存设置优化",
     "db_changes": true,
     "changes": [
-        "删除 password_reset 表及 token 链接重置相关代码",
-        "忘记密码仅保留邮箱验证码流程（/admin/forgot.php）",
-        "移除已弃用的 admin/reset.php 与 docs/flyfish-viewer.md"
+        "移除 domain 表，绑定子域名改存 config.bound_domains JSON",
+        "登录页「记住账号密码」本地自动填充",
+        "AWS S3 / 蓝奏云优享版 / WebDAV 标注暂时不可用",
+        "七牛云 / 腾讯云 / 阿里云 OSS 配置区增加官网注册入口"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

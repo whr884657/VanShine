@@ -540,6 +540,20 @@
     margin-bottom: 16px;
 }
 
+.vs-storage-register {
+    margin: 0 0 12px;
+}
+
+.vs-link-register {
+    color: var(--vs-primary, #2563eb);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.vs-link-register:hover {
+    text-decoration: underline;
+}
+
 .vs-form-row--test-mail {
     display: flex;
     align-items: center;

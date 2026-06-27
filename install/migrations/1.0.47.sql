@@ -1,0 +1,5 @@
+-- ============================================================
+-- 文件：install/migrations/1.0.47.sql
+-- 作用：绑定域名迁入 config.bound_domains，删除 domain 表
+-- 说明：数据迁移由 DatabaseMigrator::applyBoundDomainsMigration 执行
+-- ============================================================

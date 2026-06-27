@@ -2,7 +2,7 @@
 /**
  * 文件：admin/includes/storage_settings.php
  * 作用：系统设置 — 储存配置折叠板块
- * @version 1.0.34
+ * @version 1.0.47
  */
 
 /**
@@ -40,14 +40,25 @@ function vs_settings_render_storage_section()
 
         <?php foreach (StorageRegistry::types() as $key => $type): ?>
             <?php
+            $typeTitle = $type['name'];
+            if (!empty($type['unavailable'])) {
+                $typeTitle .= '（暂时不可用）';
+            }
+            $typeDesc = '策略 KEY ' . (int) $key . '，填写后勾选启用即可参与文件管理绑定';
             vs_admin_accordion_start(
                 'storage-type-' . $type['slug'],
-                $type['name'],
-                '策略 KEY ' . (int) $key . '，填写后勾选启用即可参与文件管理绑定',
+                $typeTitle,
+                $typeDesc,
                 false,
                 true
             );
             ?>
+            <?php if (!empty($type['register_url'])): ?>
+                <p class="vs-form-tip vs-storage-register">
+                    还没有账号？
+                    <a href="<?php echo vs_e($type['register_url']); ?>" target="_blank" rel="noopener noreferrer" class="vs-link-register">前往官网注册</a>
+                </p>
+            <?php endif; ?>
             <?php if ((int) $key === 1): ?>
                 <p class="vs-form-tip">本地文件对外链接为直链：<code>{访问 URL}/{文件夹路径}/{文件名}</code>，默认 <code>{站点域名}/upload/...</code>。Web 服务器需允许直接访问 upload 目录。</p>
             <?php endif; ?>

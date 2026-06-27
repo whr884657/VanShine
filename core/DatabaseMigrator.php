@@ -2,7 +2,7 @@
 /**
  * 文件：core/DatabaseMigrator.php
  * 作用：版本更新时执行 install/migrations 下的增量 SQL（数据库结构更新）
- * @version 1.0.36
+ * @version 1.0.47
  */
 
 class DatabaseMigrator
@@ -236,6 +236,11 @@ class DatabaseMigrator
             return;
         }
 
+        if ($version === '1.0.47') {
+            self::applyBoundDomainsMigration($pdo, $prefix);
+            return;
+        }
+
         $sql = file_get_contents($file);
         $sql = str_replace('{prefix}', $prefix, $sql);
         self::assertPrefixedTables($sql, $prefix, basename($file));
@@ -244,6 +249,60 @@ class DatabaseMigrator
         foreach ($statements as $statement) {
             self::execStatement($pdo, $statement);
         }
+    }
+
+    /**
+     * v1.0.47：domain 表数据迁入 config.bound_domains 后删表
+     *
+     * @param PDO    $pdo
+     * @param string $prefix
+     * @return void
+     */
+    public static function applyBoundDomainsMigration(PDO $pdo, $prefix)
+    {
+        $configTable = $prefix . 'config';
+        $domainTable = $prefix . 'domain';
+
+        $stmt = $pdo->prepare('SELECT `value` FROM `' . $configTable . '` WHERE `key` = ? LIMIT 1');
+        $stmt->execute(array('bound_domains'));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $existing = Domain::decodeList($row ? (string) $row['value'] : '[]');
+
+        $tableExists = false;
+        try {
+            $check = $pdo->query('SHOW TABLES LIKE ' . $pdo->quote($domainTable));
+            $tableExists = (bool) $check->fetch(PDO::FETCH_NUM);
+        } catch (Exception $e) {
+            $tableExists = false;
+        }
+
+        if ($tableExists && count($existing) === 0) {
+            $rows = $pdo->query('SELECT * FROM `' . $domainTable . '` ORDER BY `id` ASC')->fetchAll(PDO::FETCH_ASSOC);
+            $migrated = array();
+            foreach ($rows as $item) {
+                $migrated[] = array(
+                    'id'            => (int) $item['id'],
+                    'domain'        => Domain::normalizeHost($item['domain']),
+                    'site_name'     => trim((string) $item['site_name']),
+                    'icp_number'    => trim((string) $item['icp_number']),
+                    'gongan_number' => trim((string) $item['gongan_number']),
+                );
+            }
+            $existing = Domain::decodeList(json_encode($migrated, JSON_UNESCAPED_UNICODE));
+        }
+
+        $json = json_encode(array_values($existing), JSON_UNESCAPED_UNICODE);
+        $upsert = $pdo->prepare(
+            'INSERT INTO `' . $configTable . '` (`key`, `value`) VALUES (?, ?) '
+            . 'ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)'
+        );
+        $upsert->execute(array('bound_domains', $json));
+
+        if ($tableExists) {
+            $pdo->exec('DROP TABLE IF EXISTS `' . $domainTable . '`');
+        }
+
+        Config::clearCache();
     }
 
     /**

@@ -2,7 +2,7 @@
 /**
  * 文件：admin/login.php
  * 作用：VanShine 管理员登录页面
- * @version 1.0.13
+ * @version 1.0.14
  */
 
 define('VS_ROOT', dirname(__DIR__));
@@ -86,8 +86,8 @@ vs_auth_head('登录');
 
                 <div class="row">
                     <label class="remember">
-                        <input type="checkbox" id="keepLogin" name="keep_login" value="1">
-                        保持登录
+                        <input type="checkbox" id="rememberCredentials" value="1">
+                        记住账号密码
                     </label>
                     <a href="<?php echo vs_e($base); ?>/admin/forgot.php">忘记密码？</a>
                 </div>
@@ -109,9 +109,52 @@ vs_auth_head('登录');
     var form = document.getElementById('loginForm');
     var messageEl = document.getElementById('formMessage');
     var loginBtn = document.getElementById('loginBtn');
+    var rememberEl = document.getElementById('rememberCredentials');
     var expiredMsg = <?php echo json_encode($expiredMsg, JSON_UNESCAPED_UNICODE); ?>;
+    var storageKey = 'vs_login_credentials';
 
     if (!form) return;
+
+    function loadSavedCredentials() {
+        try {
+            var raw = localStorage.getItem(storageKey);
+            if (!raw) return;
+            var saved = JSON.parse(raw);
+            if (!saved || typeof saved.username !== 'string') return;
+            form.username.value = saved.username;
+            if (typeof saved.password === 'string') {
+                form.password.value = saved.password;
+            }
+            if (rememberEl) rememberEl.checked = true;
+        } catch (err) {
+            localStorage.removeItem(storageKey);
+        }
+    }
+
+    function saveCredentials(username, password, remember) {
+        try {
+            if (remember) {
+                localStorage.setItem(storageKey, JSON.stringify({
+                    username: username,
+                    password: password
+                }));
+            } else {
+                localStorage.removeItem(storageKey);
+            }
+        } catch (err) {
+            /* 隐私模式等场景可能无法写入 */
+        }
+    }
+
+    loadSavedCredentials();
+
+    if (rememberEl) {
+        rememberEl.addEventListener('change', function () {
+            if (!rememberEl.checked) {
+                localStorage.removeItem(storageKey);
+            }
+        });
+    }
 
     function showMessage(text, type) {
         if (!messageEl) return;
@@ -159,6 +202,11 @@ vs_auth_head('登录');
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 if (data.code === 1) {
+                    saveCredentials(
+                        username,
+                        password,
+                        rememberEl && rememberEl.checked
+                    );
                     showMessage(data.msg || '登录成功', 'success');
                     if (data.url) {
                         setTimeout(function () { window.location.href = data.url; }, 800);

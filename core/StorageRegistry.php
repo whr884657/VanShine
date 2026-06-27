@@ -2,7 +2,7 @@
 /**
  * 文件：core/StorageRegistry.php
  * 作用：七种储存类型注册、配置键映射与驱动加载
- * @version 1.0.34
+ * @version 1.0.47
  */
 
 class StorageRegistry
@@ -35,6 +35,7 @@ class StorageRegistry
                 'key'      => 2,
                 'slug'     => 's3',
                 'name'     => 'AWS S3',
+                'unavailable' => true,
                 'driver'   => 'AwsS3Driver',
                 'options'  => 'AwsS3Options',
                 'dir'      => 'AwsS3',
@@ -85,6 +86,7 @@ class StorageRegistry
                 'key'      => 3,
                 'slug'     => 'oss',
                 'name'     => '阿里云 OSS',
+                'register_url' => 'https://www.aliyun.com/product/oss?userCode=krvaxx2q',
                 'driver'   => 'AliyunOssDriver',
                 'options'  => 'AliyunOssOptions',
                 'dir'      => 'AliyunOss',
@@ -128,6 +130,7 @@ class StorageRegistry
                 'key'      => 4,
                 'slug'     => 'cos',
                 'name'     => '腾讯云 COS',
+                'register_url' => 'https://curl.qcloud.com/lvigUo7k',
                 'driver'   => 'TencentCosDriver',
                 'options'  => 'TencentCosOptions',
                 'dir'      => 'TencentCos',
@@ -177,6 +180,7 @@ class StorageRegistry
                 'key'      => 5,
                 'slug'     => 'qiniu',
                 'name'     => '七牛云 Kodo',
+                'register_url' => 'https://s.qiniu.com/nIzAzu',
                 'driver'   => 'QiniuKodoDriver',
                 'options'  => 'QiniuKodoOptions',
                 'dir'      => 'QiniuKodo',
@@ -213,6 +217,7 @@ class StorageRegistry
                 'key'      => 6,
                 'slug'     => 'ilanzou',
                 'name'     => '蓝奏云优享版',
+                'unavailable' => true,
                 'driver'   => 'ILanZouDriver',
                 'options'  => 'ILanZouOptions',
                 'dir'      => 'ILanZou',
@@ -269,6 +274,7 @@ class StorageRegistry
                 'key'      => 7,
                 'slug'     => 'webdav',
                 'name'     => 'WebDAV',
+                'unavailable' => true,
                 'driver'   => 'WebDavStorageDriver',
                 'options'  => 'WebDavStorageOptions',
                 'dir'      => 'WebDavStorage',

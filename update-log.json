@@ -3,6 +3,19 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.47",
+            "date": "2026-06-27",
+            "title": "绑定域名迁入配置表与储存设置优化",
+            "db_changes": true,
+            "migration": "1.0.47.sql",
+            "changes": [
+                "移除 domain 表，子域名绑定改存 config.bound_domains JSON",
+                "登录页支持记住账号密码（localStorage 自动填充）",
+                "AWS S3、蓝奏云优享版、WebDAV 标注暂时不可用",
+                "七牛云 / 腾讯云 / 阿里云 OSS 增加「前往官网注册」链接"
+            ]
+        },
+        {
             "version": "1.0.46",
             "date": "2026-06-27",
             "title": "移除废弃 token 密码重置",

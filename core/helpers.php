@@ -290,6 +290,103 @@ function vs_share_send_security_headers($noStore = false)
 }
 
 /**
+ * 分享文件类型（用于图标样式）
+ *
+ * @param array $file
+ * @return string
+ */
+function vs_share_file_kind(array $file)
+{
+    $mime = strtolower((string) (isset($file['mime_type']) ? $file['mime_type'] : ''));
+    $name = (string) (isset($file['original_name']) ? $file['original_name'] : (isset($file['stored_name']) ? $file['stored_name'] : ''));
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+    if ($mime !== '' && strpos($mime, 'image/') === 0) {
+        return 'image';
+    }
+    if ($mime !== '' && strpos($mime, 'video/') === 0) {
+        return 'video';
+    }
+    if ($mime !== '' && strpos($mime, 'audio/') === 0) {
+        return 'audio';
+    }
+    if ($ext === 'pdf' || $mime === 'application/pdf') {
+        return 'pdf';
+    }
+    if (in_array($ext, array('zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'), true)) {
+        return 'archive';
+    }
+    if (in_array($ext, array('doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md'), true)) {
+        return 'document';
+    }
+    if (in_array($ext, array('html', 'htm', 'css', 'js', 'php', 'json', 'xml', 'sql'), true)) {
+        return 'code';
+    }
+
+    return 'file';
+}
+
+/**
+ * 分享文件图标 HTML（图片可显示缩略图）
+ *
+ * @param array  $file
+ * @param string $thumbUrl
+ * @return string
+ */
+function vs_share_file_icon_html(array $file, $thumbUrl = '')
+{
+    $kind = vs_share_file_kind($file);
+    if ($kind === 'image' && $thumbUrl !== '') {
+        return '<span class="vs-share-file-icon vs-share-file-icon--thumb"><img src="' . vs_e($thumbUrl) . '" alt="" loading="lazy" decoding="async"></span>';
+    }
+
+    return '<span class="vs-share-file-icon vs-share-file-icon--' . vs_e($kind) . '" aria-hidden="true"></span>';
+}
+
+/**
+ * 分享页统一页脚（法律提示 + 版权备案）
+ *
+ * @param string|null $siteName
+ * @param string      $legalText
+ * @return void
+ */
+function vs_render_share_footer($siteName = null, $legalText = '')
+{
+    if (!InstallChecker::isInstalled()) {
+        return;
+    }
+
+    $siteName = $siteName !== null ? trim($siteName) : SiteContext::siteName();
+    $beian = SiteContext::beianInfo();
+    $base = vs_base_url();
+    $year = date('Y');
+    $legalText = trim((string) $legalText);
+
+    echo '<footer class="vs-share-shell__footer">' . "\n";
+
+    if ($legalText !== '') {
+        echo '<p class="vs-share-shell__legal">' . vs_e($legalText) . '</p>' . "\n";
+    }
+
+    echo '<div class="vs-share-shell__beian">' . "\n";
+    echo '<span class="vs-share-shell__beian-item">' . vs_e($siteName) . ' &copy; ' . vs_e($year) . '</span>';
+
+    if ($beian['icp_number'] !== '') {
+        echo '<span class="vs-share-shell__beian-sep" aria-hidden="true">·</span>';
+        echo '<a class="vs-share-shell__beian-item" href="' . vs_e($beian['icp_link']) . '" target="_blank" rel="noopener noreferrer">' . vs_e($beian['icp_number']) . '</a>';
+    }
+
+    if ($beian['gongan_number'] !== '') {
+        echo '<span class="vs-share-shell__beian-sep" aria-hidden="true">·</span>';
+        echo '<a class="vs-share-shell__beian-item vs-share-shell__beian-gongan" href="' . vs_e($beian['gongan_link']) . '" target="_blank" rel="noopener noreferrer">';
+        echo '<img src="' . vs_e($base) . '/assets/img/gov.png" alt="" class="vs-gongan-icon" width="14" height="14">';
+        echo vs_e($beian['gongan_number']) . '</a>';
+    }
+
+    echo '</div></footer>' . "\n";
+}
+
+/**
  * 渲染页脚（版权 + ICP + 公安备案）
  *
  * @param string|null $siteName

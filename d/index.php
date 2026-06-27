@@ -2,7 +2,7 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（入口 /d/?token=）
- * @version 1.0.59
+ * @version 1.0.60
  */
 
 require __DIR__ . '/boot.php';
@@ -52,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_password'])) {
 $base = vs_base_url();
 $siteName = SiteContext::siteName();
 $shareTitle = (string) $share['title'];
+$allowPreview = (int) $share['allow_preview'] === 1;
+$isFolderShare = $share['share_type'] === FileShare::TYPE_FOLDER;
 
 if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
     FileShare::recordView((int) $share['id']);
@@ -73,6 +75,11 @@ if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
         $shareStreams[(string) $fileId] = FileShare::signedStreamUrl((int) $share['id'], $fileId, false);
     }
 }
+
+$fileCount = count($shareFiles);
+$isSingleFile = !$isFolderShare || $fileCount === 1;
+$canShowContent = $errorMsg === '' && (!$needsPassword || $unlocked) && $fileCount > 0;
+$showPreviewPanel = $canShowContent && $allowPreview;
 
 function vs_share_format_size($bytes)
 {
@@ -101,74 +108,110 @@ function vs_share_format_size($bytes)
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/share-public.css?v=<?php echo VS_VERSION; ?>">
 </head>
 <body class="vs-share-page">
-<header class="vs-share-page__head">
-    <div class="vs-share-page__brand"><?php echo vs_e($siteName); ?></div>
-    <h1 class="vs-share-page__title"><?php echo vs_e($shareTitle); ?></h1>
-    <p class="vs-share-page__meta">
-        <?php if ($share['share_type'] === FileShare::TYPE_FOLDER) { ?>
-            文件夹分享 · <?php echo count($shareFiles); ?> 个文件
-        <?php } else { ?>
-            单文件分享
-        <?php } ?>
-        <?php if ($needsPassword) { ?> · 已设访问密码<?php } ?>
-    </p>
-</header>
+<div class="vs-share-shell">
+    <header class="vs-share-shell__topbar">
+        <div class="vs-share-shell__brand">
+            <?php if (SiteContext::siteLogo() !== '') { ?>
+                <?php vs_render_site_logo('vs-share-shell__logo'); ?>
+            <?php } ?>
+            <span class="vs-share-shell__site"><?php echo vs_e($siteName); ?></span>
+        </div>
+        <span class="vs-share-shell__badge">安全分享</span>
+    </header>
 
-<main class="vs-share-page__main">
+    <div class="vs-share-shell__hero">
+        <h1 class="vs-share-shell__title"><?php echo vs_e($shareTitle); ?></h1>
+        <div class="vs-share-shell__tags">
+            <?php if ($isFolderShare) { ?>
+                <span class="vs-share-tag">文件夹 · <?php echo (int) $fileCount; ?> 个文件</span>
+            <?php } else { ?>
+                <span class="vs-share-tag">单文件分享</span>
+            <?php } ?>
+            <?php if ($needsPassword) { ?>
+                <span class="vs-share-tag vs-share-tag--lock">访问密码</span>
+            <?php } ?>
+            <?php if ($allowPreview) { ?>
+                <span class="vs-share-tag vs-share-tag--preview">可预览</span>
+            <?php } ?>
+        </div>
+    </div>
+
+    <main class="vs-share-shell__main">
 <?php if ($errorMsg !== '') { ?>
-    <div class="vs-share-page__alert vs-share-page__alert--error"><?php echo vs_e($errorMsg); ?></div>
+        <div class="vs-share-alert vs-share-alert--error"><?php echo vs_e($errorMsg); ?></div>
 <?php } elseif ($needsPassword && !$unlocked) { ?>
-    <div class="vs-share-page__panel">
-        <h2 class="vs-share-page__panel-title">请输入访问密码</h2>
-        <?php if ($passwordError !== '') { ?>
-            <p class="vs-share-page__alert vs-share-page__alert--error"><?php echo vs_e($passwordError); ?></p>
-        <?php } ?>
-        <form method="post" class="vs-share-page__password-form">
-            <input type="password" name="share_password" class="vs-input" placeholder="访问密码" required autocomplete="current-password">
-            <button type="submit" class="vs-btn vs-btn--primary">确认访问</button>
-        </form>
-    </div>
-<?php } elseif (count($shareFiles) === 0) { ?>
-    <div class="vs-share-page__alert">暂无可访问的文件</div>
+        <div class="vs-share-panel">
+            <div class="vs-share-panel__icon vs-share-panel__icon--lock" aria-hidden="true"></div>
+            <h2 class="vs-share-panel__title">请输入访问密码</h2>
+            <p class="vs-share-panel__desc">此分享已开启密码保护，验证通过后可查看与下载文件。</p>
+            <?php if ($passwordError !== '') { ?>
+                <div class="vs-share-alert vs-share-alert--error"><?php echo vs_e($passwordError); ?></div>
+            <?php } ?>
+            <form method="post" class="vs-share-panel__form">
+                <input type="password" name="share_password" class="vs-share-input" placeholder="访问密码" required autocomplete="current-password">
+                <button type="submit" class="vs-share-btn vs-share-btn--primary">确认访问</button>
+            </form>
+        </div>
+<?php } elseif ($fileCount === 0) { ?>
+        <div class="vs-share-alert">暂无可访问的文件</div>
 <?php } else { ?>
-    <div class="vs-share-layout" id="shareLayout"
-         data-share-type="<?php echo vs_e($share['share_type']); ?>"
-         data-allow-preview="<?php echo (int) $share['allow_preview']; ?>">
-        <?php if ((int) $share['allow_preview'] === 1) { ?>
-        <section class="vs-share-preview" id="sharePreview" hidden>
-            <div class="vs-file-preview__viewer-shell is-fill" id="sharePreviewShell">
-                <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
-                <div class="vs-file-preview__viewer-state" id="sharePreviewState">选择文件以预览</div>
-            </div>
-        </section>
-        <?php } ?>
+        <div class="vs-share-layout<?php echo $isSingleFile ? ' is-single' : ''; ?><?php echo $showPreviewPanel ? ' has-preview' : ''; ?>"
+             id="shareLayout"
+             data-share-type="<?php echo vs_e($share['share_type']); ?>"
+             data-allow-preview="<?php echo $allowPreview ? '1' : '0'; ?>">
 
-        <section class="vs-share-files">
-            <h2 class="vs-share-files__title"><?php echo $share['share_type'] === FileShare::TYPE_FOLDER ? '文件夹内容' : '分享文件'; ?></h2>
-            <ul class="vs-share-files__list" id="shareFileList">
-                <?php foreach ($shareFiles as $file) {
-                    $dlUrl = FileShare::streamUrl($token, $file['id'], true);
-                    ?>
-                <li class="vs-share-files__item" data-file-id="<?php echo (int) $file['id']; ?>">
-                    <button type="button" class="vs-share-files__name" data-preview-file="<?php echo (int) $file['id']; ?>">
-                        <?php echo vs_e($file['original_name']); ?>
-                    </button>
-                    <span class="vs-share-files__size"><?php echo vs_e(vs_share_format_size($file['file_size'])); ?></span>
-                    <a class="vs-btn vs-btn--default vs-share-files__dl" href="<?php echo vs_e($dlUrl); ?>" download rel="noopener">下载</a>
-                </li>
-                <?php } ?>
-            </ul>
-        </section>
-    </div>
+            <?php if ($showPreviewPanel) { ?>
+            <section class="vs-share-preview" id="sharePreview"<?php echo $isSingleFile ? '' : ' hidden'; ?>>
+                <div class="vs-share-preview__head">
+                    <span class="vs-share-preview__label">在线预览</span>
+                    <span class="vs-share-preview__hint" id="sharePreviewHint"><?php echo $isSingleFile ? '正在加载…' : '点击文件开始预览'; ?></span>
+                </div>
+                <div class="vs-file-preview__viewer-shell is-fill vs-share-preview__stage" id="sharePreviewShell">
+                    <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
+                    <div class="vs-file-preview__viewer-state" id="sharePreviewState"><?php echo $isSingleFile ? '正在加载预览…' : '选择文件以预览'; ?></div>
+                </div>
+            </section>
+            <?php } ?>
+
+            <section class="vs-share-files">
+                <div class="vs-share-files__head">
+                    <h2 class="vs-share-files__title"><?php echo $isFolderShare ? '文件列表' : '文件信息'; ?></h2>
+                    <?php if ($isFolderShare) { ?>
+                        <span class="vs-share-files__count"><?php echo (int) $fileCount; ?> 项</span>
+                    <?php } ?>
+                </div>
+                <ul class="vs-share-files__list" id="shareFileList">
+                    <?php foreach ($shareFiles as $file) {
+                        $dlUrl = FileShare::streamUrl($token, $file['id'], true);
+                        $streamUrl = isset($shareStreams[(string) $file['id']]) ? $shareStreams[(string) $file['id']] : '';
+                        $thumbUrl = ($allowPreview && vs_share_file_kind($file) === 'image' && $streamUrl !== '') ? $streamUrl : '';
+                        $iconHtml = vs_share_file_icon_html($file, $thumbUrl);
+                        ?>
+                    <li class="vs-share-files__item" data-file-id="<?php echo (int) $file['id']; ?>">
+                        <?php echo $iconHtml; ?>
+                        <div class="vs-share-files__body">
+                            <?php if ($allowPreview) { ?>
+                            <button type="button" class="vs-share-files__name" data-preview-file="<?php echo (int) $file['id']; ?>">
+                                <?php echo vs_e($file['original_name']); ?>
+                            </button>
+                            <?php } else { ?>
+                            <span class="vs-share-files__name is-static"><?php echo vs_e($file['original_name']); ?></span>
+                            <?php } ?>
+                            <span class="vs-share-files__meta"><?php echo vs_e(vs_share_format_size($file['file_size'])); ?></span>
+                        </div>
+                        <a class="vs-share-btn vs-share-btn--ghost vs-share-files__dl" href="<?php echo vs_e($dlUrl); ?>" download rel="noopener">下载</a>
+                    </li>
+                    <?php } ?>
+                </ul>
+            </section>
+        </div>
 <?php } ?>
-</main>
+    </main>
 
-<footer class="vs-share-page__foot">
-    <p>请遵守法律法规，仅在授权范围内访问与使用分享内容。</p>
-</footer>
-<?php vs_render_site_footer($siteName); ?>
+    <?php vs_render_share_footer($siteName, '请遵守法律法规，仅在授权范围内访问与使用分享内容。'); ?>
+</div>
 
-<?php if ($errorMsg === '' && (!$needsPassword || $unlocked) && count($shareFiles) > 0 && (int) $share['allow_preview'] === 1) { ?>
+<?php if ($canShowContent && $allowPreview) { ?>
 <script>
 window.VS_FILE_PREVIEW = {
     shareMode: true,

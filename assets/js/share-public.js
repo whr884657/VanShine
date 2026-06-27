@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/share-public.js
  * 作用：公开分享页交互
- * @version 1.0.53
+ * @version 1.0.60
  */
 
 (function () {
@@ -12,9 +12,10 @@
     var preview = document.getElementById('sharePreview');
     var mount = document.getElementById('sharePreviewMount');
     var state = document.getElementById('sharePreviewState');
+    var hint = document.getElementById('sharePreviewHint');
     var layout = document.getElementById('shareLayout');
 
-    if (!list || !window.VsFilePreview) {
+    if (!window.VsFilePreview) {
         return;
     }
 
@@ -29,43 +30,70 @@
     }
 
     function setActive(id) {
+        if (!list) return;
         var items = list.querySelectorAll('.vs-share-files__item');
         items.forEach(function (el) {
             el.classList.toggle('is-active', parseInt(el.getAttribute('data-file-id'), 10) === id);
         });
     }
 
+    function setHint(text) {
+        if (hint) {
+            hint.textContent = text;
+        }
+    }
+
+    function showPreviewPanel() {
+        if (preview) {
+            preview.hidden = false;
+        }
+    }
+
     function openPreview(file) {
         if (!file || !mount) return;
-        if (preview) preview.hidden = false;
+        showPreviewPanel();
         if (state) {
             state.hidden = false;
             state.textContent = '正在加载预览…';
         }
+        setHint('正在加载预览…');
         setActive(file.id);
 
-        if (layout && layout.getAttribute('data-share-type') === 'file') {
-            layout.classList.add('is-single-file');
+        if (layout) {
+            layout.classList.toggle('is-single', files.length === 1);
         }
 
         VsFilePreview.mount(mount, file).then(function () {
             if (state) state.hidden = true;
+            setHint(file.original_name || file.stored_name || '预览中');
         }).catch(function () {
             if (state) {
                 state.hidden = false;
                 state.textContent = '无法预览此文件，请下载后查看';
             }
+            setHint('无法预览，请下载后查看');
+        });
+
+        if (preview && window.matchMedia('(max-width: 767px)').matches) {
+            preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    if (list) {
+        list.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-preview-file]');
+            if (!btn) return;
+            var file = findFile(btn.getAttribute('data-preview-file'));
+            if (file) openPreview(file);
         });
     }
 
-    list.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-preview-file]');
-        if (!btn) return;
-        var file = findFile(btn.getAttribute('data-preview-file'));
-        if (file) openPreview(file);
-    });
-
-    if (layout && layout.getAttribute('data-allow-preview') === '1' && files.length === 1) {
-        openPreview(files[0]);
+    if (layout && layout.getAttribute('data-allow-preview') === '1' && files.length > 0) {
+        var startId = files.length === 1 ? files[0].id : null;
+        if (startId !== null) {
+            openPreview(files[0]);
+        } else if (preview) {
+            preview.hidden = true;
+        }
     }
 })();

@@ -1,13 +1,13 @@
 {
-    "version": "1.0.59",
+    "version": "1.0.60",
     "release_date": "2026-06-27",
-    "title": "分享流签名 URL 与安全加固",
+    "title": "分享页 UI 全面重设计",
     "db_changes": false,
     "changes": [
-        "合并 stream 为唯一入口 /d/stream.php，删除 stream-handler 与旧版兼容",
-        "下载/预览使用 HMAC 签名短时 URL，不再暴露分享 token",
-        "分享页 Session 校验 + 流接口 no-store 安全头",
-        "预览 JS 使用 shareStreams 映射替代 token 拼接"
+        "分享页/安全提醒页统一卡片式布局，消除顶部与底部空白割裂",
+        "备案信息并入分享页页脚，不再像临时追加",
+        "文件列表增加类型图标，图片显示缩略图；单文件默认展示预览区",
+        "密码面板与安全警示页视觉统一优化"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

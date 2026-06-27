@@ -253,7 +253,6 @@ vs_admin_layout_start('文件管理', 'files');
     <div class="vs-filemgr__toolbar">
         <div class="vs-filemgr__toolbar-left">
             <button type="button" class="vs-btn vs-btn--default" id="btnNewFolder">新建文件夹</button>
-            <button type="button" class="vs-btn vs-btn--default" id="btnShareFolder" hidden>分享此文件夹</button>
             <label class="vs-btn vs-btn--primary vs-filemgr__upload-btn" id="uploadWrap" hidden>
                 上传文件
                 <input type="file" id="fileUploadInput" multiple hidden>

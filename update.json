@@ -1,13 +1,13 @@
 {
-    "version": "1.0.55",
+    "version": "1.0.56",
     "release_date": "2026-06-27",
-    "title": "分享入口修复、伪静态简化与文件管理优化",
+    "title": "分享链接 query 化与 PHP 源码下载修复",
     "db_changes": false,
     "changes": [
-        "修复 d/guard.php VS_ROOT 重复定义报错；安全提醒页扩充法规说明并移除技术细节",
-        "伪静态简化为 d/index.php 统一入口（Nginx 仅需一条 /d fallback 规则）",
-        "文件列表文件夹悬停增加「分享」按钮；预览弹窗可滚动与元数据排版优化",
-        "分享页移除云储存相关对外描述"
+        "分享链接改为 /d/index.php?token= 标准格式，stream 使用 query 参数",
+        "修复 Nginx 将 d/index.php 当作静态文件下载的问题（伪静态文档更新）",
+        "移除顶部「分享此文件夹」按钮；文件夹悬停使用图标库分享图标",
+        "旧版 /d/{token} 路径自动 301 跳转到带 query 的标准链接"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

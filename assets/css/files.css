@@ -471,8 +471,44 @@
 }
 
 .vs-filemgr__action--share {
-    font-size: 13px;
+    gap: 0;
+    padding: 0;
+}
+
+.vs-filemgr__action--share .vs-icon--share {
+    width: 14px;
+    height: 14px;
+    filter: brightness(0) invert(1);
+}
+
+.view-list .vs-filemgr__action--share .vs-icon--share {
+    filter: none;
+}
+
+.vs-filemgr__action--share .vs-filemgr__action-text {
+    display: none;
+    font-size: 12px;
     font-weight: 600;
+    white-space: nowrap;
+    padding: 0 2px;
+}
+
+.vs-filemgr__action--share:hover {
+    width: auto;
+    min-width: 26px;
+    padding: 0 7px;
+}
+
+.vs-filemgr__action--share:hover .vs-icon--share {
+    display: none;
+}
+
+.vs-filemgr__action--share:hover .vs-filemgr__action-text {
+    display: inline;
+}
+
+.view-list .vs-filemgr__action--share:hover {
+    color: #2563eb;
 }
 
 /* ── 文件管理弹窗 ── */

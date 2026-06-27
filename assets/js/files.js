@@ -38,7 +38,6 @@
     var fileReplaceProgress = document.getElementById('fileReplaceProgress');
     var fileReplaceFill = document.getElementById('fileReplaceFill');
     var fileReplaceStatus = document.getElementById('fileReplaceStatus');
-    var btnShareFolder = document.getElementById('btnShareFolder');
     var shareCreateModal = document.getElementById('shareCreateModal');
     var shareCreateForm = document.getElementById('shareCreateForm');
     var filePreviewShareBox = document.getElementById('filePreviewShareBox');
@@ -283,15 +282,20 @@
                 + escapeHtml(state.currentFolder.storage_name) + '</strong>'
                 + ' · 支持拖拽文件到下方区域批量上传';
             if (uploadWrap) uploadWrap.hidden = false;
-            if (btnShareFolder) btnShareFolder.hidden = false;
             root.classList.add('can-upload');
         } else {
             folderMetaEl.hidden = true;
             folderMetaEl.innerHTML = '';
             if (uploadWrap) uploadWrap.hidden = true;
-            if (btnShareFolder) btnShareFolder.hidden = true;
             root.classList.remove('can-upload');
         }
+    }
+
+    function shareFolderActionHtml(folderId) {
+        return '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
+            + folderId + '" title="分享">'
+            + '<span class="vs-icon vs-icon--share" aria-hidden="true"></span>'
+            + '<span class="vs-filemgr__action-text">分享</span></button>';
     }
 
     function fileIconHtml(file, listMode) {
@@ -374,8 +378,7 @@
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--storage">' + escapeHtml(storageLabelForFolder(folder)) + '</span>';
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">—</span>';
                 html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
-                html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
-                    + folder.id + '" title="分享">享</button>';
+                html += shareFolderActionHtml(folder.id);
                 html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
                     + folder.id + '" title="重命名">✎</button>';
                 html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
@@ -389,8 +392,7 @@
             html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
-            html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
-                + folder.id + '" title="分享">享</button>';
+            html += shareFolderActionHtml(folder.id);
             html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
                 + folder.id + '" title="重命名">✎</button>';
             html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
@@ -1003,14 +1005,6 @@
             var open = filePreviewShareList.hidden;
             filePreviewShareList.hidden = !open;
             filePreviewShareToggle.textContent = open ? '收起' : '展开查看';
-        });
-    }
-
-    if (btnShareFolder) {
-        btnShareFolder.addEventListener('click', function () {
-            if (state.folderId <= 0) return;
-            var name = state.currentFolder ? state.currentFolder.name : '文件夹';
-            openShareCreateModal('folder', 0, state.folderId, name);
         });
     }
 

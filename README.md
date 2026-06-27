@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.55**
+**当前版本：1.0.56**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 
 - Web 五步安装向导，自动创建数据表与初始配置
 - 分组侧边栏后台（控制台、文件、七种储存、CDN、归档、AI、系统设置等）
-- **文件分享**：单文件/文件夹短链接 `{域名}/d/{token}`，云储中转下载，可选密码
+- **文件分享**：单文件/文件夹短链接 `{域名}/d/index.php?token=...`，可选密码
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
 - **云端在线更新**：登录后台自动检测新版本，分步进度一键安装
@@ -29,7 +29,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.55.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.56.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -153,20 +153,20 @@ VanShine/
 
 ## 伪静态 / URL 重写
 
-分享短链接格式为 `{域名}/d/{token}`。若 Web 服务器未配置 URL 重写，访问分享链接会返回 **404**。
+分享链接标准格式为 `{域名}/d/index.php?token={token}`。若 Web 服务器未正确配置 PHP 解释器，访问 `/d/index.php` 可能被**当作静态文件下载**（严重）。
 
 | 服务器 | 说明 |
 |--------|------|
-| **Nginx** | 通用 `try_files` + 一条 `/d` fallback 到 `d/index.php` |
+| **Nginx** | 必须为 `^/d/.+\.php$` 配置 FastCGI + 通用 `try_files` |
 | **Apache** | 根目录与 `d/.htaccess` 已内置，需启用 `mod_rewrite` |
 
 **完整配置见：** [`伪静态配置.md`](伪静态配置.md)
 
-Nginx 示例（两条 location 即可）：
+Nginx 关键配置（**防止 PHP 源码下载**）：
 
 ```nginx
-location ^~ /d {
-    try_files $uri $uri/ /d/index.php$is_args$args;
+location ~ ^/d/.+\.php$ {
+    include enable-php-82.conf;
 }
 
 location / {
@@ -200,6 +200,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.56（2026-06-27）
+
+**类型：** 分享 query 链接、PHP 下载修复、文件管理 UI
+
+**变更说明：**
+- 分享链接改为 `/d/index.php?token=`；stream 使用 query 参数
+- Nginx 须为 `/d/` 下 PHP 配置解释器，防止源码被下载
+- 移除顶部「分享此文件夹」；文件夹悬停分享图标（悬停显示文字）
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.55（2026-06-27）
 

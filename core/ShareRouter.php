@@ -1,19 +1,23 @@
 <?php
 /**
  * 文件：core/ShareRouter.php
- * 作用：分享短链接路由解析（兼容伪静态 / 子目录 / PATH_INFO）
- * @version 1.0.55
+ * 作用：分享链接路由解析（query 参数 + 旧版路径兼容）
+ * @version 1.0.56
  */
 
 class ShareRouter
 {
     /**
-     * 当前请求是否为分享文件流（/d/{token}/stream）
+     * 当前请求是否为分享文件流
      *
      * @return bool
      */
     public static function isStreamRequest()
     {
+        if (isset($_GET['stream']) && (string) $_GET['stream'] === '1') {
+            return true;
+        }
+
         $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
         if ($uri !== '' && preg_match('#/d/[A-Za-z0-9]{16,64}/stream(?:/|\?|$)#', $uri) === 1) {
             return true;
@@ -57,13 +61,37 @@ class ShareRouter
                 if (preg_match('#/d/([A-Za-z0-9]{16,64})(?:/stream)?/?$#', $path, $matches)) {
                     return $matches[1];
                 }
-                if (preg_match('#/d/index\.php/([A-Za-z0-9]{16,64})(?:/stream)?/?$#', $path, $matches)) {
-                    return $matches[1];
-                }
             }
         }
 
         return '';
+    }
+
+    /**
+     * 旧版 /d/{token} 路径 → 标准 query 链接
+     *
+     * @return void
+     */
+    public static function redirectLegacyIfNeeded()
+    {
+        if (isset($_GET['token'])) {
+            return;
+        }
+
+        $token = self::parseToken();
+        if ($token === '') {
+            return;
+        }
+
+        if (self::isStreamRequest()) {
+            $fileId = (int) (isset($_GET['file']) ? $_GET['file'] : 0);
+            $url = FileShare::streamUrl($token, $fileId, !empty($_GET['download']));
+        } else {
+            $url = FileShare::publicUrl($token);
+        }
+
+        header('Location: ' . $url, true, 301);
+        exit;
     }
 
     /**

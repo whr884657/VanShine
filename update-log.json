@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.56",
+            "date": "2026-06-27",
+            "title": "分享链接 query 化与 PHP 源码下载修复",
+            "db_changes": false,
+            "changes": [
+                "分享链接改为 /d/index.php?token= 标准格式，stream 使用 query 参数",
+                "修复 Nginx 将 d/index.php 当作静态文件下载的问题（伪静态文档更新）",
+                "移除顶部「分享此文件夹」按钮；文件夹悬停使用图标库分享图标",
+                "旧版 /d/{token} 路径自动 301 跳转到带 query 的标准链接"
+            ]
+        },
+        {
             "version": "1.0.55",
             "date": "2026-06-27",
             "title": "分享入口修复、伪静态简化与文件管理优化",

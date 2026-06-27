@@ -2,7 +2,7 @@
 /**
  * 文件：core/FileShare.php
  * 作用：文件/文件夹分享链接
- * @version 1.0.54
+ * @version 1.0.56
  */
 
 class FileShare
@@ -24,7 +24,7 @@ class FileShare
      */
     public static function publicUrl($token)
     {
-        return rtrim(vs_base_url(), '/') . '/d/' . rawurlencode((string) $token);
+        return rtrim(vs_base_url(), '/') . '/d/index.php?token=' . rawurlencode((string) $token);
     }
 
     /**
@@ -33,12 +33,15 @@ class FileShare
      */
     public static function streamUrl($token, $fileId, $download = false)
     {
-        $url = rtrim(vs_base_url(), '/') . '/d/' . rawurlencode((string) $token) . '/stream';
-        $query = array('file' => (int) $fileId);
+        $query = array(
+            'token'  => (string) $token,
+            'stream' => 1,
+            'file'   => (int) $fileId,
+        );
         if ($download) {
             $query['download'] = 1;
         }
-        return $url . '?' . http_build_query($query);
+        return rtrim(vs_base_url(), '/') . '/d/index.php?' . http_build_query($query);
     }
 
     /**

@@ -2,17 +2,21 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（短链接 /d/{token}）
- * @version 1.0.54
+ * @version 1.0.55
  */
 
-define('VS_ROOT', dirname(__DIR__));
-require_once VS_ROOT . '/core/bootstrap.php';
+require __DIR__ . '/boot.php';
 
 InstallChecker::requireInstalled();
 
 header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('X-Content-Type-Options: nosniff');
+
+if (ShareRouter::isStreamRequest()) {
+    require __DIR__ . '/stream-handler.php';
+    exit;
+}
 
 $token = ShareRouter::parseToken();
 if ($token === '') {
@@ -124,7 +128,6 @@ function vs_share_format_size($bytes)
             <input type="password" name="share_password" class="vs-input" placeholder="访问密码" required autocomplete="current-password">
             <button type="submit" class="vs-btn vs-btn--primary">确认访问</button>
         </form>
-        <p class="vs-share-page__tip">分享内容由服务器中转传输，不会暴露云储存直链。</p>
     </div>
 <?php } elseif (count($shareFiles) === 0) { ?>
     <div class="vs-share-page__alert">暂无可访问的文件</div>
@@ -162,7 +165,7 @@ function vs_share_format_size($bytes)
 </main>
 
 <footer class="vs-share-page__foot">
-    <p>安全分享 · 云储存资源经 <?php echo vs_e($siteName); ?> 服务器中转，不暴露原始储存地址</p>
+    <p>请遵守法律法规，仅在授权范围内访问与使用分享内容。</p>
 </footer>
 
 <?php if ($errorMsg === '' && (!$needsPassword || $unlocked) && count($shareFiles) > 0 && (int) $share['allow_preview'] === 1) { ?>

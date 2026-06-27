@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.54**
+**当前版本：1.0.55**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -29,7 +29,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.54.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.55.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -157,20 +157,22 @@ VanShine/
 
 | 服务器 | 说明 |
 |--------|------|
-| **Nginx** | 必须在通用 `try_files` 之前增加 `/d/` 专用 `location` 规则 |
-| **Apache** | 项目根目录与 `d/.htaccess` 已内置规则，需启用 `mod_rewrite` |
+| **Nginx** | 通用 `try_files` + 一条 `/d` fallback 到 `d/index.php` |
+| **Apache** | 根目录与 `d/.htaccess` 已内置，需启用 `mod_rewrite` |
 
-**完整配置示例与验证步骤见：** [`伪静态配置.md`](伪静态配置.md)
+**完整配置见：** [`伪静态配置.md`](伪静态配置.md)
 
-Nginx 用户若仅使用如下通用规则，**无法**解析分享短链接：
+Nginx 示例（两条 location 即可）：
 
 ```nginx
+location ^~ /d {
+    try_files $uri $uri/ /d/index.php$is_args$args;
+}
+
 location / {
     try_files $uri $uri/ $uri.php$is_args$args;
 }
 ```
-
-需在 `location /` **之前**追加 `/d/{token}` 的 rewrite（详见 `伪静态配置.md`）。
 
 ---
 
@@ -198,6 +200,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.55（2026-06-27）
+
+**类型：** 分享入口修复、伪静态简化、文件管理/预览优化
+
+**变更说明：**
+- 修复 `d/guard.php` VS_ROOT 重复定义；安全提醒页扩充法规说明
+- 伪静态统一为 `d/index.php` 入口（Nginx 仅需一条 `/d` fallback）
+- 文件夹列表悬停增加「分享」；预览弹窗可滚动、元数据排版调整
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.54（2026-06-27）
 

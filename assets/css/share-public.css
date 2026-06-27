@@ -1,4 +1,4 @@
-/* 公开分享页样式 @version 1.0.53 */
+/* 公开分享页样式 @version 1.0.55 */
 
 .vs-share-guard,
 .vs-share-page {
@@ -18,13 +18,15 @@
 }
 
 .vs-share-guard__card {
-    max-width: 560px;
+    max-width: 640px;
     width: 100%;
     background: #fff;
     border-radius: 16px;
     padding: 28px 24px;
     box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
     border: 1px solid #e2e8f0;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
 }
 
 .vs-share-guard__icon {
@@ -47,11 +49,40 @@
 }
 
 .vs-share-guard__list {
-    margin: 0 0 16px;
+    margin: 0 0 12px;
     padding-left: 20px;
     font-size: 13px;
-    line-height: 1.7;
+    line-height: 1.75;
     color: #334155;
+}
+
+.vs-share-guard__section {
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.vs-share-guard__section:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.vs-share-guard__section-title {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.vs-share-guard__legal-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.65;
+    color: #64748b;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
 }
 
 .vs-share-guard__foot {

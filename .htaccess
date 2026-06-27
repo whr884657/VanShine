@@ -6,11 +6,9 @@
     # 禁止直接访问 config 目录
     RewriteRule ^config/ - [F,L]
 
-    # 分享短链接 /d/{token}（根级兜底，兼容部分环境子目录 .htaccess 不生效）
-    RewriteRule ^d/([A-Za-z0-9]{16,64})/stream/?$ d/stream.php?token=$1 [L,QSA]
-    RewriteRule ^d/([A-Za-z0-9]{16,64})/?$ d/index.php?token=$1 [L,QSA]
-    RewriteRule ^d/?$ d/guard.php [L]
-    RewriteRule ^d/index\.php$ d/guard.php [L]
+    # 分享短链接：统一由 d/index.php 处理（token 解析与下载流）
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^d(/.*)?$ d/index.php [L,QSA]
 </IfModule>
 
 # 禁止目录浏览

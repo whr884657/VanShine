@@ -3,14 +3,9 @@ RewriteBase /d/
 
 Options -Indexes
 
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
+# 已有物理文件直接访问
+RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-RewriteRule ^$ guard.php [L]
-RewriteRule ^index\.php$ guard.php [L]
-
-RewriteRule ^([A-Za-z0-9]{16,64})/stream/?$ stream.php?token=$1 [L,QSA]
-RewriteRule ^([A-Za-z0-9]{16,64})/?$ index.php?token=$1 [L,QSA]
-
-RewriteRule ^.*$ guard.php [L]
+# 其余请求统一由 index.php 解析 token / stream
+RewriteRule ^ index.php [L,QSA]

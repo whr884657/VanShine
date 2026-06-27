@@ -470,6 +470,11 @@
     /* 与删除按钮并排，不再使用 absolute right 偏移 */
 }
 
+.vs-filemgr__action--share {
+    font-size: 13px;
+    font-weight: 600;
+}
+
 /* ── 文件管理弹窗 ── */
 .vs-modal-shell {
     position: fixed;
@@ -631,6 +636,8 @@
     display: flex;
     flex-direction: column;
     max-height: 100%;
+    height: 100%;
+    overflow: hidden;
     box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.18);
     transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
@@ -696,8 +703,9 @@
 
 .vs-file-preview__viewer-shell {
     position: relative;
-    flex: 1 1 auto;
-    min-height: min(48vh, 420px);
+    flex: 0 0 auto;
+    min-height: 160px;
+    max-height: min(38vh, 340px);
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -1117,11 +1125,16 @@
     .vs-file-preview__body {
         padding: 0 14px 16px;
         gap: 10px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
     }
 
     .vs-file-preview__viewer-shell {
-        min-height: min(40vh, 360px);
-        flex: 1 1 auto;
+        min-height: 140px;
+        max-height: min(34vh, 280px);
+        flex: 0 0 auto;
         border-radius: 10px;
     }
 
@@ -1776,6 +1789,7 @@
         width: min(96vw, 1120px);
         max-width: 1120px;
         min-width: min(96vw, 720px);
+        height: min(92vh, 860px);
         max-height: min(92vh, 860px);
         border-radius: 14px;
         transform: scale(0.96);
@@ -1787,25 +1801,27 @@
     .vs-file-preview__body {
         flex: 1 1 auto;
         min-height: 0;
+        overflow-x: hidden;
         overflow-y: auto;
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
     }
 
     .vs-file-preview__viewer-shell.is-compact-audio,
     .vs-file-preview__viewer-shell.is-fit-video,
     .vs-file-preview__viewer-shell.is-fit-image {
-        max-height: min(40vh, 380px);
+        max-height: min(36vh, 320px);
         flex: 0 0 auto;
     }
 
     .vs-file-preview__viewer-shell {
         flex: 0 0 auto;
-        min-height: 180px;
-        max-height: min(42vh, 400px);
+        min-height: 140px;
+        max-height: min(36vh, 320px);
     }
 
     .vs-file-preview__viewer-shell.is-doc-view {
-        max-height: min(52vh, 480px);
+        max-height: min(44vh, 400px);
     }
 
     .vs-file-preview.is-open .vs-file-preview__panel {

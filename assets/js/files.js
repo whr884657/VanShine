@@ -374,6 +374,8 @@
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--storage">' + escapeHtml(storageLabelForFolder(folder)) + '</span>';
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">—</span>';
                 html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
+                html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
+                    + folder.id + '" title="分享">享</button>';
                 html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
                     + folder.id + '" title="重命名">✎</button>';
                 html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
@@ -387,6 +389,8 @@
             html += '<span class="vs-filemgr__name">' + escapeHtml(folder.name) + '</span>';
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
+            html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
+                + folder.id + '" title="分享">享</button>';
             html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
                 + folder.id + '" title="重命名">✎</button>';
             html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
@@ -449,6 +453,18 @@
                 e.stopPropagation();
                 var file = findFile(btn.getAttribute('data-preview-file'));
                 if (file) openFilePreview(file);
+            });
+        });
+
+        contentEl.querySelectorAll('[data-share-folder]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var id = parseInt(btn.getAttribute('data-share-folder'), 10);
+                var folder = null;
+                state.folders.forEach(function (f) {
+                    if (f.id === id) folder = f;
+                });
+                openShareCreateModal('folder', 0, id, folder ? folder.name : '文件夹');
             });
         });
 
@@ -558,12 +574,12 @@
         mountFileViewer(file);
 
         if (filePreviewMeta) {
+            var origName = file.original_name || '—';
+            var storedName = file.stored_name || '—';
             filePreviewMeta.innerHTML = ''
-                + metaRow('文件名', file.original_name || file.stored_name)
-                + metaRow('存储名', file.stored_name)
-                + metaRow('储存', storageLabelForFile())
-                + metaRow('类型', fileTypeDetail(file))
-                + metaRow('大小', formatSize(file.file_size));
+                + metaRow('原始文件名', origName + ' | ' + storedName)
+                + metaRow('类型', fileTypeDetail(file) + ' | ' + formatSize(file.file_size))
+                + metaRow('储存', storageLabelForFile());
         }
 
         var url = file.public_url || '';

@@ -1,14 +1,13 @@
 {
-    "version": "1.0.54",
+    "version": "1.0.55",
     "release_date": "2026-06-27",
-    "title": "分享404修复、伪静态文档与UI优化",
+    "title": "分享入口修复、伪静态简化与文件管理优化",
     "db_changes": false,
     "changes": [
-        "修复 /d/{token} 短链接 404；新增 伪静态配置.md 与 README 伪静态说明（Nginx 须单独配置 /d/ 规则）",
-        "分享/预览操作按钮改为圆角矩形；分享管理显示储存来源",
-        "分享管理手机端卡片重新设计；预览弹窗电脑端可滚动查看直链/替换/下载",
-        "预览「文件信息与操作」改用 SVG 图标，元数据增加储存字段",
-        "后台文件模块：admin/files/manage.php、admin/files/shares.php"
+        "修复 d/guard.php VS_ROOT 重复定义报错；安全提醒页扩充法规说明并移除技术细节",
+        "伪静态简化为 d/index.php 统一入口（Nginx 仅需一条 /d fallback 规则）",
+        "文件列表文件夹悬停增加「分享」按钮；预览弹窗可滚动与元数据排版优化",
+        "分享页移除云储存相关对外描述"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

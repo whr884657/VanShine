@@ -291,11 +291,57 @@
         }
     }
 
+    function mgrActionButton(modifier, attrs, label, iconHtml) {
+        var cls = 'vs-filemgr__action' + (modifier ? ' ' + modifier : '');
+        return '<button type="button" class="' + cls + '" ' + attrs + ' title="' + escapeHtml(label) + '">'
+            + (iconHtml || '')
+            + '<span class="vs-filemgr__action-text">' + escapeHtml(label) + '</span></button>';
+    }
+
     function shareFolderActionHtml(folderId) {
-        return '<button type="button" class="vs-filemgr__action vs-filemgr__action--share" data-share-folder="'
-            + folderId + '" title="分享">'
-            + '<span class="vs-icon vs-icon--share" aria-hidden="true"></span>'
-            + '<span class="vs-filemgr__action-text">分享</span></button>';
+        return mgrActionButton(
+            'vs-filemgr__action--share',
+            'data-share-folder="' + folderId + '"',
+            '分享',
+            '<span class="vs-icon vs-icon--share" aria-hidden="true"></span>'
+        );
+    }
+
+    function shareFileActionHtml(file) {
+        var title = file.original_name || file.stored_name || '文件';
+        return mgrActionButton(
+            'vs-filemgr__action--share',
+            'data-share-file="' + file.id + '" data-share-title="' + escapeHtml(title) + '"',
+            '分享',
+            '<span class="vs-icon vs-icon--share" aria-hidden="true"></span>'
+        );
+    }
+
+    function renameFolderActionHtml(folderId) {
+        return mgrActionButton(
+            'vs-filemgr__action--edit',
+            'data-rename-folder="' + folderId + '"',
+            '重命名',
+            '<span class="vs-filemgr__action-glyph" aria-hidden="true">✎</span>'
+        );
+    }
+
+    function deleteFolderActionHtml(folderId) {
+        return mgrActionButton(
+            '',
+            'data-delete-folder="' + folderId + '"',
+            '删除',
+            '<span class="vs-filemgr__action-glyph" aria-hidden="true">×</span>'
+        );
+    }
+
+    function deleteFileActionHtml(fileId) {
+        return mgrActionButton(
+            '',
+            'data-delete-file="' + fileId + '"',
+            '删除',
+            '<span class="vs-filemgr__action-glyph" aria-hidden="true">×</span>'
+        );
     }
 
     function fileIconHtml(file, listMode) {
@@ -379,9 +425,8 @@
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">—</span>';
                 html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
                 html += shareFolderActionHtml(folder.id);
-                html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
-                    + folder.id + '" title="重命名">✎</button>';
-                html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
+                html += renameFolderActionHtml(folder.id);
+                html += deleteFolderActionHtml(folder.id);
                 html += '</div></div>';
                 return;
             }
@@ -393,9 +438,8 @@
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
             html += shareFolderActionHtml(folder.id);
-            html += '<button type="button" class="vs-filemgr__action vs-filemgr__action--edit" data-rename-folder="'
-                + folder.id + '" title="重命名">✎</button>';
-            html += '<button type="button" class="vs-filemgr__action" data-delete-folder="' + folder.id + '" title="删除">×</button>';
+            html += renameFolderActionHtml(folder.id);
+            html += deleteFolderActionHtml(folder.id);
             html += '</div></div>';
         });
 
@@ -414,7 +458,8 @@
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--storage">' + escapeHtml(storageLabelForFile()) + '</span>';
                 html += '<span class="vs-filemgr__cell vs-filemgr__cell--size">' + formatSize(file.file_size) + '</span>';
                 html += '<div class="vs-filemgr__cell vs-filemgr__cell--actions">';
-                html += '<button type="button" class="vs-filemgr__action" data-delete-file="' + file.id + '" title="删除">×</button>';
+                html += shareFileActionHtml(file);
+                html += deleteFileActionHtml(file.id);
                 html += '</div></div>';
                 return;
             }
@@ -426,7 +471,8 @@
                 + escapeHtml(file.stored_name) + '</span>';
             html += '</button>';
             html += '<div class="vs-filemgr__actions">';
-            html += '<button type="button" class="vs-filemgr__action" data-delete-file="' + file.id + '" title="删除">×</button>';
+            html += shareFileActionHtml(file);
+            html += deleteFileActionHtml(file.id);
             html += '</div></div>';
         });
 
@@ -455,6 +501,16 @@
                 e.stopPropagation();
                 var file = findFile(btn.getAttribute('data-preview-file'));
                 if (file) openFilePreview(file);
+            });
+        });
+
+        contentEl.querySelectorAll('[data-share-file]').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                var id = parseInt(btn.getAttribute('data-share-file'), 10);
+                var title = btn.getAttribute('data-share-title') || '文件';
+                openShareCreateModal('file', id, 0, title);
             });
         });
 

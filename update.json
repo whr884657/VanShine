@@ -1,13 +1,13 @@
 {
-    "version": "1.0.57",
+    "version": "1.0.58",
     "release_date": "2026-06-27",
-    "title": "分享 PATH 链接与伪静态彻底简化",
+    "title": "分享链接 /d/?token= 与预览弹窗滚动修复",
     "db_changes": false,
     "changes": [
-        "分享链接改为 /d/index.php/{token}，无需 ?token= 与额外 Nginx 规则",
-        "伪静态文档仅保留站点通用 try_files，不写 PHP 版本号",
-        "移除 /d/ 专用 rewrite；旧版 ?token= 链接 301 跳转",
-        "修复错误 Nginx 配置导致 index.php 源码被下载的问题说明"
+        "分享链接改为 /d/?token=，URL 不含 index.php；旧 PATH 格式自动跳转",
+        "分享页与安全提醒页增加版权与备案页脚",
+        "预览弹窗整体可滚动，修复底部操作按钮被遮挡",
+        "文件/文件夹操作按钮统一悬停显示文字；文件行增加分享按钮"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

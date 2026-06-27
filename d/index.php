@@ -13,7 +13,7 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('X-Content-Type-Options: nosniff');
 
-ShareRouter::redirectQueryToPathIfNeeded();
+ShareRouter::redirectLegacyToQueryIfNeeded();
 
 if (ShareRouter::isStreamRequest()) {
     require __DIR__ . '/stream-handler.php';
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_password'])) {
 $base = vs_base_url();
 $siteName = SiteContext::siteName();
 $shareTitle = (string) $share['title'];
-$streamBase = rtrim($base, '/') . '/d/index.php/' . rawurlencode($token) . '/stream';
+$streamBase = rtrim($base, '/') . '/d/?token=' . rawurlencode($token) . '&stream=1';
 
 if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
     FileShare::recordView((int) $share['id']);
@@ -102,6 +102,7 @@ function vs_share_format_size($bytes)
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title><?php echo vs_e($shareTitle); ?> - <?php echo vs_e($siteName); ?></title>
+    <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/common.css?v=<?php echo VS_VERSION; ?>">
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/files.css?v=<?php echo VS_VERSION; ?>">
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/share-public.css?v=<?php echo VS_VERSION; ?>">
 </head>
@@ -171,6 +172,7 @@ function vs_share_format_size($bytes)
 <footer class="vs-share-page__foot">
     <p>请遵守法律法规，仅在授权范围内访问与使用分享内容。</p>
 </footer>
+<?php vs_render_site_footer($siteName); ?>
 
 <?php if ($errorMsg === '' && (!$needsPassword || $unlocked) && count($shareFiles) > 0 && (int) $share['allow_preview'] === 1) { ?>
 <script>

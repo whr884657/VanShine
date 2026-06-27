@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.57**
+**当前版本：1.0.58**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 
 - Web 五步安装向导，自动创建数据表与初始配置
 - 分组侧边栏后台（控制台、文件、七种储存、CDN、归档、AI、系统设置等）
-- **文件分享**：单文件/文件夹分享 `{域名}/d/index.php/{token}`，可选密码
+- **文件分享**：`{域名}/d/?token=...`，可选密码
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
 - **云端在线更新**：登录后台自动检测新版本，分步进度一键安装
@@ -29,7 +29,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.57.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.58.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -158,7 +158,7 @@ VanShine/
 | 地址 | 说明 |
 |------|------|
 | `/d/index.php` | 安全提醒页 |
-| `/d/index.php/{token}` | 公开分享页 |
+| `/d/?token={token}` | 公开分享页 |
 
 **完整说明见：** [`伪静态配置.md`](伪静态配置.md)
 
@@ -198,6 +198,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.58（2026-06-27）
+
+**类型：** 分享 URL 简化、预览滚动、文件分享按钮
+
+**变更说明：**
+- 分享链接 `/d/?token=`，无 index.php；分享/安全页增加备案页脚
+- 预览弹窗整体可滚动；文件/文件夹操作按钮悬停显示文字
+- 文件列表增加分享按钮
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.57（2026-06-27）
 

@@ -640,6 +640,9 @@ class FileShare
         if ($value === '') {
             return null;
         }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
+            return $value . ' 23:59:59';
+        }
         $ts = strtotime($value);
         if ($ts === false) {
             return null;

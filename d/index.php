@@ -2,7 +2,7 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（入口 /d/?token=）
- * @version 1.0.60
+ * @version 1.0.61
  */
 
 require __DIR__ . '/boot.php';
@@ -103,6 +103,7 @@ function vs_share_format_size($bytes)
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title><?php echo vs_e($shareTitle); ?> - <?php echo vs_e($siteName); ?></title>
+    <?php vs_render_share_head_extras(); ?>
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/common.css?v=<?php echo VS_VERSION; ?>">
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/files.css?v=<?php echo VS_VERSION; ?>">
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/share-public.css?v=<?php echo VS_VERSION; ?>">
@@ -166,7 +167,7 @@ function vs_share_format_size($bytes)
                     <span class="vs-share-preview__label">在线预览</span>
                     <span class="vs-share-preview__hint" id="sharePreviewHint"><?php echo $isSingleFile ? '正在加载…' : '点击文件开始预览'; ?></span>
                 </div>
-                <div class="vs-file-preview__viewer-shell is-fill vs-share-preview__stage" id="sharePreviewShell">
+                <div class="vs-file-preview__viewer-shell vs-share-preview__stage" id="sharePreviewShell">
                     <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
                     <div class="vs-file-preview__viewer-state" id="sharePreviewState"><?php echo $isSingleFile ? '正在加载预览…' : '选择文件以预览'; ?></div>
                 </div>

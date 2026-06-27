@@ -423,11 +423,11 @@ vs_admin_layout_start('文件管理', 'files');
                     <input type="password" name="password" id="shareCreatePassword" class="vs-input" autocomplete="new-password" placeholder="留空则无需密码">
                 </div>
                 <div class="vs-form-row">
-                    <label class="vs-label">过期时间（可选，留空表示永不过期）</label>
-                    <div class="vs-datetime" id="shareCreateExpiresWrap" data-vs-datetime>
-                        <input type="date" class="vs-input vs-datetime__date" id="shareCreateExpiresDate">
-                        <input type="time" class="vs-input vs-datetime__time" id="shareCreateExpiresTime" step="60">
+                    <label class="vs-label">过期日期（可选，留空表示永不过期）</label>
+                    <div id="shareCreateExpiresWrap">
+                        <input type="text" class="vs-input vs-date-input" id="shareCreateExpiresDate" placeholder="YYYY-MM-DD" inputmode="numeric" autocomplete="off" spellcheck="false">
                     </div>
+                    <p class="vs-form-tip">手动输入日期，例如 2026-12-31，到期当日 23:59 失效</p>
                 </div>
                 <div class="vs-form-row">
                     <label class="vs-label">最大下载次数（0=不限）</label>

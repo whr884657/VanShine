@@ -238,3 +238,114 @@ body.vs-modal-open {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.45; }
 }
+
+/* ── 文件/分享管理弹窗壳（全站 admin 共用） ── */
+.vs-modal-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 4800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+.vs-modal-shell.is-open {
+    display: flex;
+}
+
+.vs-modal-shell[hidden] {
+    display: none !important;
+}
+
+.vs-modal-shell--stack {
+    z-index: 4900;
+}
+
+.vs-modal-shell .vs-modal {
+    width: 100%;
+    max-width: 440px;
+    max-height: calc(100vh - 40px);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    animation: vsModalIn 0.22s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.vs-modal-shell .vs-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 0;
+    flex-shrink: 0;
+}
+
+.vs-modal-shell .vs-modal__title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #0f172a;
+}
+
+.vs-modal-shell .vs-modal__close {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vs-modal-shell .vs-modal__close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.vs-modal-shell .vs-modal__body {
+    padding: 16px 20px 8px;
+    overflow: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.vs-modal-shell .vs-modal__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 20px 20px;
+    flex-shrink: 0;
+}
+
+.vs-modal-shell .vs-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+@media (max-width: 768px) {
+    .vs-modal-shell {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .vs-modal-shell .vs-modal {
+        max-width: none;
+        width: 100%;
+        height: auto;
+        max-height: 85vh;
+        border-radius: 16px 16px 0 0;
+    }
+}

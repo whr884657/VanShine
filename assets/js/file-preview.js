@@ -46,9 +46,9 @@
         } else if (mode === 'image') {
             shell.classList.add('is-fit-image');
         } else if (mode === 'word' || mode === 'pdf' || mode === 'excel' || mode === 'markdown') {
-            shell.classList.add('is-doc-view', 'is-fill');
+            shell.classList.add('is-doc-view');
         } else {
-            shell.classList.add('is-fill');
+            shell.classList.add('is-doc-view');
         }
     }
 
@@ -522,12 +522,7 @@
         var name = (file && (file.stored_name || file.original_name)) || '音频';
         var wrap = document.createElement('div');
         wrap.className = 'vs-audio-bar';
-        wrap.innerHTML = '<div class="vs-audio-bar__vinyl" aria-hidden="true">'
-            + '<span class="vs-audio-bar__ring"></span>'
-            + '<span class="vs-audio-bar__ring vs-audio-bar__ring--2"></span>'
-            + '<button type="button" class="vs-audio-bar__disc" aria-label="播放">' + ICON_MUSIC + '</button>'
-            + '</div>'
-            + '<div class="vs-audio-bar__main">'
+        wrap.innerHTML = '<div class="vs-audio-bar__main">'
             + '<p class="vs-audio-bar__title">' + escapeHtml(name) + '</p>'
             + '<div class="vs-audio-bar__row">'
             + '<button type="button" class="vs-audio-bar__play" aria-label="播放">' + ICON_PLAY + '</button>'
@@ -543,7 +538,6 @@
         wrap.appendChild(audio);
         container.appendChild(wrap);
 
-        var discBtn = wrap.querySelector('.vs-audio-bar__disc');
         var playBtn = wrap.querySelector('.vs-audio-bar__play');
         var fill = wrap.querySelector('.vs-audio-bar__fill');
         var track = wrap.querySelector('.vs-audio-bar__track');
@@ -568,10 +562,8 @@
             wrap.classList.toggle('is-playing', playing);
             playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
             playBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
-            discBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
         }
 
-        discBtn.addEventListener('click', togglePlay);
         playBtn.addEventListener('click', togglePlay);
         bindProgressBar(track, fill, audio, syncTime);
 

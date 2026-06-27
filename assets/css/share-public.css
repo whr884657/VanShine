@@ -1,4 +1,4 @@
-/* 公开分享页 @version 1.0.60 */
+/* 公开分享页 @version 1.0.61 */
 
 .vs-share-page {
     margin: 0;
@@ -16,7 +16,7 @@
 
 .vs-share-shell {
     width: 100%;
-    max-width: 900px;
+    max-width: min(1280px, 100%);
     margin: 0 auto;
     min-height: calc(100vh - 24px);
     display: flex;
@@ -177,18 +177,56 @@
 }
 
 .vs-share-preview__stage {
-    min-height: 280px;
+    min-height: 200px;
+    max-height: min(52vh, 520px);
     border: none;
     border-radius: 0;
     background: #0b1220;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.vs-share-preview__stage .vs-file-preview__viewer-mount {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.vs-share-preview__stage.is-compact-audio {
+    max-height: 120px;
+    min-height: 0;
+    background: linear-gradient(135deg, #f8fafc, #eef2ff);
+}
+
+.vs-share-preview__stage.is-compact-audio .vs-file-preview__viewer-mount {
+    overflow: visible;
+}
+
+.vs-share-preview__stage.is-fit-video,
+.vs-share-preview__stage.is-fit-image {
+    max-height: min(48vh, 480px);
+}
+
+.vs-share-preview__stage.is-doc-view,
+.vs-share-preview__stage.is-fill {
+    max-height: min(52vh, 520px);
 }
 
 .vs-share-preview .vs-file-preview__viewer-state {
     color: #94a3b8;
 }
 
-.vs-share-layout.is-single .vs-share-preview__stage {
-    min-height: min(52vh, 420px);
+.vs-share-layout.is-single .vs-share-preview__stage:not(.is-compact-audio) {
+    max-height: min(52vh, 520px);
+}
+
+.vs-share-layout.is-single .vs-share-preview__stage.is-compact-audio {
+    max-height: 120px;
+    min-height: 0;
 }
 
 /* 文件列表 */
@@ -567,7 +605,7 @@ a.vs-share-shell__beian-item:hover {
 
 @media (min-width: 768px) {
     .vs-share-page {
-        padding: 20px;
+        padding: 20px 24px;
     }
 
     .vs-share-shell {
@@ -580,9 +618,24 @@ a.vs-share-shell__beian-item:hover {
         padding-right: 24px;
     }
 
-    .vs-share-layout.has-preview:not(.is-single) {
-        grid-template-columns: 1.15fr 0.85fr;
+    .vs-share-layout.has-preview {
+        grid-template-columns: 1fr 1fr;
         align-items: start;
+        gap: 16px;
+    }
+
+    .vs-share-layout.has-preview.is-single {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .vs-share-layout.has-preview .vs-share-preview {
+        order: 1;
+    }
+
+    .vs-share-layout.has-preview .vs-share-files {
+        order: 2;
+        max-height: min(70vh, 640px);
+        overflow: auto;
     }
 }
 

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/shares.js
  * 作用：分享管理页
- * @version 1.0.54
+ * @version 1.0.61
  */
 
 (function () {
@@ -16,6 +16,7 @@
     var editModal = document.getElementById('shareEditModal');
     var editForm = document.getElementById('shareEditForm');
     var shares = [];
+    var expandedCards = {};
 
     function escapeHtml(s) {
         var d = document.createElement('div');
@@ -54,12 +55,17 @@
         return { text: '有效', cls: 'on' };
     }
 
+    function isAccessible(row) {
+        return statusLabel(row).cls === 'on';
+    }
+
     function typeText(row) {
         return row.share_type === 'folder' ? '文件夹' : '单文件';
     }
 
     function expiryText(row) {
-        return row.expires_at ? row.expires_at : '永不过期';
+        if (!row.expires_at) return '永不过期';
+        return String(row.expires_at).split(' ')[0];
     }
 
     function passwordText(row) {
@@ -71,13 +77,29 @@
         return key + (row.storage_name || '未知储存');
     }
 
+    function sortShares(list) {
+        return list.slice().sort(function (a, b) {
+            var aa = isAccessible(a) ? 0 : 1;
+            var bb = isAccessible(b) ? 0 : 1;
+            if (aa !== bb) return aa - bb;
+            return (b.id || 0) - (a.id || 0);
+        });
+    }
+
+    function mountModalToBody(modal) {
+        if (modal && modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+    }
+
     function renderTable() {
         if (!tbody) return;
-        if (!shares.length) {
+        var rows = sortShares(shares);
+        if (!rows.length) {
             tbody.innerHTML = '<tr><td colspan="9" class="vs-shares__empty">暂无分享链接，可在文件管理中创建</td></tr>';
             return;
         }
-        tbody.innerHTML = shares.map(function (row) {
+        tbody.innerHTML = rows.map(function (row) {
             var st = statusLabel(row);
             return '<tr data-id="' + row.id + '">'
                 + '<td>' + escapeHtml(row.title) + '</td>'
@@ -98,21 +120,31 @@
 
     function renderCards() {
         if (!cardList) return;
-        if (!shares.length) {
+        var rows = sortShares(shares);
+        if (!rows.length) {
             cardList.innerHTML = '<div class="vs-shares__empty">暂无分享链接，可在文件管理中创建</div>';
             return;
         }
-        cardList.innerHTML = shares.map(function (row) {
+        cardList.innerHTML = rows.map(function (row) {
             var st = statusLabel(row);
+            var accessible = isAccessible(row);
+            var expanded = !!expandedCards[row.id];
             var dlLimit = row.max_downloads > 0 ? row.max_downloads + ' 次' : '不限';
-            return '<article class="vs-share-card" data-id="' + row.id + '">'
-                + '<div class="vs-share-card__top">'
-                + '<div class="vs-share-card__title-wrap">'
-                + '<h3 class="vs-share-card__title">' + escapeHtml(row.title) + '</h3>'
-                + '<p class="vs-share-card__sub">' + typeText(row) + ' · ' + escapeHtml(row.target) + '</p>'
-                + '</div>'
+            var cardClass = 'vs-share-card is-collapsed';
+            if (!accessible) cardClass += ' is-inactive';
+            if (expanded) cardClass += ' is-expanded';
+
+            return '<article class="' + cardClass + '" data-id="' + row.id + '">'
+                + '<button type="button" class="vs-share-card__toggle" data-toggle-share="' + row.id + '" aria-expanded="' + (expanded ? 'true' : 'false') + '">'
+                + '<span class="vs-share-card__toggle-main">'
+                + '<span class="vs-share-card__title">' + escapeHtml(row.title) + '</span>'
+                + '<span class="vs-share-card__toggle-sub">' + typeText(row) + '</span>'
+                + '</span>'
                 + '<span class="vs-shares__badge vs-shares__badge--' + st.cls + '">' + st.text + '</span>'
-                + '</div>'
+                + '<span class="vs-share-card__chevron" aria-hidden="true"></span>'
+                + '</button>'
+                + '<div class="vs-share-card__body"' + (expanded ? '' : ' hidden') + '>'
+                + '<p class="vs-share-card__sub">' + escapeHtml(row.target) + '</p>'
                 + '<div class="vs-share-card__url">' + escapeHtml(row.share_url) + '</div>'
                 + '<div class="vs-share-card__tags">'
                 + '<span class="vs-share-card__tag">' + escapeHtml(storageText(row)) + '</span>'
@@ -126,7 +158,7 @@
                 + '<div class="vs-share-card__actions-row">'
                 + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect" data-edit-share="' + row.id + '">编辑</button>'
                 + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-shares__del" data-del-share="' + row.id + '">删除</button>'
-                + '</div></div></article>';
+                + '</div></div></div></article>';
         }).join('');
     }
 
@@ -136,6 +168,7 @@
     }
 
     function openEdit(row) {
+        mountModalToBody(editModal);
         document.getElementById('shareEditId').value = row.id;
         document.getElementById('shareEditTitleInput').value = row.title || '';
         document.getElementById('shareEditPassword').value = '';
@@ -147,14 +180,24 @@
         }
         editModal.hidden = false;
         editModal.classList.add('is-open');
+        document.body.classList.add('vs-modal-open');
     }
 
     function closeEdit() {
         editModal.hidden = true;
         editModal.classList.remove('is-open');
+        document.body.classList.remove('vs-modal-open');
     }
 
     function handleActionClick(e) {
+        var toggleBtn = e.target.closest('[data-toggle-share]');
+        if (toggleBtn) {
+            var tid = parseInt(toggleBtn.getAttribute('data-toggle-share'), 10);
+            expandedCards[tid] = !expandedCards[tid];
+            renderCards();
+            return;
+        }
+
         var copyBtn = e.target.closest('[data-copy-url]');
         if (copyBtn) {
             var url = copyBtn.getAttribute('data-copy-url');
@@ -182,6 +225,7 @@
                     return;
                 }
                 shares = shares.filter(function (s) { return s.id !== delId; });
+                delete expandedCards[delId];
                 render();
                 showFlash('已删除', true);
             });
@@ -194,6 +238,8 @@
     } catch (e) {
         shares = [];
     }
+
+    mountModalToBody(editModal);
     render();
 
     if (tbody) tbody.addEventListener('click', handleActionClick);
@@ -232,4 +278,10 @@
     document.querySelectorAll('[data-close-share-edit]').forEach(function (btn) {
         btn.addEventListener('click', closeEdit);
     });
+
+    if (editModal) {
+        editModal.addEventListener('click', function (e) {
+            if (e.target === editModal) closeEdit();
+        });
+    }
 })();

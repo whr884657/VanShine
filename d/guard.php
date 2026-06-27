@@ -2,7 +2,7 @@
 /**
  * 文件：d/guard.php
  * 作用：分享入口安全提醒（无有效 token 时）
- * @version 1.0.60
+ * @version 1.0.61
  */
 
 require __DIR__ . '/boot.php';
@@ -29,6 +29,7 @@ header('Content-Type: text/html; charset=utf-8');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title>访问受限 - <?php echo vs_e($siteName); ?></title>
+    <?php vs_render_share_head_extras(); ?>
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/common.css?v=<?php echo VS_VERSION; ?>">
     <link rel="stylesheet" href="<?php echo vs_e($base); ?>/assets/css/share-public.css?v=<?php echo VS_VERSION; ?>">
 </head>

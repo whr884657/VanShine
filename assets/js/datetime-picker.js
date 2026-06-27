@@ -1,41 +1,32 @@
 /**
  * 文件：assets/js/datetime-picker.js
- * 作用：美化日期时间选择（date + time 组合）
- * @version 1.0.54
+ * 作用：分享过期日期（手动输入 YYYY-MM-DD）
+ * @version 1.0.61
  */
 
 (function () {
     'use strict';
 
-    function pad(n) {
-        return n < 10 ? '0' + n : String(n);
+    var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+    function getInput(root) {
+        var el = typeof root === 'string' ? document.querySelector(root) : root;
+        if (!el) return null;
+        return el.querySelector('.vs-date-input') || el.querySelector('input[type="text"]');
     }
 
     window.VsDatetime = {
         /**
          * @param {HTMLElement|string} root
-         * @return {{date:HTMLInputElement|null,time:HTMLInputElement|null}}
-         */
-        getInputs: function (root) {
-            var el = typeof root === 'string' ? document.querySelector(root) : root;
-            if (!el) return { date: null, time: null };
-            return {
-                date: el.querySelector('.vs-datetime__date'),
-                time: el.querySelector('.vs-datetime__time'),
-            };
-        },
-
-        /**
-         * @param {HTMLElement|string} root
          * @return {string}
          */
         getValue: function (root) {
-            var inputs = this.getInputs(root);
-            if (!inputs.date || !inputs.time) return '';
-            var d = inputs.date.value;
-            var t = inputs.time.value;
-            if (!d || !t) return '';
-            return d + ' ' + t + ':00';
+            var input = getInput(root);
+            if (!input) return '';
+            var v = String(input.value || '').trim();
+            if (v === '') return '';
+            if (!DATE_RE.test(v)) return v;
+            return v;
         },
 
         /**
@@ -43,29 +34,25 @@
          * @return {void}
          */
         clear: function (root) {
-            var inputs = this.getInputs(root);
-            if (inputs.date) inputs.date.value = '';
-            if (inputs.time) inputs.time.value = '';
+            var input = getInput(root);
+            if (input) input.value = '';
         },
 
         /**
          * @param {HTMLElement|string} root
-         * @param {string} value  YYYY-MM-DD HH:MM:SS
+         * @param {string} value
          * @return {void}
          */
         setValue: function (root, value) {
-            var inputs = this.getInputs(root);
-            if (!inputs.date || !inputs.time) return;
+            var input = getInput(root);
+            if (!input) return;
             value = String(value || '').trim();
             if (!value) {
-                this.clear(root);
+                input.value = '';
                 return;
             }
-            var parts = value.replace('T', ' ').split(' ');
-            inputs.date.value = parts[0] || '';
-            if (parts[1]) {
-                inputs.time.value = parts[1].slice(0, 5);
-            }
+            var datePart = value.replace('T', ' ').split(' ')[0] || '';
+            input.value = datePart;
         },
     };
 })();

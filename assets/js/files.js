@@ -730,6 +730,9 @@
 
     function openShareCreateModal(type, fileId, folderId, defaultTitle) {
         if (!shareCreateModal) return;
+        if (shareCreateModal.parentNode !== document.body) {
+            document.body.appendChild(shareCreateModal);
+        }
         document.getElementById('shareCreateType').value = type;
         document.getElementById('shareCreateFileId').value = fileId ? String(fileId) : '';
         document.getElementById('shareCreateFolderId').value = folderId ? String(folderId) : '';
@@ -743,12 +746,14 @@
         }
         shareCreateModal.hidden = false;
         shareCreateModal.classList.add('is-open');
+        document.body.classList.add('vs-modal-open');
     }
 
     function closeShareCreateModal() {
         if (!shareCreateModal) return;
         shareCreateModal.hidden = true;
         shareCreateModal.classList.remove('is-open');
+        document.body.classList.remove('vs-modal-open');
         if (shareCreateForm) shareCreateForm.reset();
     }
 
@@ -1071,6 +1076,9 @@
     if (shareCreateModal) {
         shareCreateModal.querySelectorAll('[data-close-share-create]').forEach(function (btn) {
             btn.addEventListener('click', closeShareCreateModal);
+        });
+        shareCreateModal.addEventListener('click', function (e) {
+            if (e.target === shareCreateModal) closeShareCreateModal();
         });
     }
 

@@ -428,6 +428,23 @@ function vs_render_site_footer($siteName = null)
 }
 
 /**
+ * 分享页 head 补充（站点 favicon）
+ *
+ * @return void
+ */
+function vs_render_share_head_extras()
+{
+    if (!InstallChecker::isInstalled()) {
+        return;
+    }
+
+    $favicon = SiteContext::siteFavicon();
+    if ($favicon !== '') {
+        echo '<link rel="icon" href="' . vs_e(vs_favicon_href($favicon)) . '">' . "\n";
+    }
+}
+
+/**
  * 渲染页脚备案信息（兼容旧调用，委托 vs_render_site_footer）
  *
  * @return void

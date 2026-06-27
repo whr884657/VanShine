@@ -121,6 +121,43 @@
         return String(mime || '').indexOf('image/') === 0;
     }
 
+    var FILE_CATEGORIES = {
+        image:    { label: '图片', exts: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif', 'tiff', 'tif'] },
+        video:    { label: '视频', exts: ['mp4', 'webm', 'ogv', 'mov', 'm4v', 'mkv', 'avi', 'flv', 'wmv', '3gp'] },
+        audio:    { label: '音频', exts: ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'opus', 'wma'] },
+        pdf:      { label: 'PDF', exts: ['pdf'] },
+        word:     { label: 'Word', exts: ['doc', 'docx'] },
+        excel:    { label: 'Excel', exts: ['xls', 'xlsx', 'csv'] },
+        markdown: { label: 'Markdown', exts: ['md', 'markdown'] },
+        code:     { label: '代码', exts: ['html', 'htm', 'php', 'css', 'js', 'mjs', 'cjs', 'json', 'xml', 'txt', 'log', 'sql', 'yaml', 'yml', 'ini', 'sh', 'bat', 'vue', 'ts', 'tsx', 'jsx'] },
+        archive:  { label: '压缩包', exts: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'cab', 'iso'] }
+    };
+
+    var EXT_LABELS = {
+        mp3: 'MP3', mp4: 'MP4', wav: 'WAV', flac: 'FLAC', ogg: 'OGG',
+        md: 'Markdown', markdown: 'Markdown',
+        doc: 'Word', docx: 'Word', xls: 'Excel', xlsx: 'Excel', csv: 'CSV',
+        zip: 'ZIP', rar: 'RAR', '7z': '7Z', pdf: 'PDF'
+    };
+
+    function getFileExt(file) {
+        var name = (file && (file.stored_name || file.original_name)) || '';
+        var dot = name.lastIndexOf('.');
+        if (dot < 0) return '';
+        return name.slice(dot + 1).toLowerCase();
+    }
+
+    function getFileCategory(file) {
+        var ext = getFileExt(file);
+        var key;
+        for (key in FILE_CATEGORIES) {
+            if (FILE_CATEGORIES[key].exts.indexOf(ext) >= 0) {
+                return key;
+            }
+        }
+        return 'other';
+    }
+
     function findFile(id) {
         id = Number(id);
         for (var i = 0; i < state.files.length; i++) {
@@ -244,27 +281,38 @@
     }
 
     function fileIconHtml(file, listMode) {
-        if (isImage(file.mime_type) && file.public_url) {
+        var cat = getFileCategory(file);
+        if (cat === 'image' && file.public_url) {
             return '<img src="' + escapeHtml(file.public_url) + '" alt="" class="vs-filemgr__thumb" loading="lazy">';
         }
-        return '<span class="vs-filemgr__file-icon">' + (listMode ? '📄' : '📄') + '</span>';
+        if (cat === 'video' && file.public_url) {
+            return '<div class="vs-filemgr__vid-thumb">'
+                + '<video src="' + escapeHtml(file.public_url) + '" preload="metadata" muted playsinline'
+                + ' onloadeddata="if(this.duration>0.5)this.currentTime=0.5"></video>'
+                + '<span class="vs-filemgr__vid-play" aria-hidden="true">▶</span></div>';
+        }
+        return '<span class="vs-ftype-icon vs-ftype-icon--' + cat + '" aria-hidden="true"></span>';
     }
 
     function fileTypeLabel(file) {
-        var mime = String(file.mime_type || '');
-        if (mime.indexOf('image/') === 0) return '图片';
-        if (mime.indexOf('audio/') === 0) {
-            var audio = mime.split('/')[1] || '音频';
-            return audio.toUpperCase();
+        var ext = getFileExt(file);
+        if (EXT_LABELS[ext]) {
+            return EXT_LABELS[ext];
         }
-        if (mime.indexOf('video/') === 0) return '视频';
-        if (mime.indexOf('text/') === 0) return '文本';
-        if (mime === 'application/pdf') return 'PDF';
-        var ext = '';
-        var name = file.stored_name || file.original_name || '';
-        var dot = name.lastIndexOf('.');
-        if (dot >= 0) ext = name.substring(dot + 1).toUpperCase();
-        return ext || '文件';
+        var cat = getFileCategory(file);
+        if (FILE_CATEGORIES[cat]) {
+            return FILE_CATEGORIES[cat].label;
+        }
+        return ext ? ext.toUpperCase() : '文件';
+    }
+
+    function fileTypeDetail(file) {
+        var label = fileTypeLabel(file);
+        var mime = String(file.mime_type || '');
+        if (!mime || mime === 'application/octet-stream') {
+            return label;
+        }
+        return label + ' · ' + mime;
     }
 
     function storageLabelForFolder(folder) {
@@ -497,7 +545,7 @@
             filePreviewMeta.innerHTML = ''
                 + metaRow('文件名', file.original_name || file.stored_name)
                 + metaRow('存储名', file.stored_name)
-                + metaRow('类型', file.mime_type || '—')
+                + metaRow('类型', fileTypeDetail(file))
                 + metaRow('大小', formatSize(file.file_size));
         }
 

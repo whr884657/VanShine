@@ -305,6 +305,7 @@ vs_admin_layout_start('文件管理', 'files');
 <div class="vs-file-preview" id="filePreview" hidden aria-hidden="true">
     <div class="vs-file-preview__overlay" data-close-preview></div>
     <div class="vs-file-preview__panel" role="dialog" aria-modal="true" aria-labelledby="filePreviewTitle">
+        <div class="vs-file-preview__handle" aria-hidden="true"></div>
         <div class="vs-file-preview__head">
             <h3 class="vs-file-preview__title" id="filePreviewTitle">文件预览</h3>
             <button type="button" class="vs-file-preview__close" data-close-preview aria-label="关闭">
@@ -321,7 +322,7 @@ vs_admin_layout_start('文件管理', 'files');
                 <div class="vs-file-preview__viewer-mount" id="filePreviewViewerMount"></div>
                 <div class="vs-file-preview__viewer-state" id="filePreviewViewerState">正在加载预览…</div>
             </div>
-            <details class="vs-file-preview__details" open>
+            <details class="vs-file-preview__details">
                 <summary class="vs-file-preview__details-toggle">文件信息与操作</summary>
             <div class="vs-file-preview__meta" id="filePreviewMeta"></div>
             <div class="vs-file-preview__link-box">

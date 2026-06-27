@@ -1,7 +1,7 @@
 /**
  * 文件：assets/css/files.css
  * 作用：后台文件管理页样式
- * @version 1.0.38
+ * @version 1.0.50
  */
 
 .vs-filemgr {
@@ -273,6 +273,83 @@
     font-size: 42px;
     line-height: 1;
     flex-shrink: 0;
+}
+
+.vs-ftype-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 28px 28px;
+}
+
+.view-grid-sm .vs-ftype-icon {
+    width: 44px;
+    height: 44px;
+    background-size: 22px 22px;
+}
+
+.view-list .vs-ftype-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-size: 18px 18px;
+}
+
+.vs-ftype-icon--image    { background-color: #dbeafe; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--video    { background-color: #fee2e2; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dc2626' stroke-width='2'%3E%3Crect x='2' y='5' width='20' height='14' rx='2'/%3E%3Cpath d='M10 9l6 3-6 3V9z' fill='%23dc2626'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--audio    { background-color: #ede9fe; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2'%3E%3Cpath d='M9 18V5l12-2v13'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Ccircle cx='18' cy='16' r='3'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--pdf      { background-color: #ffedd5; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ea580c' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--word     { background-color: #dbeafe; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d4ed8' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='8' y1='13' x2='16' y2='13'/%3E%3Cline x1='8' y1='17' x2='16' y2='17'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--excel    { background-color: #dcfce7; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='8' y1='13' x2='16' y2='13'/%3E%3Cline x1='8' y1='17' x2='12' y2='17'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--markdown { background-color: #e0e7ff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234338ca' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cpath d='M8 13h2l1 3 1-3h2'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--code     { background-color: #f1f5f9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--archive  { background-color: #fef3c7; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d97706' stroke-width='2'%3E%3Crect x='3' y='4' width='18' height='4' rx='1'/%3E%3Cpath d='M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8'/%3E%3Cline x1='10' y1='12' x2='14' y2='12'/%3E%3C/svg%3E"); }
+.vs-ftype-icon--other    { background-color: #f1f5f9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3C/svg%3E"); }
+
+.vs-filemgr__vid-thumb {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0f172a;
+    flex-shrink: 0;
+}
+
+.view-grid-sm .vs-filemgr__vid-thumb {
+    width: 48px;
+    height: 48px;
+}
+
+.view-list .vs-filemgr__vid-thumb {
+    width: 36px;
+    height: 36px;
+}
+
+.vs-filemgr__vid-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.vs-filemgr__vid-play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.35);
+    color: #fff;
+    font-size: 14px;
+    pointer-events: none;
 }
 
 .view-grid-sm .vs-filemgr__folder-icon,
@@ -554,6 +631,16 @@
     transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+.vs-file-preview__handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+}
+
 .vs-file-preview__head {
     display: flex;
     align-items: center;
@@ -606,7 +693,7 @@
 .vs-file-preview__viewer-shell {
     position: relative;
     flex: 1 1 auto;
-    min-height: min(52vh, 520px);
+    min-height: min(48vh, 420px);
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -812,20 +899,100 @@
     justify-content: center;
 }
 
-/* 手机：底部抽屉 / 弹窗 四分之三屏高 */
+/* 手机：底部抽屉 */
 @media (max-width: 767px) {
     .vs-file-preview__panel {
         left: 0;
         right: 0;
         bottom: 0;
-        height: 80vh;
-        max-height: 80vh;
+        height: 88vh;
+        max-height: 88vh;
         border-radius: 16px 16px 0 0;
         transform: translateY(100%);
     }
 
+    .vs-file-preview__handle {
+        display: block;
+    }
+
     .vs-file-preview.is-open .vs-file-preview__panel {
         transform: translateY(0);
+    }
+
+    .vs-file-preview__head {
+        padding: 8px 16px 12px;
+    }
+
+    .vs-file-preview__body {
+        padding: 0 14px 16px;
+        gap: 10px;
+    }
+
+    .vs-file-preview__viewer-shell {
+        min-height: min(52vh, 480px);
+        flex: 1 1 auto;
+        border-radius: 10px;
+    }
+
+    .vs-file-preview__viewer-mount {
+        padding: 0;
+    }
+
+    .vs-preview-stage {
+        padding: 8px;
+    }
+
+    .vs-preview-image {
+        max-height: min(55vh, 420px);
+    }
+
+    .vs-preview-video__el {
+        max-height: min(55vh, 420px);
+    }
+
+    .vs-preview-doc,
+    .vs-preview-markdown,
+    .vs-preview-sheet-wrap {
+        font-size: 13px;
+        padding: 12px;
+    }
+
+    .vs-preview-doc .docx-wrapper,
+    .vs-preview-doc section {
+        max-width: 100% !important;
+        overflow-x: auto;
+    }
+
+    .vs-preview-markdown img,
+    .vs-preview-markdown table,
+    .vs-preview-doc img,
+    .vs-preview-doc table {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .vs-preview-markdown pre {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    .vs-preview-iframe {
+        height: min(50vh, 400px);
+    }
+
+    .vs-preview-audio {
+        min-height: 180px;
+        padding: 20px 12px;
+    }
+
+    .vs-preview-audio__icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    .vs-preview-audio__icon svg {
+        width: 28px;
+        height: 28px;
     }
 
     .vs-file-preview__media img {
@@ -887,7 +1054,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 8px;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.vs-preview-stage--video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-height: 100%;
+    background: #000;
+    box-sizing: border-box;
+}
+
+.vs-preview-stage--audio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    box-sizing: border-box;
 }
 
 .vs-preview-image-wrap {
@@ -958,6 +1145,21 @@
 .vs-preview-sheet-wrap {
     max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.vs-preview-doc .docx-wrapper,
+.vs-preview-doc section,
+.vs-preview-doc table {
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.vs-preview-markdown img,
+.vs-preview-markdown table,
+.vs-preview-doc img {
+    max-width: 100%;
+    height: auto;
 }
 
 .vs-preview-pdf__page {
@@ -1032,38 +1234,40 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 240px;
-    padding: 24px 16px;
+    width: 100%;
+    min-height: 200px;
+    padding: 20px 12px;
     gap: 16px;
+    box-sizing: border-box;
 }
 
-.vs-preview-audio__disc {
-    width: 88px;
-    height: 88px;
+.vs-preview-audio__icon {
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     background: linear-gradient(135deg, #2563eb, #7c3aed);
     color: #fff;
-    font-size: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+    flex-shrink: 0;
 }
 
-.vs-preview-audio.is-playing .vs-preview-audio__disc {
-    animation: vs-preview-spin 4s linear infinite;
+.vs-preview-audio.is-playing .vs-preview-audio__icon {
+    animation: vs-preview-pulse 1.2s ease-in-out infinite;
 }
 
-@keyframes vs-preview-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes vs-preview-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35); }
+    50% { transform: scale(1.05); box-shadow: 0 12px 32px rgba(37, 99, 235, 0.45); }
 }
 
 .vs-preview-audio__waves {
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    height: 32px;
+    height: 28px;
 }
 
 .vs-preview-audio__waves span {
@@ -1086,75 +1290,40 @@
 
 @keyframes vs-preview-wave {
     0%, 100% { height: 8px; }
-    50% { height: 28px; }
+    50% { height: 24px; }
 }
 
-.vs-preview-audio audio,
-.vs-preview-video video {
-    display: none;
-}
-
-.vs-preview-audio__controls,
-.vs-preview-video__controls {
-    width: min(100%, 360px);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.vs-preview-media-btn {
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    padding: 0;
-    background: #2563eb;
-    color: #fff;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.vs-preview-media-track {
-    flex: 1 1 auto;
-    height: 6px;
-    border-radius: 999px;
-    background: #cbd5e1;
-    cursor: pointer;
-    overflow: hidden;
-}
-
-.vs-preview-media-fill {
-    height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, #2563eb, #3b82f6);
-    border-radius: inherit;
-}
-
-.vs-preview-media-time {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: #64748b;
-    min-width: 72px;
-    text-align: right;
-}
-
-.vs-preview-video__screen {
+.vs-preview-audio__player {
     width: 100%;
-    max-width: 100%;
-    background: #0f172a;
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
+    max-width: 360px;
+}
+
+.vs-preview-audio__player audio {
+    display: block;
+    width: 100%;
+    height: 40px;
+    outline: none;
+}
+
+.vs-preview-video {
+    padding: 0;
+    background: #000;
+    min-height: 0;
 }
 
 .vs-preview-video__el {
     display: block;
     width: 100%;
-    max-height: min(50vh, 420px);
+    max-width: 100%;
+    max-height: min(60vh, 520px);
     object-fit: contain;
+    background: #000;
+    border-radius: 0;
+    outline: none;
+}
+
+.vs-file-preview__viewer-shell:fullscreen .vs-preview-video__el {
+    max-height: calc(100vh - 32px);
 }
 
 /* 电脑：居中弹窗 */

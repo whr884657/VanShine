@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/file-preview.js
  * 作用：文件在线预览（本地资源 + 原生媒体）
- * @version 1.0.49
+ * @version 1.0.50
  */
 
 (function () {
@@ -20,8 +20,7 @@
     var MARKDOWN_EXT = ['md', 'markdown'];
     var CODE_EXT = ['html', 'htm', 'php', 'css', 'js', 'mjs', 'cjs', 'json', 'xml', 'txt', 'log', 'sql', 'yaml', 'yml', 'ini', 'sh', 'bat', 'vue', 'ts', 'tsx', 'jsx'];
 
-    var ICON_PLAY = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>';
-    var ICON_PAUSE = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/></svg>';
+    var ICON_MUSIC = '<svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
 
     function assetBase() {
         var cfg = window.VS_FILE_PREVIEW || {};
@@ -308,80 +307,27 @@
         });
     }
 
-    function fmtTime(sec) {
-        sec = Math.floor(sec || 0);
-        var m = Math.floor(sec / 60);
-        var s = sec % 60;
-        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-    }
-
-    function bindMediaControls(media, btn, fill, timeEl, wrap) {
-        btn.innerHTML = ICON_PLAY;
-        btn.setAttribute('aria-label', 'Play');
-
-        media.addEventListener('timeupdate', function () {
-            if (!media.duration) return;
-            fill.style.width = ((media.currentTime / media.duration) * 100) + '%';
-            timeEl.textContent = fmtTime(media.currentTime) + ' / ' + fmtTime(media.duration);
-        });
-
-        media.addEventListener('play', function () {
-            btn.innerHTML = ICON_PAUSE;
-            btn.setAttribute('aria-label', 'Pause');
-            if (wrap) wrap.classList.add('is-playing');
-        });
-
-        media.addEventListener('pause', function () {
-            btn.innerHTML = ICON_PLAY;
-            btn.setAttribute('aria-label', 'Play');
-            if (wrap) wrap.classList.remove('is-playing');
-        });
-
-        media.addEventListener('ended', function () {
-            btn.innerHTML = ICON_PLAY;
-            btn.setAttribute('aria-label', 'Play');
-            if (wrap) wrap.classList.remove('is-playing');
-        });
-
-        btn.addEventListener('click', function () {
-            if (media.paused) media.play();
-            else media.pause();
-        });
-    }
-
     function renderAudio(container, url) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--audio');
         var wrap = document.createElement('div');
         wrap.className = 'vs-preview-audio';
-        wrap.innerHTML = '<div class="vs-preview-audio__disc" aria-hidden="true">'
-            + '<svg viewBox="0 0 24 24" width="36" height="36"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>'
-            + '</div>'
+        wrap.innerHTML = '<div class="vs-preview-audio__icon" aria-hidden="true">' + ICON_MUSIC + '</div>'
             + '<div class="vs-preview-audio__waves" aria-hidden="true">'
             + '<span></span><span></span><span></span><span></span><span></span>'
             + '</div>'
-            + '<div class="vs-preview-audio__controls">'
-            + '<button type="button" class="vs-preview-media-btn" data-act="play"></button>'
-            + '<div class="vs-preview-media-track"><div class="vs-preview-media-fill"></div></div>'
-            + '<span class="vs-preview-media-time">00:00</span>'
-            + '</div>';
+            + '<div class="vs-preview-audio__player"></div>';
         var audio = document.createElement('audio');
-        audio.preload = 'metadata';
         audio.src = url;
-        wrap.appendChild(audio);
+        audio.controls = true;
+        audio.preload = 'metadata';
+        audio.setAttribute('controlsList', 'nodownload');
+        wrap.querySelector('.vs-preview-audio__player').appendChild(audio);
         container.appendChild(wrap);
 
-        var btn = wrap.querySelector('[data-act="play"]');
-        var fill = wrap.querySelector('.vs-preview-media-fill');
-        var timeEl = wrap.querySelector('.vs-preview-media-time');
-        bindMediaControls(audio, btn, fill, timeEl, wrap);
-
-        wrap.querySelector('.vs-preview-media-track').addEventListener('click', function (e) {
-            if (!audio.duration) return;
-            var rect = this.getBoundingClientRect();
-            var ratio = (e.clientX - rect.left) / rect.width;
-            audio.currentTime = Math.max(0, Math.min(1, ratio)) * audio.duration;
-        });
+        audio.addEventListener('play', function () { wrap.classList.add('is-playing'); });
+        audio.addEventListener('pause', function () { wrap.classList.remove('is-playing'); });
+        audio.addEventListener('ended', function () { wrap.classList.remove('is-playing'); });
     }
 
     function renderVideo(container, url) {
@@ -389,37 +335,17 @@
         container.classList.add('vs-preview-stage--video');
         var wrap = document.createElement('div');
         wrap.className = 'vs-preview-video';
-        var screen = document.createElement('div');
-        screen.className = 'vs-preview-video__screen';
         var video = document.createElement('video');
         video.className = 'vs-preview-video__el';
         video.src = url;
+        video.controls = true;
         video.playsInline = true;
-        screen.appendChild(video);
-        var controls = document.createElement('div');
-        controls.className = 'vs-preview-video__controls';
-        controls.innerHTML = '<button type="button" class="vs-preview-media-btn" data-act="play"></button>'
-            + '<div class="vs-preview-media-track"><div class="vs-preview-media-fill"></div></div>'
-            + '<span class="vs-preview-media-time">00:00</span>';
-        wrap.appendChild(screen);
-        wrap.appendChild(controls);
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.preload = 'metadata';
+        video.setAttribute('controlsList', 'nodownload');
+        wrap.appendChild(video);
         container.appendChild(wrap);
-
-        var btn = controls.querySelector('[data-act="play"]');
-        var fill = controls.querySelector('.vs-preview-media-fill');
-        var timeEl = controls.querySelector('.vs-preview-media-time');
-        bindMediaControls(video, btn, fill, timeEl, null);
-
-        controls.querySelector('.vs-preview-media-track').addEventListener('click', function (e) {
-            if (!video.duration) return;
-            var rect = this.getBoundingClientRect();
-            var ratio = (e.clientX - rect.left) / rect.width;
-            video.currentTime = Math.max(0, Math.min(1, ratio)) * video.duration;
-        });
-        screen.addEventListener('click', function () {
-            if (video.paused) video.play();
-            else video.pause();
-        });
     }
 
     function mount(container, file, options) {

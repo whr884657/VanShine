@@ -5,6 +5,7 @@ install/installed.lock
 /data/
 release/*.zip
 参考程序/
+参考项目/
 .DS_Store
 Thumbs.db
 *.log

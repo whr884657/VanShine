@@ -7,6 +7,9 @@
 
 class Database
 {
+    /** 数据表前缀（固定，不可通过安装向导修改） */
+    const TABLE_PREFIX = 'vs_';
+
     /** @var PDO|null */
     private static $instance = null;
 
@@ -117,10 +120,7 @@ class Database
      */
     public static function prefix()
     {
-        if (empty(self::$config)) {
-            self::$config = self::loadConfig();
-        }
-        return isset(self::$config['prefix']) ? self::$config['prefix'] : 'vs_';
+        return self::TABLE_PREFIX;
     }
 
     /**

@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'username' => trim(isset($_POST['username']) ? $_POST['username'] : ''),
         'password' => isset($_POST['password']) ? $_POST['password'] : '',
         'dbname'   => trim(isset($_POST['dbname']) ? $_POST['dbname'] : ''),
-        'prefix'   => trim(isset($_POST['prefix']) ? $_POST['prefix'] : 'vs_'),
+        'prefix'   => Database::TABLE_PREFIX,
         'charset'  => 'utf8mb4',
     );
 
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $dbConfig = $_SESSION['vs_install_db'];
-        $prefix = $dbConfig['prefix'];
+        $prefix = Database::TABLE_PREFIX;
 
         try {
             $pdo = Database::testConnection($dbConfig);
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $dbConfig = $_SESSION['vs_install_db'];
                 $pdo = Database::testConnection($dbConfig);
-                $prefix = $dbConfig['prefix'];
+                $prefix = Database::TABLE_PREFIX;
                 $table = $prefix . 'admin';
 
                 $stmt = $pdo->prepare('INSERT INTO `' . $table . '` (`username`, `password`, `email`, `status`, `created_at`) VALUES (?, ?, ?, 1, NOW())');
@@ -177,7 +177,7 @@ function writeDatabaseConfig(array $config)
         'username' => $config['username'],
         'password' => $config['password'],
         'dbname'   => $config['dbname'],
-        'prefix'   => $config['prefix'],
+        'prefix'   => Database::TABLE_PREFIX,
         'charset'  => 'utf8mb4',
     ), true) . ";\n";
 
@@ -270,8 +270,9 @@ function runEnvironmentCheck()
 
 // ── 页面数据准备 ──────────────────────────────────────────
 $dbConfig = isset($_SESSION['vs_install_db']) ? $_SESSION['vs_install_db'] : array(
-    'host' => 'localhost', 'port' => '3306', 'username' => '', 'password' => '', 'dbname' => '', 'prefix' => 'vs_',
+    'host' => 'localhost', 'port' => '3306', 'username' => '', 'password' => '', 'dbname' => '', 'prefix' => Database::TABLE_PREFIX,
 );
+$dbConfig['prefix'] = Database::TABLE_PREFIX;
 $dbTested = !empty($_SESSION['vs_db_tested']);
 $envChecks = ($step === 1) ? runEnvironmentCheck() : array();
 $envAllPass = true;
@@ -286,7 +287,7 @@ $existingTables = array();
 if ($step === 3 && $dbTested) {
     try {
         $pdo = Database::testConnection($dbConfig);
-        $existingTables = getExistingTables($pdo, $dbConfig['prefix']);
+        $existingTables = getExistingTables($pdo, Database::TABLE_PREFIX);
         $dbHasTables = count($existingTables) > 0;
     } catch (Exception $e) {
         $error = $error ?: $e->getMessage();
@@ -353,7 +354,7 @@ vs_render_head('安装向导 - 第' . $step . '步', array('install.css'));
 
             <?php elseif ($step === 2): ?>
                 <h2 class="vs-card-title">第二步：数据库配置</h2>
-                <p class="vs-card-desc">请填写 MySQL 数据库连接信息，然后测试连接。</p>
+                <p class="vs-card-desc">请填写 MySQL 数据库连接信息，然后测试连接。数据表前缀固定为 <code>vs_</code>，无需配置。</p>
                 <form method="post" action="" class="vs-form" id="dbForm">
                     <input type="hidden" name="step" value="2">
                     <div class="vs-form-grid">
@@ -376,10 +377,6 @@ vs_render_head('安装向导 - 第' . $step . '步', array('install.css'));
                         <div class="vs-form-row">
                             <label class="vs-label">数据库名</label>
                             <input type="text" name="dbname" class="vs-input" value="<?php echo vs_e($dbConfig['dbname']); ?>" placeholder="vanshine" required>
-                        </div>
-                        <div class="vs-form-row">
-                            <label class="vs-label">数据表前缀</label>
-                            <input type="text" name="prefix" class="vs-input" value="<?php echo vs_e($dbConfig['prefix']); ?>" placeholder="vs_">
                         </div>
                     </div>
                     <div id="dbTestMessage" class="vs-alert" role="alert" hidden></div>

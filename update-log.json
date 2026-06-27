@@ -8,6 +8,8 @@
             "title": "预览本地化、账号与上传优化",
             "db_changes": false,
             "changes": [
+                "修复 v1.0.48 起在线更新无法下载云端资源包的问题",
+                "安装向导移除数据表前缀配置，系统固定使用 vs_ 前缀",
                 "预览库内置至 assets/vendor/preview/（marked、highlight、pdf.js、docx-preview、ExcelJS）",
                 "图片/音频/视频原生渲染，播放按钮 SVG 图标，波形仅播放时动画",
                 "预览区支持浏览器全屏（Fullscreen API）",

@@ -13,6 +13,14 @@
 
 ## 变更内容
 
+### 在线更新
+
+- **修复 v1.0.48 起在线更新无法下载云端资源包的问题**（PHP 兼容、分步更新 session 与 JSON 响应）
+
+### 安装向导
+
+- 数据库配置步骤**移除数据表前缀输入**，系统固定使用 `vs_` 前缀
+
 ### 文件预览
 
 - 预览库内置至 `assets/vendor/preview/`（marked、highlight.js、pdf.js、docx-preview、ExcelJS）

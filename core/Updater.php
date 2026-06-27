@@ -207,6 +207,11 @@ class Updater
         $triedUrls = array();
         $downloadOk = false;
 
+        // 释放 session 锁，避免长时间下载阻塞其它请求
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
         foreach (self::buildUpdatePackageUrls(
             $check['repo'],
             $check['branch'],
@@ -236,6 +241,7 @@ class Updater
             );
         }
 
+        self::ensureSessionStarted();
         self::setUpdateWork(array(
             'version' => $check['remote_version'],
             'downloaded' => true,
@@ -373,10 +379,21 @@ class Updater
     }
 
     /**
-     * @return array|null
+     * @return void
+     */
+    private static function ensureSessionStarted()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
+    /**
+     * @return array
      */
     private static function getUpdateWork()
     {
+        self::ensureSessionStarted();
         if (!isset($_SESSION['vs_update_work']) || !is_array($_SESSION['vs_update_work'])) {
             return array();
         }
@@ -389,6 +406,7 @@ class Updater
      */
     private static function setUpdateWork(array $work)
     {
+        self::ensureSessionStarted();
         $_SESSION['vs_update_work'] = $work;
     }
 
@@ -397,6 +415,7 @@ class Updater
      */
     private static function clearUpdateWork()
     {
+        self::ensureSessionStarted();
         unset($_SESSION['vs_update_work']);
     }
 
@@ -629,11 +648,11 @@ class Updater
      * - 本地 CA 根证书包会随时间过时，且受 open_basedir 限制
      * - 仅对白名单域名放宽链校验，下载后仍校验 ZIP 文件头
      *
-     * @param \CurlHandle $ch
-     * @param string      $url
+     * @param resource|\CurlHandle $ch
+     * @param string               $url
      * @return void
      */
-    public static function configureCurlSsl(\CurlHandle $ch, $url = '')
+    public static function configureCurlSsl($ch, $url = '')
     {
         if ($url !== '' && self::isTrustedUpdateUrl($url)) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

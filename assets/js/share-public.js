@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/share-public.js
  * 作用：公开分享页交互
- * @version 1.0.60
+ * @version 1.0.62
  */
 
 (function () {
@@ -43,25 +43,15 @@
         }
     }
 
-    function showPreviewPanel() {
-        if (preview) {
-            preview.hidden = false;
-        }
-    }
-
     function openPreview(file) {
         if (!file || !mount) return;
-        showPreviewPanel();
+        if (preview) preview.hidden = false;
         if (state) {
             state.hidden = false;
             state.textContent = '正在加载预览…';
         }
         setHint('正在加载预览…');
         setActive(file.id);
-
-        if (layout) {
-            layout.classList.toggle('is-single', files.length === 1);
-        }
 
         VsFilePreview.mount(mount, file).then(function () {
             if (state) state.hidden = true;
@@ -74,7 +64,7 @@
             setHint('无法预览，请下载后查看');
         });
 
-        if (preview && window.matchMedia('(max-width: 767px)').matches) {
+        if (preview && window.matchMedia('(max-width: 991px)').matches) {
             preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
@@ -89,11 +79,6 @@
     }
 
     if (layout && layout.getAttribute('data-allow-preview') === '1' && files.length > 0) {
-        var startId = files.length === 1 ? files[0].id : null;
-        if (startId !== null) {
-            openPreview(files[0]);
-        } else if (preview) {
-            preview.hidden = true;
-        }
+        openPreview(files[0]);
     }
 })();

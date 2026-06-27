@@ -2,7 +2,7 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（入口 /d/?token=）
- * @version 1.0.61
+ * @version 1.0.62
  */
 
 require __DIR__ . '/boot.php';
@@ -77,7 +77,6 @@ if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
 }
 
 $fileCount = count($shareFiles);
-$isSingleFile = !$isFolderShare || $fileCount === 1;
 $canShowContent = $errorMsg === '' && (!$needsPassword || $unlocked) && $fileCount > 0;
 $showPreviewPanel = $canShowContent && $allowPreview;
 
@@ -156,23 +155,10 @@ function vs_share_format_size($bytes)
 <?php } elseif ($fileCount === 0) { ?>
         <div class="vs-share-alert">暂无可访问的文件</div>
 <?php } else { ?>
-        <div class="vs-share-layout<?php echo $isSingleFile ? ' is-single' : ''; ?><?php echo $showPreviewPanel ? ' has-preview' : ''; ?>"
+        <div class="vs-share-layout<?php echo $showPreviewPanel ? ' has-preview' : ''; ?>"
              id="shareLayout"
              data-share-type="<?php echo vs_e($share['share_type']); ?>"
              data-allow-preview="<?php echo $allowPreview ? '1' : '0'; ?>">
-
-            <?php if ($showPreviewPanel) { ?>
-            <section class="vs-share-preview" id="sharePreview"<?php echo $isSingleFile ? '' : ' hidden'; ?>>
-                <div class="vs-share-preview__head">
-                    <span class="vs-share-preview__label">在线预览</span>
-                    <span class="vs-share-preview__hint" id="sharePreviewHint"><?php echo $isSingleFile ? '正在加载…' : '点击文件开始预览'; ?></span>
-                </div>
-                <div class="vs-file-preview__viewer-shell vs-share-preview__stage" id="sharePreviewShell">
-                    <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
-                    <div class="vs-file-preview__viewer-state" id="sharePreviewState"><?php echo $isSingleFile ? '正在加载预览…' : '选择文件以预览'; ?></div>
-                </div>
-            </section>
-            <?php } ?>
 
             <section class="vs-share-files">
                 <div class="vs-share-files__head">
@@ -205,6 +191,19 @@ function vs_share_format_size($bytes)
                     <?php } ?>
                 </ul>
             </section>
+
+            <?php if ($showPreviewPanel) { ?>
+            <section class="vs-share-preview" id="sharePreview">
+                <div class="vs-share-preview__head">
+                    <span class="vs-share-preview__label">在线预览</span>
+                    <span class="vs-share-preview__hint" id="sharePreviewHint">正在加载…</span>
+                </div>
+                <div class="vs-file-preview__viewer-shell vs-share-preview__stage" id="sharePreviewShell">
+                    <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
+                    <div class="vs-file-preview__viewer-state" id="sharePreviewState">正在加载预览…</div>
+                </div>
+            </section>
+            <?php } ?>
         </div>
 <?php } ?>
     </main>

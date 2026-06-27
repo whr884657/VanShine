@@ -1,4 +1,4 @@
-/* 公开分享页 @version 1.0.61 */
+/* 公开分享页 @version 1.0.62 */
 
 .vs-share-page {
     margin: 0;
@@ -131,19 +131,20 @@
 /* 主内容 */
 .vs-share-shell__main {
     flex: 1 1 auto;
+    min-height: 0;
     padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
 }
 
 .vs-share-layout {
     display: grid;
     gap: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
-.vs-share-layout.has-preview:not(.is-single) {
-    grid-template-columns: 1fr;
-}
-
-.vs-share-layout.is-single.has-preview {
+.vs-share-layout.has-preview {
     grid-template-columns: 1fr;
 }
 
@@ -153,6 +154,9 @@
     border-radius: 12px;
     overflow: hidden;
     background: #0b1220;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .vs-share-preview__head {
@@ -177,8 +181,9 @@
 }
 
 .vs-share-preview__stage {
+    flex: 1 1 auto;
     min-height: 200px;
-    max-height: min(52vh, 520px);
+    max-height: min(60vh, 560px);
     border: none;
     border-radius: 0;
     background: #0b1220;
@@ -191,12 +196,20 @@
 .vs-share-preview__stage .vs-file-preview__viewer-mount {
     flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
     max-height: 100%;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+.vs-share-preview__stage .vs-file-preview__viewer-mount .vs-preview-stage {
+    min-height: min-content;
+    max-height: none;
 }
 
 .vs-share-preview__stage.is-compact-audio {
+    flex: 0 0 auto;
     max-height: 120px;
     min-height: 0;
     background: linear-gradient(135deg, #f8fafc, #eef2ff);
@@ -204,29 +217,29 @@
 
 .vs-share-preview__stage.is-compact-audio .vs-file-preview__viewer-mount {
     overflow: visible;
+    height: auto;
 }
 
 .vs-share-preview__stage.is-fit-video,
 .vs-share-preview__stage.is-fit-image {
-    max-height: min(48vh, 480px);
+    flex: 0 1 auto;
+    max-height: min(55vh, 520px);
 }
 
-.vs-share-preview__stage.is-doc-view,
-.vs-share-preview__stage.is-fill {
-    max-height: min(52vh, 520px);
+.vs-share-preview__stage.is-doc-view {
+    flex: 1 1 auto;
+    min-height: 240px;
+    max-height: min(65vh, 640px);
+    background: #e2e8f0;
+}
+
+.vs-share-preview__stage.is-doc-view .vs-file-preview__viewer-mount {
+    overflow: auto;
+    overscroll-behavior: contain;
 }
 
 .vs-share-preview .vs-file-preview__viewer-state {
     color: #94a3b8;
-}
-
-.vs-share-layout.is-single .vs-share-preview__stage:not(.is-compact-audio) {
-    max-height: min(52vh, 520px);
-}
-
-.vs-share-layout.is-single .vs-share-preview__stage.is-compact-audio {
-    max-height: 120px;
-    min-height: 0;
 }
 
 /* 文件列表 */
@@ -235,6 +248,9 @@
     border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .vs-share-files__head {
@@ -262,6 +278,10 @@
     list-style: none;
     margin: 0;
     padding: 6px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .vs-share-files__item {
@@ -603,39 +623,146 @@ a.vs-share-shell__beian-item:hover {
     border-color: #94a3b8;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .vs-share-page {
-        padding: 20px 24px;
+        padding: 0;
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+        background: #fff;
     }
 
     .vs-share-shell {
-        min-height: calc(100vh - 40px);
+        max-width: none;
+        width: 100%;
+        min-height: 100vh;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .vs-share-shell__topbar {
+        flex-shrink: 0;
+        padding: 10px 20px;
+    }
+
+    .vs-share-shell__hero {
+        flex-shrink: 0;
+        padding: 10px 20px 12px;
+    }
+
+    .vs-share-shell__title {
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    .vs-share-shell__main {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .vs-share-shell__footer {
+        flex-shrink: 0;
+        padding: 10px 20px 12px;
+    }
+
+    .vs-share-layout.has-preview {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        gap: 0;
+        height: 100%;
+        min-height: 0;
+        align-items: stretch;
+    }
+
+    .vs-share-files {
+        border-radius: 0;
+        border: none;
+        border-right: 1px solid #e2e8f0;
+        height: 100%;
+        max-height: none;
+    }
+
+    .vs-share-preview {
+        border-radius: 0;
+        border: none;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .vs-share-preview__stage {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        height: auto;
+    }
+
+    .vs-share-preview__stage.is-compact-audio {
+        flex: 0 0 auto;
+        max-height: 120px;
+    }
+
+    .vs-share-preview__stage.is-fit-video,
+    .vs-share-preview__stage.is-fit-image {
+        flex: 0 1 auto;
+        max-height: 100%;
+    }
+
+    .vs-share-preview__stage.is-doc-view {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        height: auto;
+    }
+
+    .vs-share-preview__stage .vs-file-preview__viewer-mount {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        max-height: 100%;
+        overflow: auto;
+    }
+
+    .vs-share-preview__stage.is-doc-view .vs-file-preview__viewer-mount {
+        overflow: auto;
+    }
+
+    .vs-share-preview__stage .vs-preview-iframe,
+    .vs-share-preview__stage .vs-preview-doc {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .vs-share-page {
+        padding: 16px 20px;
+    }
+
+    .vs-share-shell {
+        min-height: calc(100vh - 32px);
     }
 
     .vs-share-shell__hero,
     .vs-share-shell__main {
-        padding-left: 24px;
-        padding-right: 24px;
+        padding-left: 20px;
+        padding-right: 20px;
     }
 
     .vs-share-layout.has-preview {
-        grid-template-columns: 1fr 1fr;
-        align-items: start;
-        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        align-items: stretch;
+        gap: 12px;
     }
 
-    .vs-share-layout.has-preview.is-single {
-        grid-template-columns: 1fr 1fr;
+    .vs-share-files {
+        max-height: min(72vh, 720px);
     }
 
-    .vs-share-layout.has-preview .vs-share-preview {
-        order: 1;
-    }
-
-    .vs-share-layout.has-preview .vs-share-files {
-        order: 2;
-        max-height: min(70vh, 640px);
-        overflow: auto;
+    .vs-share-preview__stage.is-doc-view {
+        max-height: min(72vh, 720px);
     }
 }
 

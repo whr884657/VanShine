@@ -28,6 +28,7 @@ require_once VS_ROOT . '/core/StorageRegistry.php';
 require_once VS_ROOT . '/core/UploadNaming.php';
 require_once VS_ROOT . '/core/FileFolder.php';
 require_once VS_ROOT . '/core/FileItem.php';
+require_once VS_ROOT . '/core/FileShare.php';
 require_once VS_ROOT . '/core/StorageManager.php';
 
 if (session_status() === PHP_SESSION_NONE) {

@@ -241,8 +241,11 @@ class StorageManager
      * @return void
      * @throws Exception
      */
-    public static function streamFileItem(array $item)
+    public static function streamFileItem(array $item, array $options = array())
     {
+        $disposition = isset($options['disposition']) && $options['disposition'] === 'attachment'
+            ? 'attachment'
+            : 'inline';
         $storageKey = (int) $item['storage_key'];
         $pathname = str_replace('\\', '/', (string) $item['pathname']);
         if ($pathname === '') {
@@ -271,7 +274,7 @@ class StorageManager
             if (!is_file($fullPath)) {
                 throw new Exception('本地文件不存在');
             }
-            self::outputLocalFileWithRange($fullPath, $mime, $name);
+            self::outputLocalFileWithRange($fullPath, $mime, $name, $disposition);
             return;
         }
 
@@ -285,10 +288,12 @@ class StorageManager
         }
 
         header('Content-Type: ' . $mime);
-        header('Content-Disposition: inline; filename="' . self::escapeFilename($name) . '"');
+        header('Content-Disposition: ' . $disposition . '; filename="' . self::escapeFilename($name) . '"');
         header('Content-Length: ' . strlen($content));
         header('Accept-Ranges: bytes');
-        header('Cache-Control: private, max-age=3600');
+        header('Cache-Control: private, no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
         echo $content;
         exit;
     }
@@ -297,9 +302,10 @@ class StorageManager
      * @param string $fullPath
      * @param string $mime
      * @param string $name
+     * @param string $disposition
      * @return void
      */
-    private static function outputLocalFileWithRange($fullPath, $mime, $name)
+    private static function outputLocalFileWithRange($fullPath, $mime, $name, $disposition = 'inline')
     {
         $size = filesize($fullPath);
         if ($size === false) {
@@ -311,9 +317,11 @@ class StorageManager
         }
 
         header('Content-Type: ' . $mime);
-        header('Content-Disposition: inline; filename="' . self::escapeFilename($name) . '"');
+        header('Content-Disposition: ' . $disposition . '; filename="' . self::escapeFilename($name) . '"');
         header('Accept-Ranges: bytes');
-        header('Cache-Control: private, max-age=3600');
+        header('Cache-Control: private, no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
 
         $start = 0;
         $end = $size - 1;

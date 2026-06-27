@@ -1,0 +1,112 @@
+/* 分享管理 @version 1.0.53 */
+
+.vs-shares__tip {
+    margin: 0 0 12px;
+}
+
+.vs-shares__tip code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.vs-shares__table-wrap {
+    overflow-x: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.vs-shares__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.vs-shares__table th,
+.vs-shares__table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.vs-shares__table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.vs-shares__empty {
+    text-align: center;
+    color: #64748b;
+    padding: 24px !important;
+}
+
+.vs-shares__target {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vs-shares__url {
+    width: 180px;
+    max-width: 40vw;
+    font-size: 12px;
+    padding: 4px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-right: 6px;
+}
+
+.vs-shares__copy {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.vs-shares__actions {
+    white-space: nowrap;
+}
+
+.vs-shares__actions .vs-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.vs-shares__del {
+    color: #b91c1c;
+}
+
+.vs-shares__badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+}
+
+.vs-shares__badge--on {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.vs-shares__badge--off {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.vs-form-row--inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.vs-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}

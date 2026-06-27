@@ -211,6 +211,46 @@ class FileFolder
     }
 
     /**
+     * @param int $folderId
+     * @return array<int>
+     */
+    public static function collectDescendantIds($folderId)
+    {
+        $folderId = (int) $folderId;
+        if ($folderId <= 0) {
+            return array();
+        }
+
+        $ids = array();
+        foreach (self::listByParent($folderId) as $child) {
+            $childId = (int) $child['id'];
+            $ids[] = $childId;
+            $ids = array_merge($ids, self::collectDescendantIds($childId));
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param int $folderId
+     * @return array
+     */
+    public static function listFilesRecursive($folderId)
+    {
+        $folderId = (int) $folderId;
+        if ($folderId <= 0) {
+            return array();
+        }
+
+        $files = FileItem::listByFolder($folderId);
+        foreach (self::listByParent($folderId) as $child) {
+            $files = array_merge($files, self::listFilesRecursive((int) $child['id']));
+        }
+
+        return $files;
+    }
+
+    /**
      * @param string $segment
      * @return string
      */

@@ -20,10 +20,13 @@ function vs_admin_menu_groups()
             'url'   => '/admin/index.php',
         ),
         array(
-            'id'    => 'files',
-            'title' => '文件管理',
-            'icon'  => 'folder',
-            'url'   => '/admin/files.php',
+            'id'       => 'files_group',
+            'title'    => '文件',
+            'icon'     => 'folder',
+            'children' => array(
+                array('id' => 'files', 'title' => '文件管理', 'url' => '/admin/files.php'),
+                array('id' => 'file_shares', 'title' => '分享管理', 'url' => '/admin/shares.php'),
+            ),
         ),
         array(
             'id'       => 'cdn',

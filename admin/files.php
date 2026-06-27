@@ -170,6 +170,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'create_share') {
+        try {
+            $type = isset($_POST['share_type']) ? (string) $_POST['share_type'] : FileShare::TYPE_FILE;
+            $data = array(
+                'share_type'    => $type,
+                'file_id'       => (int) (isset($_POST['file_id']) ? $_POST['file_id'] : 0),
+                'folder_id'     => (int) (isset($_POST['folder_id']) ? $_POST['folder_id'] : 0),
+                'title'         => isset($_POST['title']) ? $_POST['title'] : '',
+                'password'      => isset($_POST['password']) ? $_POST['password'] : '',
+                'expires_at'    => isset($_POST['expires_at']) ? $_POST['expires_at'] : '',
+                'max_downloads' => (int) (isset($_POST['max_downloads']) ? $_POST['max_downloads'] : 0),
+                'allow_preview' => !isset($_POST['allow_preview']) || $_POST['allow_preview'] !== '0',
+            );
+            $id = FileShare::create($data);
+            $share = FileShare::find($id);
+            $row = $share ? FileShare::toAdminRow($share) : array();
+            AjaxResponse::success('分享链接已创建', array('share' => $row));
+        } catch (Exception $e) {
+            AjaxResponse::error($e->getMessage());
+        }
+    }
+
     if ($action === 'replace_file') {
         if ($folderId <= 0) {
             AjaxResponse::error('请先进入已绑定储存的文件夹');
@@ -226,6 +248,7 @@ vs_admin_layout_start('文件管理', 'files');
     <div class="vs-filemgr__toolbar">
         <div class="vs-filemgr__toolbar-left">
             <button type="button" class="vs-btn vs-btn--default" id="btnNewFolder">新建文件夹</button>
+            <button type="button" class="vs-btn vs-btn--default" id="btnShareFolder" hidden>分享此文件夹</button>
             <label class="vs-btn vs-btn--primary vs-filemgr__upload-btn" id="uploadWrap" hidden>
                 上传文件
                 <input type="file" id="fileUploadInput" multiple hidden>
@@ -325,6 +348,11 @@ vs_admin_layout_start('文件管理', 'files');
             <details class="vs-file-preview__details">
                 <summary class="vs-file-preview__details-toggle">文件信息与操作</summary>
             <div class="vs-file-preview__meta" id="filePreviewMeta"></div>
+            <div class="vs-file-preview__share-box" id="filePreviewShareBox" hidden>
+                <input type="text" class="vs-file-preview__link-input" id="filePreviewShareUrl" readonly placeholder="创建分享后显示短链接">
+                <button type="button" class="vs-btn vs-btn--primary" id="filePreviewShareCreate">创建分享</button>
+                <button type="button" class="vs-btn vs-btn--default" id="filePreviewShareCopy" hidden>复制短链接</button>
+            </div>
             <div class="vs-file-preview__link-box">
                 <input type="text" class="vs-file-preview__link-input" id="filePreviewLink" readonly>
                 <button type="button" class="vs-btn vs-btn--primary" id="filePreviewCopy">复制链接</button>
@@ -346,6 +374,50 @@ vs_admin_layout_start('文件管理', 'files');
             </div>
             </details>
         </div>
+    </div>
+</div>
+
+<div class="vs-modal-shell" id="shareCreateModal" hidden>
+    <div class="vs-modal vs-modal--md">
+        <div class="vs-modal__head">
+            <h3 class="vs-modal__title" id="shareCreateTitle">创建分享</h3>
+            <button type="button" class="vs-modal__close" data-close-share-create aria-label="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+        <form id="shareCreateForm" class="vs-form">
+            <input type="hidden" name="share_type" id="shareCreateType" value="file">
+            <input type="hidden" name="file_id" id="shareCreateFileId" value="">
+            <input type="hidden" name="folder_id" id="shareCreateFolderId" value="">
+            <div class="vs-modal__body">
+                <div class="vs-form-row">
+                    <label class="vs-label">分享标题（可选）</label>
+                    <input type="text" name="title" id="shareCreateTitleInput" class="vs-input" maxlength="255">
+                </div>
+                <div class="vs-form-row">
+                    <label class="vs-label">访问密码（可选）</label>
+                    <input type="password" name="password" id="shareCreatePassword" class="vs-input" autocomplete="new-password" placeholder="留空则无需密码">
+                </div>
+                <div class="vs-form-row">
+                    <label class="vs-label">过期时间（可选）</label>
+                    <input type="datetime-local" name="expires_at" id="shareCreateExpires" class="vs-input">
+                </div>
+                <div class="vs-form-row">
+                    <label class="vs-label">最大下载次数（0=不限）</label>
+                    <input type="number" name="max_downloads" id="shareCreateMaxDl" class="vs-input" min="0" value="0">
+                </div>
+                <div class="vs-form-row">
+                    <label class="vs-checkbox">
+                        <input type="checkbox" name="allow_preview" id="shareCreatePreview" value="1" checked>
+                        <span>允许访客在线预览（经服务器中转，不暴露云储直链）</span>
+                    </label>
+                </div>
+            </div>
+            <div class="vs-modal__foot">
+                <button type="button" class="vs-btn vs-btn--default" data-close-share-create>取消</button>
+                <button type="submit" class="vs-btn vs-btn--primary">生成短链接</button>
+            </div>
+        </form>
     </div>
 </div>
 

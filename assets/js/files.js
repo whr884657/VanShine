@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/files.js
  * 作用：后台文件管理页（批量/拖拽上传、预览、重命名）
- * @version 1.0.45
+ * @version 1.0.53
  */
 
 (function () {
@@ -38,6 +38,13 @@
     var fileReplaceProgress = document.getElementById('fileReplaceProgress');
     var fileReplaceFill = document.getElementById('fileReplaceFill');
     var fileReplaceStatus = document.getElementById('fileReplaceStatus');
+    var btnShareFolder = document.getElementById('btnShareFolder');
+    var shareCreateModal = document.getElementById('shareCreateModal');
+    var shareCreateForm = document.getElementById('shareCreateForm');
+    var filePreviewShareBox = document.getElementById('filePreviewShareBox');
+    var filePreviewShareUrl = document.getElementById('filePreviewShareUrl');
+    var filePreviewShareCreate = document.getElementById('filePreviewShareCreate');
+    var filePreviewShareCopy = document.getElementById('filePreviewShareCopy');
 
     var state = {
         folderId: 0,
@@ -271,11 +278,13 @@
                 + escapeHtml(state.currentFolder.storage_name) + '</strong>'
                 + ' · 支持拖拽文件到下方区域批量上传';
             if (uploadWrap) uploadWrap.hidden = false;
+            if (btnShareFolder) btnShareFolder.hidden = false;
             root.classList.add('can-upload');
         } else {
             folderMetaEl.hidden = true;
             folderMetaEl.innerHTML = '';
             if (uploadWrap) uploadWrap.hidden = true;
+            if (btnShareFolder) btnShareFolder.hidden = true;
             root.classList.remove('can-upload');
         }
     }
@@ -569,6 +578,69 @@
         filePreview.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vs-modal-open');
         resetReplaceProgress();
+        resetPreviewShareBox();
+        if (filePreviewShareBox) filePreviewShareBox.hidden = false;
+    }
+
+    function resetPreviewShareBox() {
+        if (filePreviewShareUrl) filePreviewShareUrl.value = '';
+        if (filePreviewShareCopy) filePreviewShareCopy.hidden = true;
+    }
+
+    function openShareCreateModal(type, fileId, folderId, defaultTitle) {
+        if (!shareCreateModal) return;
+        document.getElementById('shareCreateType').value = type;
+        document.getElementById('shareCreateFileId').value = fileId ? String(fileId) : '';
+        document.getElementById('shareCreateFolderId').value = folderId ? String(folderId) : '';
+        document.getElementById('shareCreateTitleInput').value = defaultTitle || '';
+        document.getElementById('shareCreatePassword').value = '';
+        document.getElementById('shareCreateExpires').value = '';
+        document.getElementById('shareCreateMaxDl').value = '0';
+        document.getElementById('shareCreatePreview').checked = true;
+        document.getElementById('shareCreateTitle').textContent = type === 'folder' ? '分享文件夹' : '分享文件';
+        shareCreateModal.hidden = false;
+        shareCreateModal.classList.add('is-open');
+    }
+
+    function closeShareCreateModal() {
+        if (!shareCreateModal) return;
+        shareCreateModal.hidden = true;
+        shareCreateModal.classList.remove('is-open');
+        if (shareCreateForm) shareCreateForm.reset();
+    }
+
+    function submitShareCreate(e) {
+        if (e) e.preventDefault();
+        if (!shareCreateForm) return;
+        var fd = new FormData(shareCreateForm);
+        fd.append('action', 'create_share');
+        fd.append('allow_preview', document.getElementById('shareCreatePreview').checked ? '1' : '0');
+        var exp = document.getElementById('shareCreateExpires').value;
+        if (exp) {
+            fd.set('expires_at', exp.replace('T', ' ') + ':00');
+        } else {
+            fd.delete('expires_at');
+        }
+        fetch(window.location.pathname, { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.code !== 1 || !res.share) {
+                    showFlash(res.msg || '创建失败', 'error');
+                    return;
+                }
+                closeShareCreateModal();
+                showFlash('分享短链接已生成', 'success');
+                if (filePreviewShareUrl && state.previewFile && res.share.share_type === 'file') {
+                    filePreviewShareUrl.value = res.share.share_url;
+                    if (filePreviewShareCopy) filePreviewShareCopy.hidden = false;
+                }
+                if (navigator.clipboard && res.share.share_url) {
+                    navigator.clipboard.writeText(res.share.share_url).catch(function () { /* ignore */ });
+                }
+            })
+            .catch(function () {
+                showFlash('创建失败', 'error');
+            });
     }
 
     function resetReplaceProgress() {
@@ -812,6 +884,43 @@
         filePreviewCopy.addEventListener('click', copyPreviewLink);
     }
 
+    if (filePreviewShareCreate) {
+        filePreviewShareCreate.addEventListener('click', function () {
+            if (!state.previewFile) return;
+            openShareCreateModal('file', state.previewFile.id, 0, state.previewFile.original_name || state.previewFile.stored_name);
+        });
+    }
+
+    if (filePreviewShareCopy && filePreviewShareUrl) {
+        filePreviewShareCopy.addEventListener('click', function () {
+            var url = filePreviewShareUrl.value;
+            if (!url) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function () {
+                    showFlash('短链接已复制', true);
+                });
+            }
+        });
+    }
+
+    if (btnShareFolder) {
+        btnShareFolder.addEventListener('click', function () {
+            if (state.folderId <= 0) return;
+            var name = state.currentFolder ? state.currentFolder.name : '文件夹';
+            openShareCreateModal('folder', 0, state.folderId, name);
+        });
+    }
+
+    if (shareCreateForm) {
+        shareCreateForm.addEventListener('submit', submitShareCreate);
+    }
+
+    if (shareCreateModal) {
+        shareCreateModal.querySelectorAll('[data-close-share-create]').forEach(function (btn) {
+            btn.addEventListener('click', closeShareCreateModal);
+        });
+    }
+
     var filePreviewExpand = document.getElementById('filePreviewExpand');
     if (filePreviewExpand) {
         filePreviewExpand.addEventListener('click', function () {
@@ -846,6 +955,8 @@
                 closeFolderModal();
             } else if (renameModal && renameModal.classList.contains('is-open')) {
                 closeRenameModal();
+            } else if (shareCreateModal && shareCreateModal.classList.contains('is-open')) {
+                closeShareCreateModal();
             }
         }
     });

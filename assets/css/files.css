@@ -1,7 +1,7 @@
 /**
  * 文件：assets/css/files.css
  * 作用：后台文件管理页样式
- * @version 1.0.52
+ * @version 1.0.53
  */
 
 .vs-filemgr {
@@ -850,6 +850,14 @@
     margin-bottom: 16px;
 }
 
+.vs-file-preview__share-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .vs-file-preview__link-input {
     flex: 1 1 auto;
     min-width: 0;
@@ -1356,44 +1364,113 @@
     font-variant-numeric: tabular-nums;
 }
 
-.vs-media-extra {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px 14px;
-}
-
-.vs-audio-bar .vs-media-extra {
-    margin-top: 8px;
-}
-
-.vs-media-extra__item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #475569;
-}
-
-.vs-media-extra__label {
+/* 原生风格音量/倍速（进度条后喇叭 + 上拉菜单） */
+.vs-native-ctrl {
+    position: relative;
     flex-shrink: 0;
 }
 
-.vs-media-extra__range {
-    width: 88px;
-    height: 4px;
+.vs-native-ctrl__btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.15s;
+}
+
+.vs-native-ctrl__btn:hover {
+    background: rgba(15, 23, 42, 0.08);
+}
+
+.vs-native-ctrl__speed {
+    min-width: 36px;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.vs-native-popover {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    padding: 8px;
+}
+
+.vs-native-popover--up {
+    transform-origin: bottom center;
+}
+
+.vs-native-popover__vol {
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    width: 28px;
+    height: 88px;
+    margin: 4px 0;
     accent-color: #2563eb;
     cursor: pointer;
 }
 
-.vs-media-extra__select {
-    min-width: 64px;
-    padding: 2px 6px;
-    font-size: 12px;
-    border: 1px solid #e2e8f0;
+.vs-native-popover__opt {
+    display: block;
+    width: 100%;
+    min-width: 72px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #334155;
     border-radius: 6px;
-    background: #fff;
-    color: #0f172a;
+    cursor: pointer;
+}
+
+.vs-native-popover__opt:hover,
+.vs-native-popover__opt.is-active {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.vs-audio-bar__row .vs-native-ctrl__btn {
+    color: #475569;
+}
+
+.vs-video-frame__bar .vs-native-ctrl__btn {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.vs-video-frame__bar .vs-native-ctrl__btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.vs-video-frame .vs-native-popover {
+    background: rgba(15, 23, 42, 0.94);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.vs-video-frame .vs-native-popover__opt {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.vs-video-frame .vs-native-popover__opt:hover,
+.vs-video-frame .vs-native-popover__opt.is-active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.vs-video-frame .vs-native-popover__vol {
+    accent-color: #93c5fd;
 }
 
 /* ── 视频框（比例自适应 + 美化控制条） ── */
@@ -1421,30 +1498,10 @@
     right: 0;
     bottom: 0;
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
-}
-
-.vs-video-frame .vs-media-extra {
-    width: 100%;
-    margin-top: 2px;
-}
-
-.vs-video-frame .vs-media-extra__item {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.vs-video-frame .vs-media-extra__range {
-    accent-color: #93c5fd;
-}
-
-.vs-video-frame .vs-media-extra__select {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: rgba(15, 23, 42, 0.55);
-    color: #fff;
 }
 
 .vs-video-frame__play {

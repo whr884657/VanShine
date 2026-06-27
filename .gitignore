@@ -4,8 +4,6 @@ install/installed.lock
 /storage/
 /data/
 release/*.zip
-.flyfish-build/
-.flyfish-pack/
 .DS_Store
 Thumbs.db
 *.log

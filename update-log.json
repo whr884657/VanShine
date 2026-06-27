@@ -3,6 +3,21 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.48",
+            "date": "2026-06-27",
+            "title": "在线预览重构与更新进度优化",
+            "db_changes": false,
+            "changes": [
+                "移除 Flyfish Viewer（约 130MB），改用 jsDelivr CDN 轻量预览",
+                "支持 PDF、Word(.docx)、Excel、Markdown、HTML/PHP/CSS/JS、音视频",
+                "压缩包等不支持预览的格式仅显示图标",
+                "预览内容限制在框内，手机抽屉 80vh，支持预览区放大",
+                "自定义音视频播放器（音乐图标 + 波形动画）",
+                "更新过程分步进度：下载 → 解压 → 覆盖 → 数据库（如有）",
+                "界面文案统一为「云端」，不再向用户显示 Gitee"
+            ]
+        },
+        {
             "version": "1.0.47",
             "date": "2026-06-27",
             "title": "绑定域名迁入配置表与储存设置优化",

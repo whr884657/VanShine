@@ -1,13 +1,16 @@
 {
-    "version": "1.0.47",
+    "version": "1.0.48",
     "release_date": "2026-06-27",
-    "title": "绑定域名迁入配置表与储存设置优化",
-    "db_changes": true,
+    "title": "在线预览重构与更新进度优化",
+    "db_changes": false,
     "changes": [
-        "移除 domain 表，绑定子域名改存 config.bound_domains JSON",
-        "登录页「记住账号密码」本地自动填充",
-        "AWS S3 / 蓝奏云优享版 / WebDAV 标注暂时不可用",
-        "七牛云 / 腾讯云 / 阿里云 OSS 配置区增加官网注册入口"
+        "移除 Flyfish Viewer，改用 jsDelivr CDN 轻量预览方案",
+        "支持 PDF / Word / Excel / Markdown / 代码 / 音视频在线预览",
+        "压缩包等格式仅显示图标，预览内容限制在框内不溢出",
+        "手机端预览抽屉高度调整为 80vh，支持预览区放大",
+        "自定义音视频播放器（非浏览器原生控件）",
+        "更新过程分步进度：下载 → 解压 → 覆盖 → 数据库（如有）",
+        "用户界面统一使用「云端」表述，不再显示 Gitee"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

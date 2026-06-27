@@ -445,22 +445,25 @@
     }
 
     function destroyFileViewer() {
-        if (window.VsFlyfishViewer) {
-            VsFlyfishViewer.destroy();
+        if (window.VsFilePreview) {
+            VsFilePreview.destroy();
         }
         if (filePreviewViewerMount) {
             filePreviewViewerMount.innerHTML = '';
+            filePreviewViewerMount.className = 'vs-file-preview__viewer-mount';
         }
+        var shell = document.getElementById('filePreviewViewerShell');
+        if (shell) shell.classList.remove('is-expanded');
         clearViewerState();
     }
 
     function mountFileViewer(file) {
-        if (!filePreviewViewerMount || !file || !file.public_url) {
-            setViewerState('暂无可用预览地址', true);
+        if (!filePreviewViewerMount || !file) {
+            setViewerState('暂无预览内容', true);
             return;
         }
 
-        if (!window.VsFlyfishViewer) {
+        if (!window.VsFilePreview) {
             setViewerState('预览组件未加载', true);
             return;
         }
@@ -468,15 +471,13 @@
         destroyFileViewer();
         setViewerState('正在加载预览…', false);
 
-        VsFlyfishViewer.mount(filePreviewViewerMount, file, {
+        VsFilePreview.mount(filePreviewViewerMount, file, {
             onReady: function () {
                 clearViewerState();
             },
             onError: function () {
                 setViewerState('预览加载失败，可尝试新窗口打开或下载', true);
             }
-        }).catch(function () {
-            setViewerState('预览组件加载失败，请检查网络或稍后重试', true);
         });
     }
 
@@ -756,6 +757,16 @@
 
     if (filePreviewCopy) {
         filePreviewCopy.addEventListener('click', copyPreviewLink);
+    }
+
+    var filePreviewExpand = document.getElementById('filePreviewExpand');
+    if (filePreviewExpand) {
+        filePreviewExpand.addEventListener('click', function () {
+            var shell = document.getElementById('filePreviewViewerShell');
+            if (!shell) return;
+            shell.classList.toggle('is-expanded');
+            filePreviewExpand.setAttribute('aria-pressed', shell.classList.contains('is-expanded') ? 'true' : 'false');
+        });
     }
 
     document.addEventListener('keydown', function (e) {

@@ -313,8 +313,13 @@ vs_admin_layout_start('文件管理', 'files');
         </div>
         <div class="vs-file-preview__body">
             <div class="vs-file-preview__viewer-shell" id="filePreviewViewerShell">
+                <div class="vs-file-preview__viewer-toolbar">
+                    <button type="button" class="vs-file-preview__expand-btn" id="filePreviewExpand" title="放大预览区" aria-pressed="false">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 2H3v3M10 2h3v3M6 14H3v-3M10 14h3v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
                 <div class="vs-file-preview__viewer-mount" id="filePreviewViewerMount"></div>
-                <div class="vs-file-preview__viewer-state" id="filePreviewViewerState">正在加载预览组件…</div>
+                <div class="vs-file-preview__viewer-state" id="filePreviewViewerState">正在加载预览…</div>
             </div>
             <details class="vs-file-preview__details" open>
                 <summary class="vs-file-preview__details-toggle">文件信息与操作</summary>
@@ -344,11 +349,9 @@ vs_admin_layout_start('文件管理', 'files');
 </div>
 
 <script>
-window.VS_FLYFISH_VIEWER = <?php echo json_encode(array(
-    'scriptUrl'  => $vsBase . '/assets/vendor/flyfish-viewer/flyfish-file-viewer-web-full.iife.js',
-    'assetsBase' => $vsBase . '/assets/vendor/flyfish-viewer/',
+window.VS_FILE_PREVIEW = <?php echo json_encode(array(
     'streamBase' => $vsBase . '/admin/file-stream.php',
 ), JSON_UNESCAPED_UNICODE); ?>;
 </script>
 
-<?php vs_admin_layout_end(array('flyfish-viewer.js', 'files.js')); ?>
+<?php vs_admin_layout_end(array('file-preview.js', 'files.js')); ?>

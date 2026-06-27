@@ -46,7 +46,7 @@
     if (checkBtn) {
         checkBtn.addEventListener('click', function () {
             checkBtn.disabled = true;
-            setStatus('正在检测 Gitee 最新版本…', 'info');
+            setStatus('正在检测云端最新版本…', 'info');
             VsUpdate.check({ onResult: renderCheckResult })
                 .catch(function () {
                     setStatus('网络异常，请稍后重试', 'error');

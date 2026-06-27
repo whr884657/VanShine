@@ -137,3 +137,104 @@ body.vs-modal-open {
 .vs-modal {
     max-width: 480px;
 }
+
+/* ── 更新进度分步 ── */
+.vs-update-progress__hint {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.vs-update-progress__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vs-update-progress__step {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f9fafb;
+    transition: background 0.2s ease;
+}
+
+.vs-update-progress__step.is-active {
+    background: #eff6ff;
+}
+
+.vs-update-progress__step.is-done {
+    background: #f0fdf4;
+}
+
+.vs-update-progress__step.is-error {
+    background: #fef2f2;
+}
+
+.vs-update-progress__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d1d5db;
+    justify-self: center;
+}
+
+.vs-update-progress__step.is-active .vs-update-progress__dot {
+    background: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+    animation: vsUpdatePulse 1.2s ease-in-out infinite;
+}
+
+.vs-update-progress__step.is-done .vs-update-progress__dot {
+    background: #16a34a;
+}
+
+.vs-update-progress__step.is-error .vs-update-progress__dot {
+    background: #dc2626;
+}
+
+.vs-update-progress__label {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.vs-update-progress__step.is-active .vs-update-progress__label {
+    color: #1d4ed8;
+}
+
+.vs-update-progress__state {
+    font-size: 12px;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.vs-update-progress__step.is-active .vs-update-progress__state {
+    color: #2563eb;
+    animation: vsUpdateBlink 1s ease-in-out infinite;
+}
+
+.vs-update-progress__step.is-done .vs-update-progress__state {
+    color: #16a34a;
+}
+
+.vs-update-progress__step.is-error .vs-update-progress__state {
+    color: #dc2626;
+}
+
+@keyframes vsUpdatePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+@keyframes vsUpdateBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}

@@ -16,7 +16,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 - 分组侧边栏后台（控制台、文件管理、七种储存、CDN、归档、AI、系统设置等）
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
 - 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
-- **Gitee 在线更新**：登录后台自动检测新版本，一键下载安装
+- **云端在线更新**：登录后台自动检测新版本，分步进度一键安装
 - **数据库结构更新**：有结构变更的版本更新后，自动执行 `install/migrations/` 中的 SQL（新增/修改字段等，非整库迁移）
 - 简洁白色后台主题，纯 CSS 矢量图标，适配电脑端与手机端
 
@@ -103,8 +103,7 @@ VanShine/
 │   └── cdn/                    # CDN（占位）
 ├── assets/
 │   ├── css/                    # common, admin, modal, icons, files …
-│   ├── js/
-│   ├── vendor/flyfish-viewer/  # Flyfish Viewer 自托管预览资源
+│   ├── js/                     # file-preview.js, vs-update.js …
 │   └── img/site/               # 站点 Favicon 等
 ├── config/
 │   └── database.php            # 安装后生成（勿覆盖）
@@ -148,7 +147,7 @@ VanShine/
 
 ## 在线更新
 
-登录后台后会**自动**向 Gitee 检测最新版本（读取仓库根目录 `update.json`）。若本地 `core/version.php` 中的版本号**低于**远程版本，将弹出更新提示；若本地**高于**远程（开发测试环境），则不提示。
+登录后台后会**自动**向云端检测最新版本（读取 `update.json`）。若本地 `core/version.php` 中的版本号**低于**远程版本，将弹出更新提示；若本地**高于**远程（开发测试环境），则不提示。
 
 **发布新版本时需同步修改：**
 1. `core/version.php` — `VS_VERSION`
@@ -156,23 +155,38 @@ VanShine/
 3. `update-log.json` — 追加该版本更新记录（含 `db_changes` 是否含数据库变更）
 4. 若数据库结构有变 — 在 `install/migrations/` 新增 SQL，并将对应版本 `db_changes` 设为 `true`
 
-**更新过程：**
-- 从 Gitee **发行版直链**下载（与浏览器相同）：  
-  `https://gitee.com/xunjinlu/VanShine/releases/download/v{版本}/VanShine{版本}.zip`
-- 出站 HTTPS 仅连接 Gitee 白名单域名，**不依赖**本地 CA 证书包
-- 下载后校验 **ZIP 文件头**（`PK` 魔数），再解压覆盖
-- 更新完成后自动清理 `data/update/` 临时文件（ZIP 与解压目录）
-- 覆盖项目文件，**绝不替换** `config/database.php`，**不覆盖** 运行时 `data/`、`upload/` 目录
-- **仅当**存在未执行的结构更新 SQL 时，才对数据库执行 ADD/ALTER 等命令（字段已存在则自动跳过）
-- 更新前弹窗**二次确认**是否已备份数据
+**更新过程（分步进度）：**
+1. 从云端下载资源包
+2. 解压更新包
+3. 覆盖系统文件（**绝不替换** `config/database.php`，**不覆盖** 运行时 `data/`、`upload/`）
+4. 若存在未执行的结构更新 SQL，则执行数据库迁移
+5. 完成后自动清理 `data/update/` 临时文件
 
-**若在线更新失败：** 请从 [Gitee 发行页](https://gitee.com/xunjinlu/VanShine/releases) 手动下载最新 `VanShine{版本}.zip` 覆盖（保留 `config/database.php`）。
+**若在线更新失败：** 请从 [发行页](https://gitee.com/xunjinlu/VanShine/releases) 手动下载最新 `VanShine{版本}.zip` 覆盖（保留 `config/database.php`）。
 
-**服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问 Gitee。
+**服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问云端更新源。
 
 ---
 
 ## 版本记录
+
+### v1.0.48（2026-06-27）
+
+**类型：** 在线预览重构 + 更新体验优化
+
+**变更说明：**
+- 移除 Flyfish Viewer（约 130MB 内置资源），改用 jsDelivr CDN 轻量预览库
+- **支持在线预览：** PDF、Word(.docx)、Excel、Markdown、HTML、PHP、CSS、JS、音频、视频
+- **不支持预览：** 压缩包及其他格式 → 详情弹窗仅显示文件图标
+- 预览内容限制在预览框内，不横向溢出；手机端抽屉高度 80vh
+- 预览区右上角支持放大（弹窗内扩展，非新窗口）
+- 自定义音视频播放器（音乐图标 + 波形动画，非浏览器原生控件）
+- 更新过程分步进度：下载 → 解压 → 覆盖 → 数据库（如有）
+- 用户界面统一使用「云端」表述
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.47（2026-06-27）
 

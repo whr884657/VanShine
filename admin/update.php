@@ -66,4 +66,24 @@ if ($action === 'apply') {
     ));
 }
 
+if ($action === 'apply_step') {
+    @set_time_limit(600);
+    @ini_set('memory_limit', '256M');
+
+    $step = isset($_POST['step']) ? trim($_POST['step']) : '';
+    $result = Updater::applyUpdateStep($step);
+    if (empty($result['ok'])) {
+        AjaxResponse::error(isset($result['msg']) ? $result['msg'] : '更新失败');
+    }
+
+    if ($step === 'migrate') {
+        unset($_SESSION['vs_update_dismiss']);
+    }
+
+    AjaxResponse::success($result['msg'], array(
+        'step'    => isset($result['step']) ? $result['step'] : $step,
+        'version' => isset($result['version']) ? $result['version'] : '',
+    ));
+}
+
 AjaxResponse::error('未知操作', 400);

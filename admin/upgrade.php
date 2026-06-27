@@ -17,7 +17,7 @@ vs_admin_layout_start('系统升级', 'upgrade');
 <div class="vs-panel vs-upgrade-panel">
     <div class="vs-panel__header">
         <h2 class="vs-panel__title">版本与更新</h2>
-        <p class="vs-panel__desc">从 Gitee 仓库检测最新版本，支持手动更新。更新不会替换 config/database.php；仅当版本记录标明含数据库变更时才会执行结构更新 SQL。</p>
+        <p class="vs-panel__desc">从云端检测最新版本，支持手动更新。更新不会替换 config/database.php；仅当版本记录标明含数据库变更时才会执行结构更新 SQL。</p>
     </div>
 
     <div class="vs-upgrade-current">
@@ -38,7 +38,7 @@ vs_admin_layout_start('系统升级', 'upgrade');
 <div class="vs-panel vs-panel--spaced vs-upgrade-log-panel">
     <div class="vs-panel__header">
         <h2 class="vs-panel__title">更新记录</h2>
-        <p class="vs-panel__desc">各版本更新说明（优先从 Gitee 云端读取 update-log.json<?php if ($updateLogSource === 'local'): ?>，当前为本地回退<?php endif; ?>）</p>
+        <p class="vs-panel__desc">各版本更新说明（优先从云端读取 update-log.json<?php if ($updateLogSource === 'local'): ?>，当前为本地回退<?php endif; ?>）</p>
     </div>
 
     <?php if (count($updateHistory) === 0): ?>

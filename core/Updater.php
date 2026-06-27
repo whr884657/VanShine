@@ -86,7 +86,7 @@ class Updater
                 'remote_version'   => '',
                 'update_available' => false,
                 'ahead_of_remote'  => false,
-                'error'            => '无法连接 Gitee 获取版本信息，请稍后重试',
+                'error'            => '无法连接云端获取版本信息，请稍后重试',
             );
         }
 
@@ -133,11 +133,39 @@ class Updater
     }
 
     /**
-     * 下载并应用更新
+     * 分步执行在线更新（download → extract → deploy → migrate）
+     *
+     * @param string $step
+     * @return array
+     */
+    public static function applyUpdateStep($step)
+    {
+        $prepared = self::prepareUpdateContext();
+        if (empty($prepared['ok'])) {
+            return $prepared;
+        }
+
+        $step = strtolower(trim((string) $step));
+        switch ($step) {
+            case 'download':
+                return self::updateStepDownload($prepared);
+            case 'extract':
+                return self::updateStepExtract($prepared);
+            case 'deploy':
+                return self::updateStepDeploy($prepared);
+            case 'migrate':
+                return self::updateStepMigrate($prepared);
+            default:
+                return array('ok' => false, 'msg' => '无效的更新步骤');
+        }
+    }
+
+    /**
+     * 更新前校验与上下文
      *
      * @return array
      */
-    public static function applyUpdate()
+    private static function prepareUpdateContext()
     {
         if (!class_exists('ZipArchive')) {
             return array('ok' => false, 'msg' => '服务器未启用 ZipArchive 扩展，无法解压更新包');
@@ -151,113 +179,270 @@ class Updater
             return array('ok' => false, 'msg' => '当前已是最新版本，无需更新');
         }
 
-        $repo = $check['repo'];
-        $branch = $check['branch'];
-        $remoteVersion = $check['remote_version'];
         $manifest = self::fetchRemoteManifest();
         if (!is_array($manifest)) {
             $manifest = array();
         }
 
-        $updateDir = self::updateDir();
-        $zipPath = $updateDir . '/vanshine-update.zip';
-        $extractDir = $updateDir . '/extract';
+        return array(
+            'ok'      => true,
+            'check'   => $check,
+            'manifest'=> $manifest,
+            'updateDir' => self::updateDir(),
+            'zipPath'   => self::updateDir() . '/vanshine-update.zip',
+            'extractDir'=> self::updateDir() . '/extract',
+        );
+    }
+
+    /**
+     * @param array $ctx
+     * @return array
+     */
+    private static function updateStepDownload(array $ctx)
+    {
+        self::clearUpdateWork();
+        self::cleanupUpdateWorkspace($ctx['updateDir']);
+
+        $check = $ctx['check'];
+        $triedUrls = array();
+        $downloadOk = false;
+
+        foreach (self::buildUpdatePackageUrls(
+            $check['repo'],
+            $check['branch'],
+            $check['remote_version'],
+            $ctx['manifest']
+        ) as $item) {
+            @unlink($ctx['zipPath']);
+            $triedUrls[] = $item['label'];
+            if (!self::downloadFile($item['url'], $ctx['zipPath'])) {
+                continue;
+            }
+            if (!self::isValidZipFile($ctx['zipPath'])) {
+                self::$lastError = '下载内容不是有效的 ZIP 更新包（' . $item['label'] . '）';
+                @unlink($ctx['zipPath']);
+                continue;
+            }
+            $downloadOk = true;
+            break;
+        }
+
+        if (!$downloadOk) {
+            $detail = self::$lastError !== '' ? self::$lastError : '未知错误';
+            $sources = implode('、', $triedUrls);
+            return array(
+                'ok'  => false,
+                'msg' => '云端资源包下载失败（已尝试：' . $sources . '）。' . $detail,
+            );
+        }
+
+        self::setUpdateWork(array(
+            'version' => $check['remote_version'],
+            'downloaded' => true,
+        ));
+
+        return array(
+            'ok'  => true,
+            'msg' => '云端资源包下载完成',
+            'step'=> 'download',
+        );
+    }
+
+    /**
+     * @param array $ctx
+     * @return array
+     */
+    private static function updateStepExtract(array $ctx)
+    {
+        $work = self::getUpdateWork();
+        if (empty($work['downloaded']) || !is_file($ctx['zipPath'])) {
+            return array('ok' => false, 'msg' => '请先完成云端资源下载');
+        }
+
+        $zip = new ZipArchive();
+        $zipOpen = $zip->open($ctx['zipPath']);
+        if ($zipOpen !== true) {
+            $size = (int) filesize($ctx['zipPath']);
+            return array('ok' => false, 'msg' => '解压失败：无法打开 ZIP（' . $size . ' 字节）');
+        }
+
+        if (is_dir($ctx['extractDir'])) {
+            self::removeDir($ctx['extractDir']);
+        }
+        @mkdir($ctx['extractDir'], 0755, true);
+
+        if (!$zip->extractTo($ctx['extractDir'])) {
+            $zip->close();
+            return array('ok' => false, 'msg' => '解压更新包失败');
+        }
+        $zip->close();
+
+        $sourceRoot = self::detectExtractRoot($ctx['extractDir']);
+        if ($sourceRoot === null) {
+            return array('ok' => false, 'msg' => '更新包结构异常，未找到有效目录');
+        }
+
+        $work['extracted'] = true;
+        $work['source_root'] = $sourceRoot;
+        self::setUpdateWork($work);
+
+        return array(
+            'ok'  => true,
+            'msg' => '更新包解压完成',
+            'step'=> 'extract',
+        );
+    }
+
+    /**
+     * @param array $ctx
+     * @return array
+     */
+    private static function updateStepDeploy(array $ctx)
+    {
+        $work = self::getUpdateWork();
+        if (empty($work['extracted']) || empty($work['source_root']) || !is_dir($work['source_root'])) {
+            return array('ok' => false, 'msg' => '请先完成解压步骤');
+        }
+
+        $dbConfigHash = self::databaseConfigFingerprint();
 
         try {
-            self::cleanupUpdateWorkspace($updateDir);
-
-            $downloadOk = false;
-            $triedUrls = array();
-            foreach (self::buildUpdatePackageUrls($repo, $branch, $remoteVersion, $manifest) as $item) {
-                @unlink($zipPath);
-                $triedUrls[] = $item['label'];
-                if (!self::downloadFile($item['url'], $zipPath)) {
-                    continue;
-                }
-                if (!self::isValidZipFile($zipPath)) {
-                    self::$lastError = '下载内容不是有效的 ZIP 更新包（' . $item['label'] . '）';
-                    @unlink($zipPath);
-                    continue;
-                }
-                $downloadOk = true;
-                break;
-            }
-
-            if (!$downloadOk) {
-                $detail = self::$lastError !== '' ? self::$lastError : '未知错误';
-                $sources = implode('、', $triedUrls);
-                return array(
-                    'ok'  => false,
-                    'msg' => '更新包下载失败（已尝试：' . $sources . '）。' . $detail . '。请检查服务器能否访问 Gitee，或稍后重试。',
-                );
-            }
-
-            $zip = new ZipArchive();
-            $zipOpen = $zip->open($zipPath);
-            if ($zipOpen !== true) {
-                $size = is_file($zipPath) ? (int) filesize($zipPath) : 0;
-                return array(
-                    'ok'  => false,
-                    'msg' => '更新包解压失败：无法打开 ZIP 文件（文件大小 ' . $size . ' 字节）。请确认 Gitee 发行附件已上传，或联系管理员。',
-                );
-            }
-
-            if (!is_dir($extractDir)) {
-                @mkdir($extractDir, 0755, true);
-            }
-
-            if (!$zip->extractTo($extractDir)) {
-                $zip->close();
-                return array('ok' => false, 'msg' => '更新包解压失败');
-            }
-            $zip->close();
-
-            $sourceRoot = self::detectExtractRoot($extractDir);
-            if ($sourceRoot === null) {
-                return array('ok' => false, 'msg' => '更新包结构异常，未找到有效目录');
-            }
-
-            $dbConfigHash = self::databaseConfigFingerprint();
-
-            try {
-                self::copyTree($sourceRoot, VS_ROOT, self::protectedRelativePaths());
-                self::assertDatabaseConfigUnchanged($dbConfigHash);
-            } catch (Exception $e) {
-                return array('ok' => false, 'msg' => '文件覆盖失败：' . $e->getMessage());
-            }
-
-            $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过');
-            if (DatabaseMigrator::hasPendingMigrations()) {
-                $migration = DatabaseMigrator::runPending();
-                if (empty($migration['ok'])) {
-                    return array(
-                        'ok'      => false,
-                        'msg'     => '文件已更新，但' . $migration['msg'],
-                        'version' => $check['remote_version'],
-                    );
-                }
-            }
-
-            $msg = '更新完成，当前版本 v' . $check['remote_version'];
-            if (!empty($migration['applied'])) {
-                $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
-            } else {
-                $msg .= '（本次无数据库结构变更）';
-            }
-
-            $remaining = UpdateLog::countVersionsAfter($check['remote_version']);
-            if ($remaining > 0) {
-                $msg .= '。尚有 ' . $remaining . ' 个版本待升级，请刷新页面后继续执行更新';
-            }
-
-            return array(
-                'ok'      => true,
-                'msg'     => $msg,
-                'version' => $check['remote_version'],
-            );
-        } finally {
-            self::cleanupUpdateWorkspace($updateDir);
+            self::copyTree($work['source_root'], VS_ROOT, self::protectedRelativePaths());
+            self::assertDatabaseConfigUnchanged($dbConfigHash);
+        } catch (Exception $e) {
+            return array('ok' => false, 'msg' => '文件覆盖失败：' . $e->getMessage());
         }
+
+        self::cleanupUpdateWorkspace($ctx['updateDir']);
+        $work['deployed'] = true;
+        $work['db_hash'] = $dbConfigHash;
+        unset($work['source_root'], $work['downloaded'], $work['extracted']);
+        self::setUpdateWork($work);
+
+        return array(
+            'ok'  => true,
+            'msg' => '文件覆盖完成',
+            'step'=> 'deploy',
+        );
+    }
+
+    /**
+     * @param array $ctx
+     * @return array
+     */
+    private static function updateStepMigrate(array $ctx)
+    {
+        $work = self::getUpdateWork();
+        if (empty($work['deployed'])) {
+            return array('ok' => false, 'msg' => '请先完成文件覆盖');
+        }
+
+        $check = $ctx['check'];
+        $migration = array('ok' => true, 'applied' => array(), 'msg' => '无数据库结构变更，已跳过');
+        if (DatabaseMigrator::hasPendingMigrations()) {
+            $migration = DatabaseMigrator::runPending();
+            if (empty($migration['ok'])) {
+                return array(
+                    'ok'      => false,
+                    'msg'     => '文件已更新，但' . $migration['msg'],
+                    'version' => $check['remote_version'],
+                );
+            }
+        }
+
+        self::clearUpdateWork();
+
+        $msg = '更新完成，当前版本 v' . $check['remote_version'];
+        if (!empty($migration['applied'])) {
+            $msg .= '，已同步数据库结构（' . implode('、', $migration['applied']) . '）';
+        } else {
+            $msg .= '（本次无数据库结构变更）';
+        }
+
+        $remaining = UpdateLog::countVersionsAfter($check['remote_version']);
+        if ($remaining > 0) {
+            $msg .= '。尚有 ' . $remaining . ' 个版本待升级，请刷新页面后继续执行更新';
+        }
+
+        return array(
+            'ok'      => true,
+            'msg'     => $msg,
+            'version' => $check['remote_version'],
+            'step'    => 'migrate',
+        );
+    }
+
+    /**
+     * @return array|null
+     */
+    private static function getUpdateWork()
+    {
+        if (!isset($_SESSION['vs_update_work']) || !is_array($_SESSION['vs_update_work'])) {
+            return array();
+        }
+        return $_SESSION['vs_update_work'];
+    }
+
+    /**
+     * @param array $work
+     * @return void
+     */
+    private static function setUpdateWork(array $work)
+    {
+        $_SESSION['vs_update_work'] = $work;
+    }
+
+    /**
+     * @return void
+     */
+    private static function clearUpdateWork()
+    {
+        unset($_SESSION['vs_update_work']);
+    }
+
+    /**
+     * 下载并应用更新
+     *
+     * @return array
+     */
+    public static function applyUpdate()
+    {
+        $prepared = self::prepareUpdateContext();
+        if (empty($prepared['ok'])) {
+            return array('ok' => false, 'msg' => $prepared['msg']);
+        }
+
+        $download = self::updateStepDownload($prepared);
+        if (empty($download['ok'])) {
+            return $download;
+        }
+
+        $extract = self::updateStepExtract($prepared);
+        if (empty($extract['ok'])) {
+            self::cleanupUpdateWorkspace($prepared['updateDir']);
+            self::clearUpdateWork();
+            return $extract;
+        }
+
+        $deploy = self::updateStepDeploy($prepared);
+        if (empty($deploy['ok'])) {
+            self::cleanupUpdateWorkspace($prepared['updateDir']);
+            self::clearUpdateWork();
+            return $deploy;
+        }
+
+        $migrate = self::updateStepMigrate($prepared);
+        if (empty($migrate['ok'])) {
+            return $migrate;
+        }
+
+        unset($_SESSION['vs_update_dismiss']);
+
+        return array(
+            'ok'      => true,
+            'msg'     => $migrate['msg'],
+            'version' => $migrate['version'],
+        );
     }
 
     /**
@@ -361,7 +546,7 @@ class Updater
             $tag = 'v' . $ver;
             $fileName = 'VanShine' . $ver . '.zip';
             $urls[] = array(
-                'label' => 'Gitee 发行版',
+                'label' => '云端发行包',
                 'url'   => self::buildReleasePackageUrl($repo, $ver),
             );
         }

@@ -1,13 +1,14 @@
 /**
  * 文件：assets/js/vs-update.js
- * 作用：系统升级共用逻辑（检测、二次确认、执行更新）
- * @version 1.0.32
+ * 作用：系统升级共用逻辑（检测、二次确认、分步执行更新）
+ * @version 1.0.48
  */
 
 (function () {
     'use strict';
 
     var badgeActive = false;
+    var progressModalOpen = false;
 
     function escapeHtml(str) {
         var div = document.createElement('div');
@@ -55,7 +56,7 @@
         html += ' → 本次升级：<strong>v' + escapeHtml(data.remote_version) + '</strong></p>';
 
         if (data.latest_remote_version && data.latest_remote_version !== data.remote_version) {
-            html += '<p class="vs-update-modal__tip">仓库最新版本为 v' + escapeHtml(data.latest_remote_version)
+            html += '<p class="vs-update-modal__tip">云端最新版本为 v' + escapeHtml(data.latest_remote_version)
                 + '，将按顺序逐版升级，完成本版后请再次执行更新。</p>';
         } else if (data.pending_updates && data.pending_updates > 1) {
             html += '<p class="vs-update-modal__tip">共有 ' + escapeHtml(String(data.pending_updates))
@@ -77,30 +78,101 @@
         }
 
         if (data.has_db_changes) {
-            html += '<p class="vs-update-modal__tip vs-update-modal__tip--warn">本次更新包含数据库结构变更，更新后将自动执行结构更新 SQL。</p>';
+            html += '<p class="vs-update-modal__tip vs-update-modal__tip--warn">本次更新包含数据库结构变更，更新后将自动执行结构更新。</p>';
         } else {
-            html += '<p class="vs-update-modal__tip">本次更新<strong>不涉及</strong>数据库表结构变更，不会执行数据库结构更新脚本。</p>';
+            html += '<p class="vs-update-modal__tip">本次更新<strong>不涉及</strong>数据库表结构变更。</p>';
         }
         html += '<p class="vs-update-modal__tip">绝不会替换 config/database.php，完成后自动清理临时文件。</p>';
         html += '</div>';
         return html;
     }
 
-    function runUpdateApply() {
-        if (!window.VsModal || !window.VsModal.open) {
-            return Promise.reject();
+    function buildProgressHtml(hasDb) {
+        var steps = [
+            { id: 'download', label: '从云端下载资源' },
+            { id: 'extract', label: '解压更新包' },
+            { id: 'deploy', label: '覆盖系统文件' },
+        ];
+        if (hasDb) {
+            steps.push({ id: 'migrate', label: '执行数据库更新' });
         }
 
+        var html = '<div class="vs-update-progress">';
+        html += '<p class="vs-update-progress__hint">正在从云端获取更新，请勿关闭页面…</p>';
+        html += '<ul class="vs-update-progress__steps">';
+        steps.forEach(function (step, index) {
+            html += '<li class="vs-update-progress__step" data-step="' + step.id + '" data-index="' + index + '">';
+            html += '<span class="vs-update-progress__dot"></span>';
+            html += '<span class="vs-update-progress__label">' + escapeHtml(step.label) + '</span>';
+            html += '<span class="vs-update-progress__state">等待中</span>';
+            html += '</li>';
+        });
+        html += '</ul></div>';
+        return html;
+    }
+
+    function setProgressStep(stepId, status) {
+        var el = document.querySelector('.vs-update-progress__step[data-step="' + stepId + '"]');
+        if (!el) return;
+        el.classList.remove('is-pending', 'is-active', 'is-done', 'is-error');
+        el.classList.add('is-' + status);
+        var stateEl = el.querySelector('.vs-update-progress__state');
+        if (!stateEl) return;
+        if (status === 'active') {
+            stateEl.textContent = '进行中…';
+        } else if (status === 'done') {
+            stateEl.textContent = '已完成';
+        } else if (status === 'error') {
+            stateEl.textContent = '失败';
+        } else {
+            stateEl.textContent = '等待中';
+        }
+    }
+
+    function openProgressModal(hasDb) {
+        if (!window.VsModal || !window.VsModal.open) return;
+        progressModalOpen = true;
         VsModal.open({
             title: '正在更新…',
-            html: '<p class="vs-update-modal__loading">正在从 Gitee 下载更新包并安装，请勿关闭页面…</p>',
+            html: buildProgressHtml(hasDb),
             closeOnOverlay: false,
             closeOnEscape: false,
             buttons: [],
         });
+    }
 
-        return postUpdate('apply').then(function (res) {
+    function closeProgressModal() {
+        progressModalOpen = false;
+        if (window.VsModal && window.VsModal.close) {
+            VsModal.close(false);
+        }
+    }
+
+    function runUpdateStep(step) {
+        setProgressStep(step, 'active');
+        return postUpdate('apply_step', { step: step }).then(function (res) {
             if (res.code === 1) {
+                setProgressStep(step, 'done');
+                return res;
+            }
+            setProgressStep(step, 'error');
+            throw new Error(res.msg || '更新失败');
+        });
+    }
+
+    function runUpdateApply(hasDbChanges) {
+        if (!window.VsModal || !window.VsModal.open) {
+            return Promise.reject();
+        }
+
+        openProgressModal(hasDbChanges);
+
+        return runUpdateStep('download')
+            .then(function () { return runUpdateStep('extract'); })
+            .then(function () { return runUpdateStep('deploy'); })
+            .then(function () { return runUpdateStep('migrate'); })
+            .then(function (res) {
+                closeProgressModal();
                 clearSidebarBadge();
                 VsModal.open({
                     title: '更新成功',
@@ -114,13 +186,16 @@
                     }],
                     closeOnOverlay: false,
                 });
-            } else {
-                VsModal.alert(res.msg || '更新失败');
-            }
-            return res;
-        }).catch(function () {
-            VsModal.alert('网络异常，更新失败，请稍后重试');
-        });
+                return res;
+            })
+            .catch(function (err) {
+                if (!progressModalOpen) {
+                    VsModal.alert(err.message || '更新失败');
+                } else {
+                    closeProgressModal();
+                    VsModal.alert(err.message || '更新失败');
+                }
+            });
     }
 
     function confirmBackupThenUpdate(data) {
@@ -159,7 +234,7 @@
             });
         }).then(function (ok) {
             if (ok) {
-                return runUpdateApply();
+                return runUpdateApply(!!data.has_db_changes);
             }
         });
     }
@@ -212,18 +287,12 @@
         var systemGroup = document.querySelector('.vs-sidebar__group[data-group="system"]');
 
         if (!badgeActive) {
-            if (groupBadge) {
-                groupBadge.hidden = true;
-            }
-            if (itemBadge) {
-                itemBadge.hidden = true;
-            }
+            if (groupBadge) groupBadge.hidden = true;
+            if (itemBadge) itemBadge.hidden = true;
             return;
         }
 
-        if (!groupBadge || !itemBadge || !systemGroup) {
-            return;
-        }
+        if (!groupBadge || !itemBadge || !systemGroup) return;
 
         var isOpen = systemGroup.classList.contains('is-open');
         groupBadge.hidden = isOpen;
@@ -258,7 +327,7 @@
         check: checkUpdate,
         showModal: showUpdateModal,
         confirmBackupThenUpdate: confirmBackupThenUpdate,
-        runApply: runUpdateApply,
+        runApply: function (hasDb) { return runUpdateApply(hasDb); },
         buildUpdateHtml: buildUpdateHtml,
         syncSidebarBadge: syncSidebarBadge,
         refreshSidebarBadgePlacement: refreshSidebarBadgePlacement,

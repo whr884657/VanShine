@@ -453,6 +453,9 @@
             filePreviewViewerMount.className = 'vs-file-preview__viewer-mount';
         }
         var shell = document.getElementById('filePreviewViewerShell');
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(function () { /* ignore */ });
+        }
         if (shell) shell.classList.remove('is-expanded');
         clearViewerState();
     }
@@ -764,13 +767,29 @@
         filePreviewExpand.addEventListener('click', function () {
             var shell = document.getElementById('filePreviewViewerShell');
             if (!shell) return;
-            shell.classList.toggle('is-expanded');
-            filePreviewExpand.setAttribute('aria-pressed', shell.classList.contains('is-expanded') ? 'true' : 'false');
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(function () { /* ignore */ });
+                filePreviewExpand.setAttribute('aria-pressed', 'false');
+                return;
+            }
+            var req = shell.requestFullscreen || shell.webkitRequestFullscreen || shell.msRequestFullscreen;
+            if (!req) return;
+            req.call(shell).then(function () {
+                filePreviewExpand.setAttribute('aria-pressed', 'true');
+            }).catch(function () { /* ignore */ });
+        });
+        document.addEventListener('fullscreenchange', function () {
+            if (!document.fullscreenElement && filePreviewExpand) {
+                filePreviewExpand.setAttribute('aria-pressed', 'false');
+            }
         });
     }
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
+            if (document.fullscreenElement) {
+                return;
+            }
             if (filePreview && filePreview.classList.contains('is-open')) {
                 closeFilePreview();
             } else if (folderModal && folderModal.classList.contains('is-open')) {

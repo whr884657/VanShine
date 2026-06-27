@@ -1,23 +1,40 @@
 /**
  * 文件：assets/js/file-preview.js
- * 作用：文件在线预览（PDF / Office / 代码 / 音视频等）
- * @version 1.0.48
+ * 作用：文件在线预览（本地资源 + 原生媒体）
+ * @version 1.0.49
  */
 
 (function () {
     'use strict';
 
-    var CDN = 'https://cdn.jsdelivr.net/npm/';
     var loadedScripts = {};
+    var loadedStyles = {};
     var activeMount = null;
 
     var ARCHIVE_EXT = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz', 'tbz', 'tbz2', 'lz', 'lzma', 'cab', 'iso'];
-    var AUDIO_EXT = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'opus', 'webm'];
+    var IMAGE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
+    var AUDIO_EXT = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'opus'];
     var VIDEO_EXT = ['mp4', 'webm', 'ogv', 'mov', 'm4v', 'mkv'];
     var WORD_EXT = ['doc', 'docx'];
     var EXCEL_EXT = ['xls', 'xlsx', 'csv'];
     var MARKDOWN_EXT = ['md', 'markdown'];
     var CODE_EXT = ['html', 'htm', 'php', 'css', 'js', 'mjs', 'cjs', 'json', 'xml', 'txt', 'log', 'sql', 'yaml', 'yml', 'ini', 'sh', 'bat', 'vue', 'ts', 'tsx', 'jsx'];
+
+    var ICON_PLAY = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>';
+    var ICON_PAUSE = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/></svg>';
+
+    function assetBase() {
+        var cfg = window.VS_FILE_PREVIEW || {};
+        var base = cfg.assetBase || '/assets/vendor/preview/';
+        if (base.charAt(base.length - 1) !== '/') {
+            base += '/';
+        }
+        return base;
+    }
+
+    function asset(path) {
+        return assetBase() + path.replace(/^\//, '');
+    }
 
     function getExt(file) {
         var name = (file && (file.stored_name || file.original_name)) || '';
@@ -29,6 +46,7 @@
     function getPreviewKind(file) {
         var ext = getExt(file);
         if (ext === 'pdf') return 'pdf';
+        if (IMAGE_EXT.indexOf(ext) >= 0) return 'image';
         if (WORD_EXT.indexOf(ext) >= 0) return 'word';
         if (EXCEL_EXT.indexOf(ext) >= 0) return 'excel';
         if (MARKDOWN_EXT.indexOf(ext) >= 0) return 'markdown';
@@ -58,9 +76,7 @@
                 if (u.origin === window.location.origin) {
                     return publicUrl;
                 }
-            } catch (e) {
-                /* ignore */
-            }
+            } catch (e) { /* ignore */ }
         }
         if (streamBase && file && file.id) {
             return streamBase + (streamBase.indexOf('?') >= 0 ? '&' : '?') + 'id=' + encodeURIComponent(file.id);
@@ -84,18 +100,18 @@
     }
 
     function loadStyle(url) {
-        if (document.querySelector('link[data-vs-preview="' + url + '"]')) {
-            return Promise.resolve();
+        if (loadedStyles[url]) {
+            return loadedStyles[url];
         }
-        return new Promise(function (resolve, reject) {
+        loadedStyles[url] = new Promise(function (resolve, reject) {
             var l = document.createElement('link');
             l.rel = 'stylesheet';
             l.href = url;
-            l.setAttribute('data-vs-preview', url);
             l.onload = function () { resolve(); };
             l.onerror = function () { reject(new Error('style')); };
             document.head.appendChild(l);
         });
+        return loadedStyles[url];
     }
 
     function fetchText(url) {
@@ -118,6 +134,12 @@
         container.className = 'vs-preview-stage';
     }
 
+    function escapeHtml(str) {
+        var d = document.createElement('div');
+        d.textContent = str == null ? '' : String(str);
+        return d.innerHTML;
+    }
+
     function showIcon(container, file, message) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--icon');
@@ -130,16 +152,24 @@
             + '</div>';
     }
 
-    function escapeHtml(str) {
-        var d = document.createElement('div');
-        d.textContent = str == null ? '' : String(str);
-        return d.innerHTML;
+    function renderImage(container, url, file) {
+        clearContainer(container);
+        container.classList.add('vs-preview-stage--image');
+        var wrap = document.createElement('div');
+        wrap.className = 'vs-preview-image-wrap';
+        var img = document.createElement('img');
+        img.className = 'vs-preview-image';
+        img.alt = (file && file.original_name) || '';
+        img.src = url;
+        wrap.appendChild(img);
+        container.appendChild(wrap);
+        return Promise.resolve();
     }
 
     function renderPdf(container, url) {
-        return loadScript(CDN + 'pdfjs-dist@3.11.174/build/pdf.min.js').then(function () {
+        return loadScript(asset('pdfjs/pdf.min.js')).then(function () {
             if (!window.pdfjsLib) throw new Error('pdf');
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = CDN + 'pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = asset('pdfjs/pdf.worker.min.js');
             clearContainer(container);
             var wrap = document.createElement('div');
             wrap.className = 'vs-preview-pdf';
@@ -150,8 +180,7 @@
                     (function (num) {
                         chain = chain.then(function () {
                             return pdf.getPage(num).then(function (page) {
-                                var scale = 1.2;
-                                var viewport = page.getViewport({ scale: scale });
+                                var viewport = page.getViewport({ scale: 1.2 });
                                 var canvas = document.createElement('canvas');
                                 canvas.className = 'vs-preview-pdf__page';
                                 var ctx = canvas.getContext('2d');
@@ -173,55 +202,84 @@
             showIcon(container, { stored_name: 'word' }, '旧版 .doc 请下载后本地查看，在线预览仅支持 .docx');
             return Promise.resolve();
         }
-        return loadScript(CDN + 'mammoth@1.6.0/mammoth.browser.min.js').then(function () {
-            return fetchArrayBuffer(url).then(function (buf) {
-                return window.mammoth.convertToHtml({ arrayBuffer: buf });
-            }).then(function (result) {
-                clearContainer(container);
-                var box = document.createElement('div');
-                box.className = 'vs-preview-doc';
-                box.innerHTML = result.value;
-                container.appendChild(box);
+        return loadScript(asset('docx/jszip.min.js'))
+            .then(function () { return loadScript(asset('docx/docx-preview.min.js')); })
+            .then(function () {
+                return fetchArrayBuffer(url).then(function (buf) {
+                    clearContainer(container);
+                    var box = document.createElement('div');
+                    box.className = 'vs-preview-doc';
+                    container.appendChild(box);
+                    if (!window.docx || !window.docx.renderAsync) {
+                        throw new Error('docx');
+                    }
+                    return window.docx.renderAsync(buf, box);
+                });
             });
-        });
     }
 
-    function renderExcel(container, url) {
-        return loadScript(CDN + 'xlsx@0.18.5/dist/xlsx.full.min.js').then(function () {
+    function renderExcel(container, url, ext) {
+        if (ext === 'xls') {
+            showIcon(container, { stored_name: 'xls' }, '旧版 .xls 请下载后本地查看，在线预览仅支持 .xlsx / .csv');
+            return Promise.resolve();
+        }
+        return loadScript(asset('exceljs/exceljs.min.js')).then(function () {
             return fetchArrayBuffer(url).then(function (buf) {
-                var wb = window.XLSX.read(buf, { type: 'array' });
-                clearContainer(container);
-                var wrap = document.createElement('div');
-                wrap.className = 'vs-preview-sheet-wrap';
-                wb.SheetNames.forEach(function (name) {
-                    var html = window.XLSX.utils.sheet_to_html(wb.Sheets[name]);
-                    var section = document.createElement('div');
-                    section.className = 'vs-preview-sheet';
-                    section.innerHTML = '<h4 class="vs-preview-sheet__title">' + escapeHtml(name) + '</h4>' + html;
-                    wrap.appendChild(section);
+                if (!window.ExcelJS) throw new Error('excel');
+                var wb = new window.ExcelJS.Workbook();
+                return wb.xlsx.load(buf).then(function () {
+                    clearContainer(container);
+                    var wrap = document.createElement('div');
+                    wrap.className = 'vs-preview-sheet-wrap';
+                    wb.eachSheet(function (worksheet) {
+                        var section = document.createElement('div');
+                        section.className = 'vs-preview-sheet';
+                        var title = document.createElement('h4');
+                        title.className = 'vs-preview-sheet__title';
+                        title.textContent = worksheet.name;
+                        section.appendChild(title);
+                        var table = document.createElement('table');
+                        table.className = 'vs-preview-sheet__table';
+                        worksheet.eachRow({ includeEmpty: false }, function (row, rowNumber) {
+                            var tr = document.createElement('tr');
+                            row.eachCell({ includeEmpty: true }, function (cell) {
+                                var td = document.createElement(rowNumber === 1 ? 'th' : 'td');
+                                td.textContent = cell.text || '';
+                                tr.appendChild(td);
+                            });
+                            if (tr.childNodes.length) table.appendChild(tr);
+                        });
+                        section.appendChild(table);
+                        wrap.appendChild(section);
+                    });
+                    container.appendChild(wrap);
                 });
-                container.appendChild(wrap);
             });
         });
     }
 
     function renderMarkdown(container, url) {
-        return loadScript(CDN + 'marked@12.0.0/marked.min.js').then(function () {
+        return loadScript(asset('marked/marked.min.js')).then(function () {
             return fetchText(url).then(function (text) {
                 clearContainer(container);
                 var box = document.createElement('div');
                 box.className = 'vs-preview-markdown';
-                box.innerHTML = window.marked.parse(text);
+                if (window.marked && window.marked.parse) {
+                    if (window.marked.setOptions) {
+                        window.marked.setOptions({ gfm: true, breaks: true });
+                    }
+                    box.innerHTML = window.marked.parse(text);
+                } else {
+                    box.textContent = text;
+                }
                 container.appendChild(box);
             });
         });
     }
 
     function renderCode(container, url, lang) {
-        return loadScript(CDN + 'highlight.js@11.9.0/build/highlight.min.js')
-            .then(function () {
-                return loadStyle(CDN + 'highlight.js@11.9.0/styles/github.min.css');
-            })
+        return loadScript(asset('highlight/highlight.min.js'))
+            .then(function () { return loadStyle(asset('highlight/github.min.css')); })
             .then(function () {
                 return fetchText(url).then(function (text) {
                     clearContainer(container);
@@ -250,17 +308,60 @@
         });
     }
 
+    function fmtTime(sec) {
+        sec = Math.floor(sec || 0);
+        var m = Math.floor(sec / 60);
+        var s = sec % 60;
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function bindMediaControls(media, btn, fill, timeEl, wrap) {
+        btn.innerHTML = ICON_PLAY;
+        btn.setAttribute('aria-label', 'Play');
+
+        media.addEventListener('timeupdate', function () {
+            if (!media.duration) return;
+            fill.style.width = ((media.currentTime / media.duration) * 100) + '%';
+            timeEl.textContent = fmtTime(media.currentTime) + ' / ' + fmtTime(media.duration);
+        });
+
+        media.addEventListener('play', function () {
+            btn.innerHTML = ICON_PAUSE;
+            btn.setAttribute('aria-label', 'Pause');
+            if (wrap) wrap.classList.add('is-playing');
+        });
+
+        media.addEventListener('pause', function () {
+            btn.innerHTML = ICON_PLAY;
+            btn.setAttribute('aria-label', 'Play');
+            if (wrap) wrap.classList.remove('is-playing');
+        });
+
+        media.addEventListener('ended', function () {
+            btn.innerHTML = ICON_PLAY;
+            btn.setAttribute('aria-label', 'Play');
+            if (wrap) wrap.classList.remove('is-playing');
+        });
+
+        btn.addEventListener('click', function () {
+            if (media.paused) media.play();
+            else media.pause();
+        });
+    }
+
     function renderAudio(container, url) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--audio');
         var wrap = document.createElement('div');
         wrap.className = 'vs-preview-audio';
-        wrap.innerHTML = '<div class="vs-preview-audio__disc" aria-hidden="true">♪</div>'
+        wrap.innerHTML = '<div class="vs-preview-audio__disc" aria-hidden="true">'
+            + '<svg viewBox="0 0 24 24" width="36" height="36"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>'
+            + '</div>'
             + '<div class="vs-preview-audio__waves" aria-hidden="true">'
             + '<span></span><span></span><span></span><span></span><span></span>'
             + '</div>'
             + '<div class="vs-preview-audio__controls">'
-            + '<button type="button" class="vs-preview-media-btn" data-act="play">播放</button>'
+            + '<button type="button" class="vs-preview-media-btn" data-act="play"></button>'
             + '<div class="vs-preview-media-track"><div class="vs-preview-media-fill"></div></div>'
             + '<span class="vs-preview-media-time">00:00</span>'
             + '</div>';
@@ -273,39 +374,14 @@
         var btn = wrap.querySelector('[data-act="play"]');
         var fill = wrap.querySelector('.vs-preview-media-fill');
         var timeEl = wrap.querySelector('.vs-preview-media-time');
-        var waves = wrap.querySelector('.vs-preview-audio__waves');
+        bindMediaControls(audio, btn, fill, timeEl, wrap);
 
-        function fmt(sec) {
-            sec = Math.floor(sec || 0);
-            var m = Math.floor(sec / 60);
-            var s = sec % 60;
-            return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-        }
-
-        audio.addEventListener('timeupdate', function () {
-            if (!audio.duration) return;
-            fill.style.width = ((audio.currentTime / audio.duration) * 100) + '%';
-            timeEl.textContent = fmt(audio.currentTime) + ' / ' + fmt(audio.duration);
-        });
-        audio.addEventListener('play', function () {
-            btn.textContent = '暂停';
-            wrap.classList.add('is-playing');
-        });
-        audio.addEventListener('pause', function () {
-            btn.textContent = '播放';
-            wrap.classList.remove('is-playing');
-        });
-        btn.addEventListener('click', function () {
-            if (audio.paused) audio.play();
-            else audio.pause();
-        });
         wrap.querySelector('.vs-preview-media-track').addEventListener('click', function (e) {
             if (!audio.duration) return;
             var rect = this.getBoundingClientRect();
             var ratio = (e.clientX - rect.left) / rect.width;
             audio.currentTime = Math.max(0, Math.min(1, ratio)) * audio.duration;
         });
-        if (waves) waves.style.display = '';
     }
 
     function renderVideo(container, url) {
@@ -322,7 +398,7 @@
         screen.appendChild(video);
         var controls = document.createElement('div');
         controls.className = 'vs-preview-video__controls';
-        controls.innerHTML = '<button type="button" class="vs-preview-media-btn" data-act="play">播放</button>'
+        controls.innerHTML = '<button type="button" class="vs-preview-media-btn" data-act="play"></button>'
             + '<div class="vs-preview-media-track"><div class="vs-preview-media-fill"></div></div>'
             + '<span class="vs-preview-media-time">00:00</span>';
         wrap.appendChild(screen);
@@ -332,25 +408,8 @@
         var btn = controls.querySelector('[data-act="play"]');
         var fill = controls.querySelector('.vs-preview-media-fill');
         var timeEl = controls.querySelector('.vs-preview-media-time');
+        bindMediaControls(video, btn, fill, timeEl, null);
 
-        function fmt(sec) {
-            sec = Math.floor(sec || 0);
-            var m = Math.floor(sec / 60);
-            var s = sec % 60;
-            return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-        }
-
-        video.addEventListener('timeupdate', function () {
-            if (!video.duration) return;
-            fill.style.width = ((video.currentTime / video.duration) * 100) + '%';
-            timeEl.textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
-        });
-        video.addEventListener('play', function () { btn.textContent = '暂停'; });
-        video.addEventListener('pause', function () { btn.textContent = '播放'; });
-        btn.addEventListener('click', function () {
-            if (video.paused) video.play();
-            else video.pause();
-        });
         controls.querySelector('.vs-preview-media-track').addEventListener('click', function (e) {
             if (!video.duration) return;
             var rect = this.getBoundingClientRect();
@@ -390,6 +449,9 @@
         var chain;
 
         switch (kind) {
+            case 'image':
+                chain = renderImage(container, url, file);
+                break;
             case 'pdf':
                 chain = renderPdf(container, url);
                 break;
@@ -397,7 +459,7 @@
                 chain = renderWord(container, url, ext);
                 break;
             case 'excel':
-                chain = renderExcel(container, url);
+                chain = renderExcel(container, url, ext);
                 break;
             case 'markdown':
                 chain = renderMarkdown(container, url);

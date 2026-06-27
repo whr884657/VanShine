@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     AuthSecurity::recordLoginFailure($username);
-    vs_auth_json(array('code' => 0, 'msg' => '账号或密码错误'));
+    vs_auth_json(array('code' => 0, 'msg' => '用户名/邮箱或密码错误'));
 }
 
 if (isset($_GET['expired']) && $_GET['expired'] === '1') {
@@ -72,8 +72,8 @@ vs_auth_head('登录');
             <form id="loginForm" method="post" action="" novalidate>
                 <?php vs_auth_csrf_field(); ?>
                 <div class="field">
-                    <label for="username">账号</label>
-                    <input id="username" name="username" type="text" placeholder="请输入账号" autocomplete="username" maxlength="64" required>
+                    <label for="username">用户名或邮箱</label>
+                    <input id="username" name="username" type="text" placeholder="请输入用户名或邮箱" autocomplete="username" maxlength="64" required>
                 </div>
 
                 <div class="field">
@@ -179,7 +179,7 @@ vs_auth_head('登录');
         var password = form.password.value;
 
         if (!username) {
-            showMessage('请输入账号', 'error');
+            showMessage('请输入用户名或邮箱', 'error');
             form.username.focus();
             return;
         }

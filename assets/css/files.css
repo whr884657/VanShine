@@ -642,14 +642,13 @@
     color: #2563eb;
 }
 
-.vs-file-preview__viewer-shell.is-expanded {
-    position: fixed;
-    inset: 12px;
-    z-index: 4700;
-    min-height: auto;
-    max-height: none;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+.vs-file-preview__viewer-shell:fullscreen {
+    background: #f1f5f9;
+    border-radius: 0;
+}
+
+.vs-file-preview__viewer-shell:fullscreen .vs-file-preview__viewer-mount {
+    padding: 16px;
 }
 
 .vs-file-preview__viewer-mount {
@@ -881,13 +880,37 @@
     .view-list .vs-filemgr__file-icon {
         font-size: 28px;
     }
-
-    .vs-file-preview__viewer-shell.is-expanded {
-        inset: 8px 8px calc(20vh + 8px);
-    }
 }
 
 /* ── 在线预览内容区 ── */
+.vs-preview-stage--image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+.vs-preview-image-wrap {
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+}
+
+.vs-preview-image {
+    max-width: 100%;
+    max-height: min(70vh, 640px);
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.vs-file-preview__viewer-shell:fullscreen .vs-preview-image {
+    max-height: calc(100vh - 48px);
+}
+
+.vs-file-preview__viewer-shell:fullscreen .vs-preview-video__el {
+    max-height: calc(100vh - 120px);
+}
 .vs-preview-stage {
     width: 100%;
     max-width: 100%;
@@ -1048,12 +1071,12 @@
     width: 4px;
     height: 8px;
     border-radius: 2px;
-    background: #94a3b8;
-    animation: vs-preview-wave 1s ease-in-out infinite;
+    background: #cbd5e1;
 }
 
 .vs-preview-audio.is-playing .vs-preview-audio__waves span {
     background: #2563eb;
+    animation: vs-preview-wave 1s ease-in-out infinite;
 }
 
 .vs-preview-audio__waves span:nth-child(2) { animation-delay: 0.1s; }
@@ -1081,13 +1104,17 @@
 
 .vs-preview-media-btn {
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
     border: none;
-    border-radius: 999px;
-    padding: 8px 16px;
+    border-radius: 50%;
+    padding: 0;
     background: #2563eb;
     color: #fff;
-    font-size: 13px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .vs-preview-media-track {

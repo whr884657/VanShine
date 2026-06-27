@@ -87,7 +87,8 @@ class StorageManager
         }
 
         if (!isset($upload['error']) || (int) $upload['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('文件上传失败');
+            $code = isset($upload['error']) ? (int) $upload['error'] : UPLOAD_ERR_NO_FILE;
+            throw new Exception(self::uploadErrorMessage($code));
         }
 
         $tmpPath = isset($upload['tmp_name']) ? $upload['tmp_name'] : '';
@@ -161,7 +162,8 @@ class StorageManager
         }
 
         if (!isset($upload['error']) || (int) $upload['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('文件上传失败');
+            $code = isset($upload['error']) ? (int) $upload['error'] : UPLOAD_ERR_NO_FILE;
+            throw new Exception(self::uploadErrorMessage($code));
         }
 
         $tmpPath = isset($upload['tmp_name']) ? $upload['tmp_name'] : '';
@@ -380,6 +382,56 @@ class StorageManager
      */
     private static function detectMime($path, $name)
     {
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        $map = array(
+            'jpg'      => 'image/jpeg',
+            'jpeg'     => 'image/jpeg',
+            'png'      => 'image/png',
+            'gif'      => 'image/gif',
+            'webp'     => 'image/webp',
+            'svg'      => 'image/svg+xml',
+            'bmp'      => 'image/bmp',
+            'ico'      => 'image/x-icon',
+            'avif'     => 'image/avif',
+            'pdf'      => 'application/pdf',
+            'zip'      => 'application/zip',
+            'rar'      => 'application/vnd.rar',
+            '7z'       => 'application/x-7z-compressed',
+            'mp3'      => 'audio/mpeg',
+            'wav'      => 'audio/wav',
+            'ogg'      => 'audio/ogg',
+            'flac'     => 'audio/flac',
+            'm4a'      => 'audio/mp4',
+            'aac'      => 'audio/aac',
+            'mp4'      => 'video/mp4',
+            'webm'     => 'video/webm',
+            'ogv'      => 'video/ogg',
+            'mov'      => 'video/quicktime',
+            'mkv'      => 'video/x-matroska',
+            'html'     => 'text/html',
+            'htm'      => 'text/html',
+            'css'      => 'text/css',
+            'js'       => 'text/javascript',
+            'mjs'      => 'text/javascript',
+            'cjs'      => 'text/javascript',
+            'json'     => 'application/json',
+            'xml'      => 'application/xml',
+            'txt'      => 'text/plain',
+            'md'       => 'text/markdown',
+            'markdown' => 'text/markdown',
+            'php'      => 'text/plain',
+            'sql'      => 'application/sql',
+            'csv'      => 'text/csv',
+            'doc'      => 'application/msword',
+            'docx'     => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls'      => 'application/vnd.ms-excel',
+            'xlsx'     => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        );
+
+        if (isset($map[$ext])) {
+            return $map[$ext];
+        }
+
         if (function_exists('mime_content_type')) {
             $mime = @mime_content_type($path);
             if (is_string($mime) && $mime !== '') {
@@ -387,20 +439,31 @@ class StorageManager
             }
         }
 
-        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-        $map = array(
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png'  => 'image/png',
-            'gif'  => 'image/gif',
-            'webp' => 'image/webp',
-            'svg'  => 'image/svg+xml',
-            'pdf'  => 'application/pdf',
-            'zip'  => 'application/zip',
-            'mp3'  => 'audio/mpeg',
-            'wav'  => 'audio/wav',
-        );
+        return 'application/octet-stream';
+    }
 
-        return isset($map[$ext]) ? $map[$ext] : 'application/octet-stream';
+    /**
+     * @param int $code PHP UPLOAD_ERR_* 常量
+     * @return string
+     */
+    public static function uploadErrorMessage($code)
+    {
+        switch ((int) $code) {
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                return '文件超过服务器允许的上传大小';
+            case UPLOAD_ERR_PARTIAL:
+                return '文件仅部分上传，请重试';
+            case UPLOAD_ERR_NO_FILE:
+                return '未选择文件';
+            case UPLOAD_ERR_NO_TMP_DIR:
+                return '服务器缺少临时目录';
+            case UPLOAD_ERR_CANT_WRITE:
+                return '服务器无法写入临时文件';
+            case UPLOAD_ERR_EXTENSION:
+                return '服务器扩展阻止了该类型文件上传';
+            default:
+                return '文件上传失败（错误码 ' . (int) $code . '）';
+        }
     }
 }

@@ -4,6 +4,7 @@ install/installed.lock
 /storage/
 /data/
 release/*.zip
+参考程序/
 .DS_Store
 Thumbs.db
 *.log

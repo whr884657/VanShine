@@ -104,6 +104,7 @@ VanShine/
 ├── assets/
 │   ├── css/                    # common, admin, modal, icons, files …
 │   ├── js/                     # file-preview.js, vs-update.js …
+│   ├── vendor/preview/         # 在线预览本地库（marked、pdf.js 等）
 │   └── img/site/               # 站点 Favicon 等
 ├── config/
 │   └── database.php            # 安装后生成（勿覆盖）
@@ -169,6 +170,20 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.49（2026-06-27）
+
+**类型：** 预览本地化 + 账号/上传优化
+
+**变更说明：**
+- 预览库内置至 `assets/vendor/preview/`，图片/音视频原生渲染
+- Word(.docx)/Excel(.xlsx)/MD/PDF 本地预览；播放按钮 SVG 图标；全屏预览
+- 登录支持用户名或邮箱；账号设置可改用户名、电脑端左右布局
+- 修复 HTML/JS/CSS/PHP 等文件上传与 MIME 识别
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.48（2026-06-27）
 

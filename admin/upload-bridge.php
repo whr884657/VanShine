@@ -75,7 +75,7 @@ $filesUrl = vs_base_url() . '/admin/files.php';
         var body = new FormData();
         body.append('action', 'upload');
         body.append('folder_id', String(folderId));
-        body.append('file[]', file);
+        body.append('file', file);
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', uploadUrl, true);

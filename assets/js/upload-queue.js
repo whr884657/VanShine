@@ -457,7 +457,7 @@
             var body = new FormData();
             body.append('action', 'upload');
             body.append('folder_id', String(options.folderId || 0));
-            body.append('file[]', file);
+            body.append('file', file);
 
             var xhr = new global.XMLHttpRequest();
             xhr.open('POST', resolveUploadUrl(options.uploadUrl), true);

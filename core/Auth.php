@@ -11,21 +11,28 @@ class Auth
     const ACTIVITY_KEY = 'vs_last_activity';
 
     /**
-     * 管理员登录
+     * 管理员登录（支持用户名或邮箱）
      *
-     * @param string $username
+     * @param string $account 用户名或邮箱
      * @param string $password
      * @return array|false
      */
-    public static function login($username, $password)
+    public static function login($account, $password)
     {
+        $account = trim((string) $account);
+        if ($account === '') {
+            return false;
+        }
+
         try {
             $pdo = Database::connect();
             $table = Database::table('admin');
             $hash = vs_password_hash($password);
 
-            $stmt = $pdo->prepare('SELECT * FROM `' . $table . '` WHERE `username` = ? AND `password` = ? AND `status` = 1 LIMIT 1');
-            $stmt->execute(array($username, $hash));
+            $stmt = $pdo->prepare(
+                'SELECT * FROM `' . $table . '` WHERE (`username` = ? OR `email` = ?) AND `password` = ? AND `status` = 1 LIMIT 1'
+            );
+            $stmt->execute(array($account, $account, $hash));
             $admin = $stmt->fetch();
 
             if ($admin) {
@@ -184,12 +191,26 @@ class Auth
      * @param string|null $newPassword
      * @param string|null $oldPassword
      * @param string|null $avatarUrl
+     * @param string|null $username
      * @return true|string true 成功，string 为错误信息
      */
-    public static function updateAccount($email, $newPassword = null, $oldPassword = null, $avatarUrl = null)
+    public static function updateAccount($email, $newPassword = null, $oldPassword = null, $avatarUrl = null, $username = null)
     {
         if (!self::check()) {
             return '请先登录';
+        }
+
+        if ($username !== null) {
+            $username = trim((string) $username);
+            if ($username === '') {
+                return '用户名不能为空';
+            }
+            if (strlen($username) < 3) {
+                return '用户名至少 3 个字符';
+            }
+            if (strlen($username) > 50) {
+                return '用户名不能超过 50 个字符';
+            }
         }
 
         $email = trim($email);
@@ -227,14 +248,37 @@ class Auth
         try {
             $pdo = Database::connect();
             $table = Database::table('admin');
+
+            if ($username !== null) {
+                $check = $pdo->prepare('SELECT `id` FROM `' . $table . '` WHERE `username` = ? AND `id` != ? LIMIT 1');
+                $check->execute(array($username, self::id()));
+                if ($check->fetch()) {
+                    return '用户名已被占用';
+                }
+            }
+
             $savedAvatar = $avatarUrl !== null ? $avatarUrl : '';
 
             if ($newPassword !== null && $newPassword !== '') {
-                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `avatar_url` = ?, `password` = ? WHERE `id` = ?');
-                $stmt->execute(array($email, $savedAvatar, vs_password_hash($newPassword), self::id()));
+                if ($username !== null) {
+                    $stmt = $pdo->prepare(
+                        'UPDATE `' . $table . '` SET `username` = ?, `email` = ?, `avatar_url` = ?, `password` = ? WHERE `id` = ?'
+                    );
+                    $stmt->execute(array($username, $email, $savedAvatar, vs_password_hash($newPassword), self::id()));
+                } else {
+                    $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `avatar_url` = ?, `password` = ? WHERE `id` = ?');
+                    $stmt->execute(array($email, $savedAvatar, vs_password_hash($newPassword), self::id()));
+                }
+            } elseif ($username !== null) {
+                $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `username` = ?, `email` = ?, `avatar_url` = ? WHERE `id` = ?');
+                $stmt->execute(array($username, $email, $savedAvatar, self::id()));
             } else {
                 $stmt = $pdo->prepare('UPDATE `' . $table . '` SET `email` = ?, `avatar_url` = ? WHERE `id` = ?');
                 $stmt->execute(array($email, $savedAvatar, self::id()));
+            }
+
+            if ($username !== null && isset($_SESSION['vs_admin_username'])) {
+                $_SESSION['vs_admin_username'] = $username;
             }
 
             return true;

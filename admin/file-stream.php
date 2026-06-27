@@ -1,7 +1,7 @@
 <?php
 /**
  * 文件：admin/file-stream.php
- * 作用：后台鉴权文件流（供 Flyfish Viewer 预览，支持 Range）
+ * 作用：后台鉴权文件流（供在线预览，支持 Range）
  * @version 1.0.43
  */
 

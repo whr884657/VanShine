@@ -1,16 +1,15 @@
 {
-    "version": "1.0.48",
+    "version": "1.0.49",
     "release_date": "2026-06-27",
-    "title": "在线预览重构与更新进度优化",
+    "title": "预览本地化、账号与上传优化",
     "db_changes": false,
     "changes": [
-        "移除 Flyfish Viewer，改用 jsDelivr CDN 轻量预览方案",
-        "支持 PDF / Word / Excel / Markdown / 代码 / 音视频在线预览",
-        "压缩包等格式仅显示图标，预览内容限制在框内不溢出",
-        "手机端预览抽屉高度调整为 80vh，支持预览区放大",
-        "自定义音视频播放器（非浏览器原生控件）",
-        "更新过程分步进度：下载 → 解压 → 覆盖 → 数据库（如有）",
-        "用户界面统一使用「云端」表述，不再显示 Gitee"
+        "预览库内置至 assets/vendor/preview/，图片/音视频原生渲染",
+        "Word(.docx)/Excel(.xlsx)/MD/PDF 本地预览，播放按钮改为图标",
+        "音频波形仅在播放时动画，预览支持浏览器全屏",
+        "登录支持用户名或邮箱，账号设置可修改用户名",
+        "账号设置页电脑端左右布局，简化头像说明",
+        "修复 HTML/JS/CSS/PHP 等文件上传与 MIME 识别"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

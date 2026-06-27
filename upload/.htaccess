@@ -1,0 +1,15 @@
+# 禁止在 upload 目录直接执行脚本（不影响 PHP 写入上传）
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(php|phtml|php3|php4|php5|phar|pl|py|cgi|sh|asp|aspx|jsp)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(php|phtml|php3|php4|php5|phar|pl|py|cgi|sh|asp|aspx|jsp)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+Options -Indexes

@@ -624,6 +624,84 @@
     min-width: 0;
 }
 
+/* ── 账号设置页 ── */
+.vs-account-form__layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.vs-account-form__aside {
+    flex-shrink: 0;
+}
+
+.vs-account-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 16px;
+    border: 1px solid var(--vs-border);
+    border-radius: 12px;
+    background: var(--vs-content-bg);
+}
+
+.vs-account-avatar__img {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--vs-border);
+    margin-bottom: 16px;
+}
+
+.vs-account-avatar__label {
+    align-self: stretch;
+    text-align: left;
+    margin-bottom: 6px;
+}
+
+.vs-account-avatar .vs-input {
+    width: 100%;
+}
+
+.vs-account-form__main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.vs-form-row--account {
+    margin-bottom: 18px;
+}
+
+@media (min-width: 900px) {
+    .vs-account-form__layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 32px;
+    }
+
+    .vs-account-form__aside {
+        width: 260px;
+    }
+
+    .vs-form-row--account {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 8px 16px;
+        align-items: start;
+    }
+
+    .vs-form-row--account .vs-label {
+        margin: 0;
+        padding-top: 10px;
+    }
+
+    .vs-form-row--account .vs-form-row__field .vs-input {
+        max-width: 420px;
+    }
+}
+
 .vs-input--file {
     padding: 8px 0;
     height: auto;

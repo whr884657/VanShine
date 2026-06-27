@@ -248,6 +248,20 @@ a:hover {
     width: 100%;
 }
 
+.vs-btn--rect {
+    border-radius: 8px;
+    height: auto;
+    min-height: 34px;
+    padding: 6px 14px;
+    font-weight: 500;
+}
+
+.vs-btn--xs {
+    min-height: 28px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
 .vs-btn--disabled {
     background: #f0f0f0;
     color: #bbb;

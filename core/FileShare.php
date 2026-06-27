@@ -2,7 +2,7 @@
 /**
  * 文件：core/FileShare.php
  * 作用：文件/文件夹分享链接
- * @version 1.0.53
+ * @version 1.0.54
  */
 
 class FileShare
@@ -93,8 +93,8 @@ class FileShare
             $fileTable = Database::table('file_item');
             $folderTable = Database::table('file_folder');
             $sql = 'SELECT s.*, '
-                . 'f.`original_name` AS file_name, f.`stored_name` AS file_stored, '
-                . 'fo.`name` AS folder_name '
+                . 'f.`original_name` AS file_name, f.`stored_name` AS file_stored, f.`storage_key` AS file_storage_key, '
+                . 'fo.`name` AS folder_name, fo.`storage_key` AS folder_storage_key '
                 . 'FROM `' . $shareTable . '` s '
                 . 'LEFT JOIN `' . $fileTable . '` f ON s.`file_id` = f.`id` '
                 . 'LEFT JOIN `' . $folderTable . '` fo ON s.`folder_id` = fo.`id` '
@@ -419,9 +419,13 @@ class FileShare
 
         try {
             $pdo = Database::connect();
-            $table = Database::table('file_share');
+            $shareTable = Database::table('file_share');
+            $fileTable = Database::table('file_item');
             $stmt = $pdo->prepare(
-                'SELECT * FROM `' . $table . '` WHERE `share_type` = ? AND `file_id` = ? ORDER BY `id` DESC'
+                'SELECT s.*, f.`original_name` AS file_name, f.`storage_key` AS file_storage_key '
+                . 'FROM `' . $shareTable . '` s '
+                . 'LEFT JOIN `' . $fileTable . '` f ON s.`file_id` = f.`id` '
+                . 'WHERE s.`share_type` = ? AND s.`file_id` = ? ORDER BY s.`id` DESC'
             );
             $stmt->execute(array(self::TYPE_FILE, $fileId));
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -449,12 +453,23 @@ class FileShare
             $target = !empty($row['folder_name']) ? (string) $row['folder_name'] : ('文件夹 #' . (int) $row['folder_id']);
         }
 
+        $storageKey = 0;
+        if ($row['share_type'] === self::TYPE_FILE) {
+            $storageKey = (int) (isset($row['file_storage_key']) ? $row['file_storage_key'] : 0);
+        } else {
+            $storageKey = (int) (isset($row['folder_storage_key']) ? $row['folder_storage_key'] : 0);
+        }
+        $storageType = StorageRegistry::type($storageKey);
+        $storageName = $storageType ? (string) $storageType['name'] : '未知储存';
+
         return array(
             'id'              => (int) $row['id'],
             'token'           => (string) $row['token'],
             'share_type'      => (string) $row['share_type'],
             'title'           => (string) $row['title'],
             'target'          => $target,
+            'storage_key'     => $storageKey,
+            'storage_name'    => $storageName,
             'share_url'       => self::publicUrl($row['token']),
             'has_password'    => $hasPassword,
             'expires_at'      => $row['expires_at'] ? (string) $row['expires_at'] : '',

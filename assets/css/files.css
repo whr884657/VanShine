@@ -820,8 +820,19 @@
 }
 
 .vs-file-preview__details-icon {
-    font-size: 16px;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #e2e8f0;
+    color: #475569;
+    flex-shrink: 0;
+}
+
+.vs-file-preview__details-icon svg {
+    display: block;
 }
 
 .vs-file-preview__details-text {
@@ -870,10 +881,29 @@
     color: #334155;
 }
 
+.vs-file-preview__link-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+
+.vs-file-preview__link-box .vs-file-preview__link-input {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
 .vs-file-preview__share-single {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
+}
+
+.vs-file-preview__share-single .vs-file-preview__link-input {
+    flex: 1 1 200px;
+    min-width: 0;
 }
 
 .vs-file-preview__share-multi-tip {
@@ -1750,10 +1780,32 @@
         border-radius: 14px;
         transform: scale(0.96);
         opacity: 0;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .vs-file-preview__body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .vs-file-preview__viewer-shell.is-compact-audio,
+    .vs-file-preview__viewer-shell.is-fit-video,
+    .vs-file-preview__viewer-shell.is-fit-image {
+        max-height: min(40vh, 380px);
+        flex: 0 0 auto;
     }
 
     .vs-file-preview__viewer-shell {
-        min-height: min(58vh, 560px);
+        flex: 0 0 auto;
+        min-height: 180px;
+        max-height: min(42vh, 400px);
+    }
+
+    .vs-file-preview__viewer-shell.is-doc-view {
+        max-height: min(52vh, 480px);
     }
 
     .vs-file-preview.is-open .vs-file-preview__panel {

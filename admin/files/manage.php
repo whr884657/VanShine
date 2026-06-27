@@ -352,7 +352,9 @@ vs_admin_layout_start('文件管理', 'files');
             </div>
             <details class="vs-file-preview__details" open>
                 <summary class="vs-file-preview__details-toggle">
-                    <span class="vs-file-preview__details-icon" aria-hidden="true">📋</span>
+                    <span class="vs-file-preview__details-icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 2h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.3"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                    </span>
                     <span class="vs-file-preview__details-text">文件信息与操作</span>
                     <span class="vs-file-preview__details-chevron" aria-hidden="true"></span>
                 </summary>
@@ -361,11 +363,11 @@ vs_admin_layout_start('文件管理', 'files');
             <div class="vs-file-preview__share-section" id="filePreviewShareBox">
                 <div class="vs-file-preview__share-head">
                     <span class="vs-file-preview__share-label">分享短链接</span>
-                    <button type="button" class="vs-btn vs-btn--primary vs-btn--sm" id="filePreviewShareCreate">创建分享</button>
+                    <button type="button" class="vs-btn vs-btn--primary vs-btn--rect vs-btn--sm" id="filePreviewShareCreate">创建分享</button>
                 </div>
                 <div class="vs-file-preview__share-single" id="filePreviewShareSingle" hidden>
                     <input type="text" class="vs-file-preview__link-input" id="filePreviewShareUrl" readonly>
-                    <button type="button" class="vs-btn vs-btn--default vs-btn--sm" id="filePreviewShareCopy">复制</button>
+                    <button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-btn--sm" id="filePreviewShareCopy">复制</button>
                 </div>
                 <div class="vs-file-preview__share-multi" id="filePreviewShareMulti" hidden>
                     <p class="vs-file-preview__share-multi-tip">
@@ -377,11 +379,11 @@ vs_admin_layout_start('文件管理', 'files');
             </div>
             <div class="vs-file-preview__link-box">
                 <input type="text" class="vs-file-preview__link-input" id="filePreviewLink" readonly>
-                <button type="button" class="vs-btn vs-btn--primary" id="filePreviewCopy">复制链接</button>
+                <button type="button" class="vs-btn vs-btn--primary vs-btn--rect" id="filePreviewCopy">复制链接</button>
             </div>
             <div class="vs-file-preview__replace" id="filePreviewReplace">
                 <p class="vs-file-preview__replace-tip">替换将<strong>先删除</strong>原文件再上传新内容，保留当前存储名与外链地址。</p>
-                <label class="vs-btn vs-btn--primary vs-file-preview__replace-btn">
+                <label class="vs-btn vs-btn--primary vs-btn--rect vs-file-preview__replace-btn">
                     选择替换文件
                     <input type="file" id="fileReplaceInput" hidden>
                 </label>
@@ -391,8 +393,8 @@ vs_admin_layout_start('文件管理', 'files');
                 </div>
             </div>
             <div class="vs-file-preview__actions">
-                <a class="vs-btn vs-btn--default" id="filePreviewOpen" href="#" target="_blank" rel="noopener">新窗口打开</a>
-                <a class="vs-btn vs-btn--default" id="filePreviewDownload" href="#" download>下载文件</a>
+                <a class="vs-btn vs-btn--default vs-btn--rect" id="filePreviewOpen" href="#" target="_blank" rel="noopener">新窗口打开</a>
+                <a class="vs-btn vs-btn--default vs-btn--rect" id="filePreviewDownload" href="#" download>下载文件</a>
             </div>
             </div>
             </details>
@@ -440,8 +442,8 @@ vs_admin_layout_start('文件管理', 'files');
                 </div>
             </div>
             <div class="vs-modal__foot">
-                <button type="button" class="vs-btn vs-btn--default" data-close-share-create>取消</button>
-                <button type="submit" class="vs-btn vs-btn--primary">生成短链接</button>
+                <button type="button" class="vs-btn vs-btn--default vs-btn--rect" data-close-share-create>取消</button>
+                <button type="submit" class="vs-btn vs-btn--primary vs-btn--rect">生成短链接</button>
             </div>
         </form>
     </div>

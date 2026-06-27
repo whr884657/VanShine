@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.47**
+**当前版本：1.0.54**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -29,7 +29,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 |------|------|
 | 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.47.zip`** |
+| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.54.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
 
 ---
@@ -82,6 +82,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 ```
 VanShine/
 ├── README.md
+├── 伪静态配置.md              # Nginx / Apache 分享短链接 rewrite 说明
 ├── LICENSE
 ├── update.json                 # 远程版本清单（在线更新检测）
 ├── update-log.json             # 版本更新记录
@@ -150,6 +151,29 @@ VanShine/
 
 ---
 
+## 伪静态 / URL 重写
+
+分享短链接格式为 `{域名}/d/{token}`。若 Web 服务器未配置 URL 重写，访问分享链接会返回 **404**。
+
+| 服务器 | 说明 |
+|--------|------|
+| **Nginx** | 必须在通用 `try_files` 之前增加 `/d/` 专用 `location` 规则 |
+| **Apache** | 项目根目录与 `d/.htaccess` 已内置规则，需启用 `mod_rewrite` |
+
+**完整配置示例与验证步骤见：** [`伪静态配置.md`](伪静态配置.md)
+
+Nginx 用户若仅使用如下通用规则，**无法**解析分享短链接：
+
+```nginx
+location / {
+    try_files $uri $uri/ $uri.php$is_args$args;
+}
+```
+
+需在 `location /` **之前**追加 `/d/{token}` 的 rewrite（详见 `伪静态配置.md`）。
+
+---
+
 ## 在线更新
 
 登录后台后会**自动**向云端检测最新版本（读取 `update.json`）。若本地 `core/version.php` 中的版本号**低于**远程版本，将弹出更新提示；若本地**高于**远程（开发测试环境），则不提示。
@@ -174,6 +198,20 @@ VanShine/
 ---
 
 ## 版本记录
+
+### v1.0.54（2026-06-27）
+
+**类型：** 分享 404 修复、伪静态文档、分享/预览 UI 优化
+
+**变更说明：**
+- 新增 `伪静态配置.md`，README 增加 Nginx/Apache 伪静态说明（解决 `/d/{token}` 404）
+- 分享管理与预览弹窗按钮改为圆角矩形；分享列表显示储存来源
+- 手机端分享卡片重设计；预览弹窗电脑端可滚动查看直链、替换与下载
+- 「文件信息与操作」改用 SVG 图标；预览元数据增加储存字段
+
+**数据库：** 无结构变更
+
+---
 
 ### v1.0.49（2026-06-27）
 

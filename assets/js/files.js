@@ -561,6 +561,7 @@
             filePreviewMeta.innerHTML = ''
                 + metaRow('文件名', file.original_name || file.stored_name)
                 + metaRow('存储名', file.stored_name)
+                + metaRow('储存', storageLabelForFile())
                 + metaRow('类型', fileTypeDetail(file))
                 + metaRow('大小', formatSize(file.file_size));
         }
@@ -643,7 +644,7 @@
                 return '<li class="vs-file-preview__share-item">'
                     + '<input type="text" class="vs-file-preview__link-input" readonly value="' + escapeHtml(row.share_url) + '">'
                     + '<span class="vs-file-preview__share-meta">' + escapeHtml(pwd) + ' · ' + escapeHtml(exp) + ' · ' + escapeHtml(shareStatusText(row)) + '</span>'
-                    + '<button type="button" class="vs-btn vs-btn--default vs-btn--sm" data-copy-share-url="' + escapeHtml(row.share_url) + '">复制</button>'
+                    + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-btn--xs" data-copy-share-url="' + escapeHtml(row.share_url) + '">复制</button>'
                     + '</li>';
             }).join('');
         }

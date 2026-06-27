@@ -54,36 +54,44 @@
         return { text: '有效', cls: 'on' };
     }
 
+    function typeText(row) {
+        return row.share_type === 'folder' ? '文件夹' : '单文件';
+    }
+
     function expiryText(row) {
-        if (!row.expires_at) return '永不过期';
-        return row.expires_at;
+        return row.expires_at ? row.expires_at : '永不过期';
     }
 
     function passwordText(row) {
         return row.has_password ? '需密码' : '公开访问';
     }
 
+    function storageText(row) {
+        var key = row.storage_key ? (row.storage_key + '. ') : '';
+        return key + (row.storage_name || '未知储存');
+    }
+
     function renderTable() {
         if (!tbody) return;
         if (!shares.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="vs-shares__empty">暂无分享链接，可在文件管理中创建</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="vs-shares__empty">暂无分享链接，可在文件管理中创建</td></tr>';
             return;
         }
         tbody.innerHTML = shares.map(function (row) {
             var st = statusLabel(row);
-            var type = row.share_type === 'folder' ? '文件夹' : '单文件';
             return '<tr data-id="' + row.id + '">'
                 + '<td>' + escapeHtml(row.title) + '</td>'
-                + '<td>' + type + '</td>'
+                + '<td>' + typeText(row) + '</td>'
                 + '<td class="vs-shares__target">' + escapeHtml(row.target) + '</td>'
+                + '<td>' + escapeHtml(storageText(row)) + '</td>'
                 + '<td>' + escapeHtml(passwordText(row)) + '</td>'
                 + '<td>' + row.view_count + ' / ' + row.download_count + '</td>'
                 + '<td><span class="vs-shares__badge vs-shares__badge--' + st.cls + '">' + st.text + '</span></td>'
-                + '<td><input type="text" class="vs-shares__url" readonly value="' + escapeHtml(row.share_url) + '">'
-                + '<button type="button" class="vs-btn vs-btn--default vs-shares__copy" data-copy-url="' + escapeHtml(row.share_url) + '">复制</button></td>'
+                + '<td><input type="text" class="vs-shares__url" readonly value="' + escapeHtml(row.share_url) + '"></td>'
                 + '<td class="vs-shares__actions">'
-                + '<button type="button" class="vs-btn vs-btn--default" data-edit-share="' + row.id + '">编辑</button> '
-                + '<button type="button" class="vs-btn vs-btn--default vs-shares__del" data-del-share="' + row.id + '">删除</button>'
+                + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-btn--xs" data-copy-url="' + escapeHtml(row.share_url) + '">复制</button> '
+                + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-btn--xs" data-edit-share="' + row.id + '">编辑</button> '
+                + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-btn--xs vs-shares__del" data-del-share="' + row.id + '">删除</button>'
                 + '</td></tr>';
         }).join('');
     }
@@ -96,24 +104,28 @@
         }
         cardList.innerHTML = shares.map(function (row) {
             var st = statusLabel(row);
-            var type = row.share_type === 'folder' ? '文件夹' : '单文件';
             var dlLimit = row.max_downloads > 0 ? row.max_downloads + ' 次' : '不限';
             return '<article class="vs-share-card" data-id="' + row.id + '">'
-                + '<div class="vs-share-card__url">' + escapeHtml(row.share_url) + '</div>'
+                + '<div class="vs-share-card__top">'
+                + '<div class="vs-share-card__title-wrap">'
                 + '<h3 class="vs-share-card__title">' + escapeHtml(row.title) + '</h3>'
-                + '<div class="vs-share-card__meta">'
-                + '<span>' + type + ' · ' + escapeHtml(row.target) + '</span>'
-                + '<span>' + escapeHtml(passwordText(row)) + '</span>'
-                + '<span>过期：' + escapeHtml(expiryText(row)) + '</span>'
-                + '<span>下载上限：' + escapeHtml(dlLimit) + '</span>'
-                + '<span>访问/下载：' + row.view_count + ' / ' + row.download_count + '</span>'
+                + '<p class="vs-share-card__sub">' + typeText(row) + ' · ' + escapeHtml(row.target) + '</p>'
                 + '</div>'
-                + '<div class="vs-share-card__foot">'
                 + '<span class="vs-shares__badge vs-shares__badge--' + st.cls + '">' + st.text + '</span>'
+                + '</div>'
+                + '<div class="vs-share-card__url">' + escapeHtml(row.share_url) + '</div>'
+                + '<div class="vs-share-card__tags">'
+                + '<span class="vs-share-card__tag">' + escapeHtml(storageText(row)) + '</span>'
+                + '<span class="vs-share-card__tag">' + escapeHtml(passwordText(row)) + '</span>'
+                + '<span class="vs-share-card__tag">过期 ' + escapeHtml(expiryText(row)) + '</span>'
+                + '<span class="vs-share-card__tag">下载上限 ' + escapeHtml(dlLimit) + '</span>'
+                + '<span class="vs-share-card__tag">访问 ' + row.view_count + ' / 下载 ' + row.download_count + '</span>'
+                + '</div>'
                 + '<div class="vs-share-card__actions">'
-                + '<button type="button" class="vs-btn vs-btn--default" data-copy-url="' + escapeHtml(row.share_url) + '">复制</button>'
-                + '<button type="button" class="vs-btn vs-btn--default" data-edit-share="' + row.id + '">编辑</button>'
-                + '<button type="button" class="vs-btn vs-btn--default vs-shares__del" data-del-share="' + row.id + '">删除</button>'
+                + '<button type="button" class="vs-btn vs-btn--primary vs-btn--rect vs-btn--block" data-copy-url="' + escapeHtml(row.share_url) + '">复制短链接</button>'
+                + '<div class="vs-share-card__actions-row">'
+                + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect" data-edit-share="' + row.id + '">编辑</button>'
+                + '<button type="button" class="vs-btn vs-btn--default vs-btn--rect vs-shares__del" data-del-share="' + row.id + '">删除</button>'
                 + '</div></div></article>';
         }).join('');
     }

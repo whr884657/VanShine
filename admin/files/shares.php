@@ -99,6 +99,7 @@ vs_admin_layout_start('分享管理', 'file_shares');
                     <th>标题</th>
                     <th>类型</th>
                     <th>目标</th>
+                    <th>储存</th>
                     <th>密码</th>
                     <th>访问/下载</th>
                     <th>状态</th>
@@ -107,7 +108,7 @@ vs_admin_layout_start('分享管理', 'file_shares');
                 </tr>
             </thead>
             <tbody id="sharesTableBody">
-                <tr><td colspan="8" class="vs-shares__empty">加载中…</td></tr>
+                <tr><td colspan="9" class="vs-shares__empty">加载中…</td></tr>
             </tbody>
         </table>
     </div>
@@ -155,8 +156,8 @@ vs_admin_layout_start('分享管理', 'file_shares');
                 </div>
             </div>
             <div class="vs-modal__foot">
-                <button type="button" class="vs-btn vs-btn--default" data-close-share-edit>取消</button>
-                <button type="submit" class="vs-btn vs-btn--primary">保存</button>
+                <button type="button" class="vs-btn vs-btn--default vs-btn--rect" data-close-share-edit>取消</button>
+                <button type="submit" class="vs-btn vs-btn--primary vs-btn--rect">保存</button>
             </div>
         </form>
     </div>

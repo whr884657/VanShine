@@ -92,6 +92,17 @@ class DatabaseMigrator
         if (!in_array('1.0.40', $applied, true) && !array_key_exists('storage_local_public_slug', Config::all())) {
             self::markApplied('1.0.40');
         }
+
+        if (self::domainTableExists()) {
+            try {
+                $pdo = Database::connect();
+                $prefix = Database::prefix();
+                self::applyBoundDomainsMigration($pdo, $prefix);
+                self::execStatement($pdo, 'DROP TABLE IF EXISTS `' . $prefix . 'domain`');
+            } catch (Exception $e) {
+                // 留待正式迁移流程重试
+            }
+        }
     }
 
     /**
@@ -238,7 +249,6 @@ class DatabaseMigrator
 
         if ($version === '1.0.47') {
             self::applyBoundDomainsMigration($pdo, $prefix);
-            return;
         }
 
         $sql = file_get_contents($file);
@@ -247,12 +257,15 @@ class DatabaseMigrator
         $statements = DatabaseInstaller::parseSqlStatements($sql);
 
         foreach ($statements as $statement) {
+            if ($version === '1.0.47' && trim($statement) === '') {
+                continue;
+            }
             self::execStatement($pdo, $statement);
         }
     }
 
     /**
-     * v1.0.47：domain 表数据迁入 config.bound_domains 后删表
+     * v1.0.47：domain 表数据迁入 config.bound_domains（删表由 1.0.47.sql 执行）
      *
      * @param PDO    $pdo
      * @param string $prefix
@@ -298,11 +311,24 @@ class DatabaseMigrator
         );
         $upsert->execute(array('bound_domains', $json));
 
-        if ($tableExists) {
-            $pdo->exec('DROP TABLE IF EXISTS `' . $domainTable . '`');
-        }
-
         Config::clearCache();
+    }
+
+    /**
+     * domain 表是否仍存在（用于 1.0.47 迁移补偿）
+     *
+     * @return bool
+     */
+    public static function domainTableExists()
+    {
+        try {
+            $pdo = Database::connect();
+            $table = Database::table('domain');
+            $check = $pdo->query('SHOW TABLES LIKE ' . $pdo->quote($table));
+            return (bool) $check->fetch(PDO::FETCH_NUM);
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**

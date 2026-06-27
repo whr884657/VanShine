@@ -17,7 +17,7 @@
 
 - 删除 `domain` 表
 - 新增配置项 `bound_domains`（JSON 数组，每项含 domain / site_name / icp_number / gongan_number）
-- 升级时自动迁移旧表数据并删表（`1.0.47.sql`）
+- 升级时自动迁移旧表数据；`1.0.47.sql` 含 `INSERT bound_domains` 与 `DROP TABLE domain`
 
 ### 登录
 

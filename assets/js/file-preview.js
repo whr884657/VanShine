@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/file-preview.js
  * 作用：文件在线预览（本地资源 + 原生媒体）
- * @version 1.0.51
+ * @version 1.0.52
  */
 
 (function () {
@@ -61,6 +61,68 @@
             if (!media.duration) return;
             fill.style.width = ((media.currentTime / media.duration) * 100) + '%';
         });
+    }
+
+    function bindMediaExtras(media, wrap) {
+        media.volume = 1;
+        media.muted = false;
+        media.defaultMuted = false;
+
+        var volInput = wrap.querySelector('[data-media-volume]');
+        var speedSelect = wrap.querySelector('[data-media-speed]');
+
+        if (volInput) {
+            volInput.value = String(media.volume);
+            volInput.addEventListener('input', function () {
+                media.volume = parseFloat(volInput.value);
+                media.muted = media.volume <= 0;
+            });
+        }
+
+        if (speedSelect) {
+            speedSelect.addEventListener('change', function () {
+                media.playbackRate = parseFloat(speedSelect.value) || 1;
+            });
+        }
+    }
+
+    function autoPlayMedia(media) {
+        media.volume = 1;
+        media.muted = false;
+        var play = function () {
+            var p = media.play();
+            if (p && typeof p.catch === 'function') {
+                p.catch(function () { /* 浏览器策略阻止时静默 */ });
+            }
+        };
+        if (media.readyState >= 2) {
+            play();
+        } else {
+            media.addEventListener('canplay', function onReady() {
+                media.removeEventListener('canplay', onReady);
+                play();
+            });
+        }
+    }
+
+    function mediaExtrasHtml() {
+        return '<div class="vs-media-extra">'
+            + '<label class="vs-media-extra__item">'
+            + '<span class="vs-media-extra__label">音量</span>'
+            + '<input type="range" class="vs-media-extra__range" data-media-volume min="0" max="1" step="0.05" value="1">'
+            + '</label>'
+            + '<label class="vs-media-extra__item">'
+            + '<span class="vs-media-extra__label">倍速</span>'
+            + '<select class="vs-media-extra__select" data-media-speed>'
+            + '<option value="0.5">0.5x</option>'
+            + '<option value="0.75">0.75x</option>'
+            + '<option value="1" selected>1x</option>'
+            + '<option value="1.25">1.25x</option>'
+            + '<option value="1.5">1.5x</option>'
+            + '<option value="2">2x</option>'
+            + '</select>'
+            + '</label>'
+            + '</div>';
     }
 
     function fitDocxToWidth(box) {
@@ -405,7 +467,9 @@
             + '<button type="button" class="vs-audio-bar__play" aria-label="播放">' + ICON_PLAY + '</button>'
             + '<div class="vs-audio-bar__track"><div class="vs-audio-bar__fill"></div></div>'
             + '<span class="vs-audio-bar__time">0:00 / 0:00</span>'
-            + '</div></div>';
+            + '</div>'
+            + mediaExtrasHtml()
+            + '</div>';
 
         var audio = document.createElement('audio');
         audio.className = 'vs-audio-bar__media';
@@ -426,8 +490,13 @@
         }
 
         function togglePlay() {
-            if (audio.paused) audio.play();
-            else audio.pause();
+            if (audio.paused) {
+                audio.volume = 1;
+                audio.muted = false;
+                audio.play();
+            } else {
+                audio.pause();
+            }
         }
 
         function setPlaying(playing) {
@@ -446,6 +515,9 @@
         audio.addEventListener('play', function () { setPlaying(true); });
         audio.addEventListener('pause', function () { setPlaying(false); });
         audio.addEventListener('ended', function () { setPlaying(false); });
+
+        bindMediaExtras(audio, wrap);
+        autoPlayMedia(audio);
     }
 
     function layoutVideoFrame(video, frame) {
@@ -473,11 +545,12 @@
 
         var wrap = document.createElement('div');
         wrap.className = 'vs-video-frame';
-        wrap.innerHTML = '<video class="vs-video-frame__media" playsinline webkit-playsinline preload="metadata"></video>'
+        wrap.innerHTML = '<video class="vs-video-frame__media" playsinline webkit-playsinline preload="auto"></video>'
             + '<div class="vs-video-frame__bar">'
             + '<button type="button" class="vs-video-frame__play" aria-label="播放">' + ICON_PLAY + '</button>'
             + '<div class="vs-video-frame__track"><div class="vs-video-frame__fill"></div></div>'
             + '<span class="vs-video-frame__time">0:00 / 0:00</span>'
+            + mediaExtrasHtml()
             + '</div>';
 
         var video = wrap.querySelector('video');
@@ -493,8 +566,13 @@
         }
 
         function togglePlay() {
-            if (video.paused) video.play();
-            else video.pause();
+            if (video.paused) {
+                video.volume = 1;
+                video.muted = false;
+                video.play();
+            } else {
+                video.pause();
+            }
         }
 
         function setPlaying(playing) {
@@ -515,6 +593,9 @@
         video.addEventListener('play', function () { setPlaying(true); });
         video.addEventListener('pause', function () { setPlaying(false); });
         video.addEventListener('ended', function () { setPlaying(false); });
+
+        bindMediaExtras(video, wrap);
+        autoPlayMedia(video);
 
         container.appendChild(wrap);
         window.addEventListener('resize', function () {

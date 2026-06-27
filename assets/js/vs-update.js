@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/vs-update.js
  * 作用：系统升级共用逻辑（检测、二次确认、分步执行更新）
- * @version 1.0.48
+ * @version 1.0.52
  */
 
 (function () {
@@ -175,8 +175,8 @@
                 closeProgressModal();
                 clearSidebarBadge();
                 VsModal.open({
-                    title: '更新成功',
-                    message: res.msg || '系统已更新到最新版本',
+                    title: '更新完成',
+                    message: res.msg || '更新已完成，请刷新页面以加载新版本',
                     buttons: [{
                         text: '刷新页面',
                         primary: true,

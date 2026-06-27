@@ -140,12 +140,12 @@ class Updater
      */
     public static function applyUpdateStep($step)
     {
-        $prepared = self::prepareUpdateContext();
+        $step = strtolower(trim((string) $step));
+        $prepared = self::prepareUpdateContext($step);
         if (empty($prepared['ok'])) {
             return $prepared;
         }
 
-        $step = strtolower(trim((string) $step));
         switch ($step) {
             case 'download':
                 return self::updateStepDownload($prepared);
@@ -165,7 +165,7 @@ class Updater
      *
      * @return array
      */
-    private static function prepareUpdateContext()
+    private static function prepareUpdateContext($step = '')
     {
         if (!class_exists('ZipArchive')) {
             return array('ok' => false, 'msg' => '服务器未启用 ZipArchive 扩展，无法解压更新包');
@@ -175,7 +175,16 @@ class Updater
         if (!$check['ok']) {
             return array('ok' => false, 'msg' => $check['error']);
         }
-        if (!$check['update_available']) {
+
+        $step = strtolower(trim((string) $step));
+        $work = self::getUpdateWork();
+        $isPostDeployMigrate = ($step === 'migrate' && !empty($work['deployed']));
+
+        if ($isPostDeployMigrate) {
+            $ver = !empty($work['version']) ? (string) $work['version'] : self::localVersion();
+            $check['remote_version'] = $ver;
+            $check['local_version'] = $ver;
+        } elseif (!$check['update_available']) {
             return array('ok' => false, 'msg' => '当前已是最新版本，无需更新');
         }
 
@@ -368,6 +377,8 @@ class Updater
         $remaining = UpdateLog::countVersionsAfter($check['remote_version']);
         if ($remaining > 0) {
             $msg .= '。尚有 ' . $remaining . ' 个版本待升级，请刷新页面后继续执行更新';
+        } else {
+            $msg .= '。请刷新页面以加载新版本';
         }
 
         return array(

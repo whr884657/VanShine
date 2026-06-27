@@ -2,15 +2,14 @@
 /**
  * 文件：admin/update.php
  * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
- * @version 1.0.28
+ * @version 1.0.29
  */
 
 require_once __DIR__ . '/init.php';
 
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
-if ($action === 'check' || $action === 'history') {
-    // 避免 PHP Warning 污染 JSON 响应（如 open_basedir 下检测系统 CA 路径）
+if (in_array($action, array('check', 'history', 'apply', 'apply_step'), true)) {
     if (function_exists('ini_set')) {
         @ini_set('display_errors', '0');
     }
@@ -54,7 +53,12 @@ if ($action === 'apply') {
     @set_time_limit(600);
     @ini_set('memory_limit', '256M');
 
-    $result = Updater::applyUpdate();
+    try {
+        $result = Updater::applyUpdate();
+    } catch (Throwable $e) {
+        AjaxResponse::error('更新异常：' . $e->getMessage());
+    }
+
     if (empty($result['ok'])) {
         AjaxResponse::error(isset($result['msg']) ? $result['msg'] : '更新失败');
     }
@@ -71,7 +75,13 @@ if ($action === 'apply_step') {
     @ini_set('memory_limit', '256M');
 
     $step = isset($_POST['step']) ? trim($_POST['step']) : '';
-    $result = Updater::applyUpdateStep($step);
+
+    try {
+        $result = Updater::applyUpdateStep($step);
+    } catch (Throwable $e) {
+        AjaxResponse::error('更新异常：' . $e->getMessage());
+    }
+
     if (empty($result['ok'])) {
         AjaxResponse::error(isset($result['msg']) ? $result['msg'] : '更新失败');
     }

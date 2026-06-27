@@ -24,7 +24,7 @@ function vs_admin_menu_groups()
             'title'    => '文件',
             'icon'     => 'folder',
             'children' => array(
-                array('id' => 'files', 'title' => '文件管理', 'url' => '/admin/files/'),
+                array('id' => 'files', 'title' => '文件管理', 'url' => '/admin/files/manage.php'),
                 array('id' => 'file_shares', 'title' => '分享管理', 'url' => '/admin/files/shares.php'),
             ),
         ),

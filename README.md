@@ -45,7 +45,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 管理控制台 | `/admin/index.php` | 后台首页 |
 | 账号设置 | `/admin/account.php` | 修改邮箱、密码 |
 | 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱、七种储存配置 |
-| 文件管理 | `/admin/files/` | 文件夹绑定储存、批量/拖拽上传、三种视图、创建分享 |
+| 文件管理 | `/admin/files/manage.php` | 文件夹绑定储存、批量/拖拽上传、三种视图、创建分享 |
 | 分享管理 | `/admin/files/shares.php` | 分享短链接列表、密码/过期/下载统计 |
 | 系统升级 | `/admin/upgrade.php` | 手动检测更新、安装更新、查看更新记录 |
 | 关于 | `/admin/about.php` | 系统与环境信息 |
@@ -94,7 +94,9 @@ VanShine/
 │   │   ├── auth_layout.php     # 登录/注册布局
 │   │   └── storage_settings.php
 │   ├── index.php               # 控制台
-│   ├── files.php               # 文件管理
+│   ├── files/
+│   │   ├── manage.php          # 文件管理
+│   │   └── shares.php          # 分享管理
 │   ├── settings.php            # 系统设置
 │   ├── account.php             # 账号设置
 │   ├── upgrade.php             # 系统升级
@@ -704,7 +706,7 @@ VanShine/
 - `install/index.php`、`assets/js/install.js`（数据库测试 AJAX，无整页刷新）
 - `admin/settings.php`、`assets/js/settings.js`（保存/测试 AJAX）
 - `admin/includes/layout.php`（分组侧边栏）
-- `admin/files.php`、`admin/cdn/*`、`admin/archive/*`（占位页）
+- `admin/files/`、`admin/cdn/*`、`admin/archive/*`
 - `core/AjaxResponse.php`（新增）
 - `assets/css/admin.css`、`assets/css/icons.css`、`assets/js/admin.js`
 - `core/version.php`、`README.md`

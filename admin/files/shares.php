@@ -1,6 +1,6 @@
 <?php
 /**
- * 文件：admin/shares.php
+ * 文件：admin/files/shares.php
  * 作用：分享链接管理
  * @version 1.0.53
  */

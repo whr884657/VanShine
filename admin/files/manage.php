@@ -1,6 +1,6 @@
 <?php
 /**
- * 文件：admin/files.php
+ * 文件：admin/files/manage.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
  * @version 1.0.54
  */

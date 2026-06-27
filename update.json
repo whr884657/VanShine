@@ -1,13 +1,13 @@
 {
-    "version": "1.0.58",
+    "version": "1.0.59",
     "release_date": "2026-06-27",
-    "title": "分享链接 /d/?token= 与预览弹窗滚动修复",
+    "title": "分享流签名 URL 与安全加固",
     "db_changes": false,
     "changes": [
-        "分享链接改为 /d/?token=，URL 不含 index.php；旧 PATH 格式自动跳转",
-        "分享页与安全提醒页增加版权与备案页脚",
-        "预览弹窗整体可滚动，修复底部操作按钮被遮挡",
-        "文件/文件夹操作按钮统一悬停显示文字；文件行增加分享按钮"
+        "合并 stream 为唯一入口 /d/stream.php，删除 stream-handler 与旧版兼容",
+        "下载/预览使用 HMAC 签名短时 URL，不再暴露分享 token",
+        "分享页 Session 校验 + 流接口 no-store 安全头",
+        "预览 JS 使用 shareStreams 映射替代 token 拼接"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

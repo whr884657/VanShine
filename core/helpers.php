@@ -267,6 +267,29 @@ function vs_render_site_logo($class = 'vs-logo-icon')
 }
 
 /**
+ * 分享页/流接口安全响应头
+ *
+ * @param bool $noStore 是否禁止缓存
+ * @return void
+ */
+function vs_share_send_security_headers($noStore = false)
+{
+    header('X-Robots-Tag: noindex, nofollow');
+    header('Referrer-Policy: no-referrer');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+    if ($noStore) {
+        header('Cache-Control: no-store, no-cache, must-revalidate, private');
+        header('Pragma: no-cache');
+        return;
+    }
+
+    header('Cache-Control: no-store');
+}
+
+/**
  * 渲染页脚（版权 + ICP + 公安备案）
  *
  * @param string|null $siteName

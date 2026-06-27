@@ -36,13 +36,9 @@ $siteName = SiteContext::siteName();
 
 http_response_code(403);
 
+vs_share_send_security_headers(false);
+
 header('Content-Type: text/html; charset=utf-8');
-
-header('X-Robots-Tag: noindex, nofollow');
-
-header('X-Content-Type-Options: nosniff');
-
-header('Referrer-Policy: no-referrer');
 
 ?>
 

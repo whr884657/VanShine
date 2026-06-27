@@ -2,7 +2,7 @@
 /**
  * 文件：core/FileShare.php
  * 作用：文件/文件夹分享链接
- * @version 1.0.58
+ * @version 1.0.59
  */
 
 class FileShare
@@ -29,19 +29,164 @@ class FileShare
 
     /**
      * @param string $token
+     * @param int    $fileId
+     * @param bool   $download
      * @return string
      */
     public static function streamUrl($token, $fileId, $download = false)
     {
+        $share = self::findByToken($token);
+        if ($share === null) {
+            return '';
+        }
+
+        return self::signedStreamUrl((int) $share['id'], (int) $fileId, $download);
+    }
+
+    /**
+     * @param int  $shareId
+     * @param int  $fileId
+     * @param bool $download
+     * @return string
+     */
+    public static function signedStreamUrl($shareId, $fileId, $download = false)
+    {
+        $shareId = (int) $shareId;
+        $fileId = (int) $fileId;
+        if ($shareId <= 0 || $fileId <= 0) {
+            return '';
+        }
+
+        $exp = time() + 7200;
+        $sig = self::buildStreamSignature($shareId, $fileId, $exp, $download);
         $query = array(
-            'token'  => (string) $token,
-            'stream' => 1,
-            'file'   => (int) $fileId,
+            's' => $shareId,
+            'f' => $fileId,
+            'e' => $exp,
+            'k' => $sig,
         );
         if ($download) {
-            $query['download'] = 1;
+            $query['d'] = 1;
         }
-        return rtrim(vs_base_url(), '/') . '/d/?' . http_build_query($query);
+
+        return rtrim(vs_base_url(), '/') . '/d/stream.php?' . http_build_query($query);
+    }
+
+    /**
+     * @param int    $shareId
+     * @param int    $fileId
+     * @param int    $exp
+     * @param string $sig
+     * @param bool   $download
+     * @return bool
+     */
+    public static function verifyStreamSignature($shareId, $fileId, $exp, $sig, $download = false)
+    {
+        $shareId = (int) $shareId;
+        $fileId = (int) $fileId;
+        $exp = (int) $exp;
+        $sig = trim((string) $sig);
+
+        if ($shareId <= 0 || $fileId <= 0 || $exp <= 0 || $sig === '') {
+            return false;
+        }
+        if ($exp < time()) {
+            return false;
+        }
+        if (strlen($sig) !== 64 || !ctype_xdigit($sig)) {
+            return false;
+        }
+
+        $expected = self::buildStreamSignature($shareId, $fileId, $exp, $download);
+        return hash_equals($expected, $sig);
+    }
+
+    /**
+     * @param int    $shareId
+     * @param int    $fileId
+     * @param int    $exp
+     * @param bool   $download
+     * @return string
+     */
+    public static function buildStreamSignature($shareId, $fileId, $exp, $download = false)
+    {
+        $payload = (int) $shareId . '|' . (int) $fileId . '|' . (int) $exp . '|' . ($download ? '1' : '0');
+        return hash_hmac('sha256', $payload, self::streamSigningKey());
+    }
+
+    /**
+     * @return string
+     */
+    private static function streamSigningKey()
+    {
+        static $key = null;
+        if ($key !== null) {
+            return $key;
+        }
+
+        $parts = array('vs-share-stream-v1');
+        $lock = VS_ROOT . '/config/install.lock';
+        if (is_file($lock)) {
+            $parts[] = (string) filemtime($lock);
+            $parts[] = (string) filesize($lock);
+        }
+        $db = VS_ROOT . '/config/database.php';
+        if (is_file($db)) {
+            $parts[] = (string) filemtime($db);
+        }
+
+        $key = hash('sha256', implode('|', $parts));
+        return $key;
+    }
+
+    /**
+     * @param int    $shareId
+     * @param string $token
+     * @return void
+     */
+    public static function grantStreamSession($shareId, $token = '')
+    {
+        $_SESSION['vs_share_stream'] = array(
+            'id'    => (int) $shareId,
+            'token' => (string) $token,
+            'until' => time() + 7200,
+        );
+    }
+
+    /**
+     * @param int $shareId
+     * @return bool
+     */
+    public static function hasStreamSession($shareId)
+    {
+        if (empty($_SESSION['vs_share_stream']) || !is_array($_SESSION['vs_share_stream'])) {
+            return false;
+        }
+
+        $sess = $_SESSION['vs_share_stream'];
+        if ((int) $sess['id'] !== (int) $shareId) {
+            return false;
+        }
+        if (empty($sess['until']) || (int) $sess['until'] < time()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param int $shareId
+     * @return string
+     */
+    public static function streamSessionToken($shareId)
+    {
+        if (!self::hasStreamSession($shareId)) {
+            return '';
+        }
+
+        return isset($_SESSION['vs_share_stream']['token'])
+            ? (string) $_SESSION['vs_share_stream']['token']
+            : '';
     }
 
     /**

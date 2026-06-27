@@ -253,8 +253,9 @@
 
     function buildPreviewUrl(file) {
         var cfg = window.VS_FILE_PREVIEW || {};
-        if (cfg.shareMode && cfg.shareToken && cfg.streamBase && file && file.id) {
-            return cfg.streamBase + (cfg.streamBase.indexOf('?') >= 0 ? '&' : '?') + 'file=' + encodeURIComponent(file.id);
+        if (cfg.shareMode && cfg.shareStreams && file && file.id) {
+            var key = String(file.id);
+            return cfg.shareStreams[key] || cfg.shareStreams[file.id] || '';
         }
         var streamBase = cfg.streamBase || '';
         var publicUrl = file && file.public_url ? String(file.public_url) : '';

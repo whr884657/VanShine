@@ -1,24 +1,15 @@
 <?php
 /**
  * 文件：d/index.php
- * 作用：公开分享页（入口 /d/index.php 或 /d/index.php/{token}）
- * @version 1.0.57
+ * 作用：公开分享页（入口 /d/?token=）
+ * @version 1.0.59
  */
 
 require __DIR__ . '/boot.php';
 
 InstallChecker::requireInstalled();
 
-header('X-Robots-Tag: noindex, nofollow');
-header('Referrer-Policy: no-referrer');
-header('X-Content-Type-Options: nosniff');
-
-ShareRouter::redirectLegacyToQueryIfNeeded();
-
-if (ShareRouter::isStreamRequest()) {
-    require __DIR__ . '/stream-handler.php';
-    exit;
-}
+vs_share_send_security_headers(false);
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -61,22 +52,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['share_password'])) {
 $base = vs_base_url();
 $siteName = SiteContext::siteName();
 $shareTitle = (string) $share['title'];
-$streamBase = rtrim($base, '/') . '/d/?token=' . rawurlencode($token) . '&stream=1';
 
 if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
     FileShare::recordView((int) $share['id']);
+    FileShare::grantStreamSession((int) $share['id'], $token);
 }
 
 $shareFiles = array();
+$shareStreams = array();
 if ($errorMsg === '' && (!$needsPassword || $unlocked)) {
     foreach (FileShare::listShareFiles($share) as $row) {
+        $fileId = (int) $row['id'];
         $shareFiles[] = array(
-            'id'            => (int) $row['id'],
+            'id'            => $fileId,
             'original_name' => (string) $row['original_name'],
             'stored_name'   => (string) $row['stored_name'],
             'mime_type'     => (string) $row['mime_type'],
             'file_size'     => (int) $row['file_size'],
         );
+        $shareStreams[(string) $fileId] = FileShare::signedStreamUrl((int) $share['id'], $fileId, false);
     }
 }
 
@@ -178,8 +172,7 @@ function vs_share_format_size($bytes)
 <script>
 window.VS_FILE_PREVIEW = {
     shareMode: true,
-    shareToken: <?php echo json_encode($token); ?>,
-    streamBase: <?php echo json_encode($streamBase); ?>,
+    shareStreams: <?php echo json_encode($shareStreams, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>,
     assetBase: <?php echo json_encode($base . '/assets/vendor/preview/'); ?>
 };
 window.VS_SHARE_FILES = <?php echo json_encode($shareFiles, JSON_UNESCAPED_UNICODE); ?>;

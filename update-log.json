@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.59",
+            "date": "2026-06-27",
+            "title": "分享流签名 URL 与安全加固",
+            "db_changes": false,
+            "changes": [
+                "合并 stream 为唯一入口 /d/stream.php，删除 stream-handler 与旧版兼容",
+                "下载/预览使用 HMAC 签名短时 URL，不再暴露分享 token",
+                "分享页 Session 校验 + 流接口 no-store 安全头",
+                "预览 JS 使用 shareStreams 映射替代 token 拼接"
+            ]
+        },
+        {
             "version": "1.0.58",
             "date": "2026-06-27",
             "title": "分享链接 /d/?token= 与预览弹窗滚动修复",

@@ -4,6 +4,7 @@ install/installed.lock
 /storage/
 /data/
 release/*.zip
+release/*.json
 参考程序/
 参考项目/
 .DS_Store

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/file-preview.js
  * 作用：文件在线预览（本地资源 + 原生媒体）
- * @version 1.0.50
+ * @version 1.0.51
  */
 
 (function () {
@@ -20,7 +20,69 @@
     var MARKDOWN_EXT = ['md', 'markdown'];
     var CODE_EXT = ['html', 'htm', 'php', 'css', 'js', 'mjs', 'cjs', 'json', 'xml', 'txt', 'log', 'sql', 'yaml', 'yml', 'ini', 'sh', 'bat', 'vue', 'ts', 'tsx', 'jsx'];
 
-    var ICON_MUSIC = '<svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
+    var ICON_MUSIC = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
+    var ICON_PLAY = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>';
+    var ICON_PAUSE = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/></svg>';
+
+    function fmtTime(sec) {
+        sec = Math.max(0, Math.floor(sec || 0));
+        var m = Math.floor(sec / 60);
+        var s = sec % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function applyShellLayout(container, mode) {
+        if (!container) return;
+        var shell = container.closest('.vs-file-preview__viewer-shell');
+        if (!shell) return;
+        shell.classList.remove('is-compact-audio', 'is-fit-video', 'is-fit-image', 'is-doc-view', 'is-fill');
+        if (mode === 'audio') {
+            shell.classList.add('is-compact-audio');
+        } else if (mode === 'video') {
+            shell.classList.add('is-fit-video');
+        } else if (mode === 'image') {
+            shell.classList.add('is-fit-image');
+        } else if (mode === 'word' || mode === 'pdf' || mode === 'excel' || mode === 'markdown') {
+            shell.classList.add('is-doc-view', 'is-fill');
+        } else {
+            shell.classList.add('is-fill');
+        }
+    }
+
+    function bindProgressBar(track, fill, media, onSeek) {
+        track.addEventListener('click', function (e) {
+            if (!media.duration) return;
+            var rect = track.getBoundingClientRect();
+            var ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            media.currentTime = ratio * media.duration;
+            if (onSeek) onSeek();
+        });
+        media.addEventListener('timeupdate', function () {
+            if (!media.duration) return;
+            fill.style.width = ((media.currentTime / media.duration) * 100) + '%';
+        });
+    }
+
+    function fitDocxToWidth(box) {
+        var wrapper = box.querySelector('.docx-wrapper');
+        if (!wrapper) return;
+        var containerW = box.clientWidth || box.parentElement.clientWidth;
+        if (!containerW) return;
+        var pages = wrapper.querySelectorAll('section.docx, .docx');
+        pages.forEach(function (page) {
+            var pw = page.scrollWidth || page.offsetWidth;
+            if (pw > containerW && pw > 0) {
+                var scale = (containerW - 8) / pw;
+                page.style.transform = 'scale(' + scale + ')';
+                page.style.transformOrigin = 'top center';
+                var parent = page.parentElement;
+                if (parent) {
+                    parent.style.height = (page.offsetHeight * scale) + 'px';
+                    parent.style.overflow = 'hidden';
+                }
+            }
+        });
+    }
 
     function assetBase() {
         var cfg = window.VS_FILE_PREVIEW || {};
@@ -154,6 +216,7 @@
     function renderImage(container, url, file) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--image');
+        applyShellLayout(container, 'image');
         var wrap = document.createElement('div');
         wrap.className = 'vs-preview-image-wrap';
         var img = document.createElement('img');
@@ -201,18 +264,34 @@
             showIcon(container, { stored_name: 'word' }, '旧版 .doc 请下载后本地查看，在线预览仅支持 .docx');
             return Promise.resolve();
         }
+        applyShellLayout(container, 'word');
         return loadScript(asset('docx/jszip.min.js'))
             .then(function () { return loadScript(asset('docx/docx-preview.min.js')); })
             .then(function () {
                 return fetchArrayBuffer(url).then(function (buf) {
                     clearContainer(container);
+                    container.classList.add('vs-preview-stage--doc');
+                    applyShellLayout(container, 'word');
                     var box = document.createElement('div');
                     box.className = 'vs-preview-doc';
                     container.appendChild(box);
                     if (!window.docx || !window.docx.renderAsync) {
                         throw new Error('docx');
                     }
-                    return window.docx.renderAsync(buf, box);
+                    return window.docx.renderAsync(buf, box, null, {
+                        className: 'docx',
+                        inWrapper: true,
+                        ignoreWidth: true,
+                        ignoreHeight: false,
+                        breakPages: true,
+                        useBase64URL: true,
+                        renderHeaders: true,
+                        renderFooters: true,
+                    }).then(function () {
+                        requestAnimationFrame(function () {
+                            fitDocxToWidth(box);
+                        });
+                    });
                 });
             });
     }
@@ -307,45 +386,140 @@
         });
     }
 
-    function renderAudio(container, url) {
+    function renderAudio(container, url, file) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--audio');
+        applyShellLayout(container, 'audio');
+
+        var name = (file && (file.stored_name || file.original_name)) || '音频';
         var wrap = document.createElement('div');
-        wrap.className = 'vs-preview-audio';
-        wrap.innerHTML = '<div class="vs-preview-audio__icon" aria-hidden="true">' + ICON_MUSIC + '</div>'
-            + '<div class="vs-preview-audio__waves" aria-hidden="true">'
-            + '<span></span><span></span><span></span><span></span><span></span>'
+        wrap.className = 'vs-audio-bar';
+        wrap.innerHTML = '<div class="vs-audio-bar__vinyl" aria-hidden="true">'
+            + '<span class="vs-audio-bar__ring"></span>'
+            + '<span class="vs-audio-bar__ring vs-audio-bar__ring--2"></span>'
+            + '<button type="button" class="vs-audio-bar__disc" aria-label="播放">' + ICON_MUSIC + '</button>'
             + '</div>'
-            + '<div class="vs-preview-audio__player"></div>';
+            + '<div class="vs-audio-bar__main">'
+            + '<p class="vs-audio-bar__title">' + escapeHtml(name) + '</p>'
+            + '<div class="vs-audio-bar__row">'
+            + '<button type="button" class="vs-audio-bar__play" aria-label="播放">' + ICON_PLAY + '</button>'
+            + '<div class="vs-audio-bar__track"><div class="vs-audio-bar__fill"></div></div>'
+            + '<span class="vs-audio-bar__time">0:00 / 0:00</span>'
+            + '</div></div>';
+
         var audio = document.createElement('audio');
+        audio.className = 'vs-audio-bar__media';
         audio.src = url;
-        audio.controls = true;
         audio.preload = 'metadata';
-        audio.setAttribute('controlsList', 'nodownload');
-        wrap.querySelector('.vs-preview-audio__player').appendChild(audio);
+        wrap.appendChild(audio);
         container.appendChild(wrap);
 
-        audio.addEventListener('play', function () { wrap.classList.add('is-playing'); });
-        audio.addEventListener('pause', function () { wrap.classList.remove('is-playing'); });
-        audio.addEventListener('ended', function () { wrap.classList.remove('is-playing'); });
+        var discBtn = wrap.querySelector('.vs-audio-bar__disc');
+        var playBtn = wrap.querySelector('.vs-audio-bar__play');
+        var fill = wrap.querySelector('.vs-audio-bar__fill');
+        var track = wrap.querySelector('.vs-audio-bar__track');
+        var timeEl = wrap.querySelector('.vs-audio-bar__time');
+
+        function syncTime() {
+            var total = audio.duration && isFinite(audio.duration) ? audio.duration : 0;
+            timeEl.textContent = fmtTime(audio.currentTime) + ' / ' + (total ? fmtTime(total) : '--:--');
+        }
+
+        function togglePlay() {
+            if (audio.paused) audio.play();
+            else audio.pause();
+        }
+
+        function setPlaying(playing) {
+            wrap.classList.toggle('is-playing', playing);
+            playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+            playBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
+            discBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
+        }
+
+        discBtn.addEventListener('click', togglePlay);
+        playBtn.addEventListener('click', togglePlay);
+        bindProgressBar(track, fill, audio, syncTime);
+
+        audio.addEventListener('loadedmetadata', syncTime);
+        audio.addEventListener('timeupdate', syncTime);
+        audio.addEventListener('play', function () { setPlaying(true); });
+        audio.addEventListener('pause', function () { setPlaying(false); });
+        audio.addEventListener('ended', function () { setPlaying(false); });
+    }
+
+    function layoutVideoFrame(video, frame) {
+        var vw = video.videoWidth;
+        var vh = video.videoHeight;
+        if (!vw || !vh) return;
+        var maxW = frame.parentElement ? frame.parentElement.clientWidth : 640;
+        if (!maxW) maxW = Math.min(window.innerWidth - 48, 720);
+        var maxH = Math.min(window.innerHeight * 0.42, 420);
+        var ratio = vw / vh;
+        var w = maxW;
+        var h = w / ratio;
+        if (h > maxH) {
+            h = maxH;
+            w = h * ratio;
+        }
+        frame.style.width = Math.round(w) + 'px';
+        frame.style.aspectRatio = vw + ' / ' + vh;
     }
 
     function renderVideo(container, url) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--video');
+        applyShellLayout(container, 'video');
+
         var wrap = document.createElement('div');
-        wrap.className = 'vs-preview-video';
-        var video = document.createElement('video');
-        video.className = 'vs-preview-video__el';
+        wrap.className = 'vs-video-frame';
+        wrap.innerHTML = '<video class="vs-video-frame__media" playsinline webkit-playsinline preload="metadata"></video>'
+            + '<div class="vs-video-frame__bar">'
+            + '<button type="button" class="vs-video-frame__play" aria-label="播放">' + ICON_PLAY + '</button>'
+            + '<div class="vs-video-frame__track"><div class="vs-video-frame__fill"></div></div>'
+            + '<span class="vs-video-frame__time">0:00 / 0:00</span>'
+            + '</div>';
+
+        var video = wrap.querySelector('video');
         video.src = url;
-        video.controls = true;
-        video.playsInline = true;
-        video.setAttribute('playsinline', '');
-        video.setAttribute('webkit-playsinline', '');
-        video.preload = 'metadata';
-        video.setAttribute('controlsList', 'nodownload');
-        wrap.appendChild(video);
+        var playBtn = wrap.querySelector('.vs-video-frame__play');
+        var fill = wrap.querySelector('.vs-video-frame__fill');
+        var track = wrap.querySelector('.vs-video-frame__track');
+        var timeEl = wrap.querySelector('.vs-video-frame__time');
+
+        function syncTime() {
+            var total = video.duration && isFinite(video.duration) ? video.duration : 0;
+            timeEl.textContent = fmtTime(video.currentTime) + ' / ' + (total ? fmtTime(total) : '--:--');
+        }
+
+        function togglePlay() {
+            if (video.paused) video.play();
+            else video.pause();
+        }
+
+        function setPlaying(playing) {
+            wrap.classList.toggle('is-playing', playing);
+            playBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+            playBtn.setAttribute('aria-label', playing ? '暂停' : '播放');
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+        video.addEventListener('click', togglePlay);
+        bindProgressBar(track, fill, video, syncTime);
+
+        video.addEventListener('loadedmetadata', function () {
+            layoutVideoFrame(video, wrap);
+            syncTime();
+        });
+        video.addEventListener('timeupdate', syncTime);
+        video.addEventListener('play', function () { setPlaying(true); });
+        video.addEventListener('pause', function () { setPlaying(false); });
+        video.addEventListener('ended', function () { setPlaying(false); });
+
         container.appendChild(wrap);
+        window.addEventListener('resize', function () {
+            layoutVideoFrame(video, wrap);
+        }, { passive: true });
     }
 
     function mount(container, file, options) {
@@ -406,7 +580,7 @@
                 chain = renderCode(container, url, ext);
                 break;
             case 'audio':
-                renderAudio(container, url);
+                renderAudio(container, url, file);
                 chain = Promise.resolve();
                 break;
             case 'video':

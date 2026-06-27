@@ -504,7 +504,9 @@
         if (document.fullscreenElement && document.exitFullscreen) {
             document.exitFullscreen().catch(function () { /* ignore */ });
         }
-        if (shell) shell.classList.remove('is-expanded');
+        if (shell) {
+            shell.classList.remove('is-expanded', 'is-compact-audio', 'is-fit-video', 'is-fit-image', 'is-doc-view', 'is-fill');
+        }
         clearViewerState();
     }
 

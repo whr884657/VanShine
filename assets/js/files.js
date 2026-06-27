@@ -45,6 +45,11 @@
     var filePreviewShareUrl = document.getElementById('filePreviewShareUrl');
     var filePreviewShareCreate = document.getElementById('filePreviewShareCreate');
     var filePreviewShareCopy = document.getElementById('filePreviewShareCopy');
+    var filePreviewShareSingle = document.getElementById('filePreviewShareSingle');
+    var filePreviewShareMulti = document.getElementById('filePreviewShareMulti');
+    var filePreviewShareCount = document.getElementById('filePreviewShareCount');
+    var filePreviewShareToggle = document.getElementById('filePreviewShareToggle');
+    var filePreviewShareList = document.getElementById('filePreviewShareList');
 
     var state = {
         folderId: 0,
@@ -578,13 +583,74 @@
         filePreview.setAttribute('aria-hidden', 'false');
         document.body.classList.add('vs-modal-open');
         resetReplaceProgress();
-        resetPreviewShareBox();
-        if (filePreviewShareBox) filePreviewShareBox.hidden = false;
+        loadPreviewShares(file.id);
+    }
+
+    function loadPreviewShares(fileId) {
+        if (!fileId) {
+            renderPreviewShares([]);
+            return;
+        }
+        var fd = new FormData();
+        fd.append('action', 'list_file_shares');
+        fd.append('file_id', String(fileId));
+        fetch(window.location.pathname, { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+                if (res.code === 1 && res.shares) {
+                    renderPreviewShares(res.shares);
+                } else {
+                    renderPreviewShares([]);
+                }
+            })
+            .catch(function () {
+                renderPreviewShares([]);
+            });
+    }
+
+    function shareStatusText(row) {
+        if (!row.enabled) return '已停用';
+        if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) return '已过期';
+        if (row.max_downloads > 0 && row.download_count >= row.max_downloads) return '次数已满';
+        return '有效';
+    }
+
+    function renderPreviewShares(shares) {
+        shares = shares || [];
+        if (filePreviewShareSingle) filePreviewShareSingle.hidden = true;
+        if (filePreviewShareMulti) filePreviewShareMulti.hidden = true;
+        if (filePreviewShareList) {
+            filePreviewShareList.hidden = true;
+            filePreviewShareList.innerHTML = '';
+        }
+
+        if (shares.length === 0) {
+            return;
+        }
+
+        if (shares.length === 1) {
+            if (filePreviewShareSingle) filePreviewShareSingle.hidden = false;
+            if (filePreviewShareUrl) filePreviewShareUrl.value = shares[0].share_url || '';
+            return;
+        }
+
+        if (filePreviewShareMulti) filePreviewShareMulti.hidden = false;
+        if (filePreviewShareCount) filePreviewShareCount.textContent = String(shares.length);
+        if (filePreviewShareList) {
+            filePreviewShareList.innerHTML = shares.map(function (row) {
+                var pwd = row.has_password ? '需密码' : '公开';
+                var exp = row.expires_at ? row.expires_at : '永不过期';
+                return '<li class="vs-file-preview__share-item">'
+                    + '<input type="text" class="vs-file-preview__link-input" readonly value="' + escapeHtml(row.share_url) + '">'
+                    + '<span class="vs-file-preview__share-meta">' + escapeHtml(pwd) + ' · ' + escapeHtml(exp) + ' · ' + escapeHtml(shareStatusText(row)) + '</span>'
+                    + '<button type="button" class="vs-btn vs-btn--default vs-btn--sm" data-copy-share-url="' + escapeHtml(row.share_url) + '">复制</button>'
+                    + '</li>';
+            }).join('');
+        }
     }
 
     function resetPreviewShareBox() {
-        if (filePreviewShareUrl) filePreviewShareUrl.value = '';
-        if (filePreviewShareCopy) filePreviewShareCopy.hidden = true;
+        renderPreviewShares([]);
     }
 
     function openShareCreateModal(type, fileId, folderId, defaultTitle) {
@@ -594,10 +660,12 @@
         document.getElementById('shareCreateFolderId').value = folderId ? String(folderId) : '';
         document.getElementById('shareCreateTitleInput').value = defaultTitle || '';
         document.getElementById('shareCreatePassword').value = '';
-        document.getElementById('shareCreateExpires').value = '';
         document.getElementById('shareCreateMaxDl').value = '0';
         document.getElementById('shareCreatePreview').checked = true;
         document.getElementById('shareCreateTitle').textContent = type === 'folder' ? '分享文件夹' : '分享文件';
+        if (window.VsDatetime) {
+            VsDatetime.clear('#shareCreateExpiresWrap');
+        }
         shareCreateModal.hidden = false;
         shareCreateModal.classList.add('is-open');
     }
@@ -615,11 +683,9 @@
         var fd = new FormData(shareCreateForm);
         fd.append('action', 'create_share');
         fd.append('allow_preview', document.getElementById('shareCreatePreview').checked ? '1' : '0');
-        var exp = document.getElementById('shareCreateExpires').value;
+        var exp = window.VsDatetime ? VsDatetime.getValue('#shareCreateExpiresWrap') : '';
         if (exp) {
-            fd.set('expires_at', exp.replace('T', ' ') + ':00');
-        } else {
-            fd.delete('expires_at');
+            fd.set('expires_at', exp);
         }
         fetch(window.location.pathname, { method: 'POST', body: fd, credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
@@ -630,9 +696,8 @@
                 }
                 closeShareCreateModal();
                 showFlash('分享短链接已生成', 'success');
-                if (filePreviewShareUrl && state.previewFile && res.share.share_type === 'file') {
-                    filePreviewShareUrl.value = res.share.share_url;
-                    if (filePreviewShareCopy) filePreviewShareCopy.hidden = false;
+                if (state.previewFile && res.share.share_type === 'file') {
+                    loadPreviewShares(state.previewFile.id);
                 }
                 if (navigator.clipboard && res.share.share_url) {
                     navigator.clipboard.writeText(res.share.share_url).catch(function () { /* ignore */ });
@@ -897,9 +962,30 @@
             if (!url) return;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(function () {
-                    showFlash('短链接已复制', true);
+                    showFlash('短链接已复制', 'success');
                 });
             }
+        });
+    }
+
+    if (filePreviewShareList) {
+        filePreviewShareList.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-copy-share-url]');
+            if (!btn) return;
+            var url = btn.getAttribute('data-copy-share-url');
+            if (navigator.clipboard && url) {
+                navigator.clipboard.writeText(url).then(function () {
+                    showFlash('短链接已复制', 'success');
+                });
+            }
+        });
+    }
+
+    if (filePreviewShareToggle && filePreviewShareList) {
+        filePreviewShareToggle.addEventListener('click', function () {
+            var open = filePreviewShareList.hidden;
+            filePreviewShareList.hidden = !open;
+            filePreviewShareToggle.textContent = open ? '收起' : '展开查看';
         });
     }
 

@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/shares.js
  * 作用：分享管理页
- * @version 1.0.53
+ * @version 1.0.54
  */
 
 (function () {
@@ -11,6 +11,7 @@
     if (!root) return;
 
     var tbody = document.getElementById('sharesTableBody');
+    var cardList = document.getElementById('sharesCardList');
     var flash = document.getElementById('sharesFlash');
     var editModal = document.getElementById('shareEditModal');
     var editForm = document.getElementById('shareEditForm');
@@ -43,33 +44,41 @@
     }
 
     function statusLabel(row) {
-        if (!row.enabled) return '<span class="vs-shares__badge vs-shares__badge--off">已停用</span>';
+        if (!row.enabled) return { text: '已停用', cls: 'off' };
         if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
-            return '<span class="vs-shares__badge vs-shares__badge--off">已过期</span>';
+            return { text: '已过期', cls: 'off' };
         }
         if (row.max_downloads > 0 && row.download_count >= row.max_downloads) {
-            return '<span class="vs-shares__badge vs-shares__badge--off">次数已满</span>';
+            return { text: '次数已满', cls: 'off' };
         }
-        return '<span class="vs-shares__badge vs-shares__badge--on">有效</span>';
+        return { text: '有效', cls: 'on' };
     }
 
-    function render() {
+    function expiryText(row) {
+        if (!row.expires_at) return '永不过期';
+        return row.expires_at;
+    }
+
+    function passwordText(row) {
+        return row.has_password ? '需密码' : '公开访问';
+    }
+
+    function renderTable() {
         if (!tbody) return;
         if (!shares.length) {
             tbody.innerHTML = '<tr><td colspan="8" class="vs-shares__empty">暂无分享链接，可在文件管理中创建</td></tr>';
             return;
         }
         tbody.innerHTML = shares.map(function (row) {
+            var st = statusLabel(row);
             var type = row.share_type === 'folder' ? '文件夹' : '单文件';
-            var pwd = row.has_password ? '需密码' : '公开';
-            var stats = row.view_count + ' / ' + row.download_count;
             return '<tr data-id="' + row.id + '">'
                 + '<td>' + escapeHtml(row.title) + '</td>'
                 + '<td>' + type + '</td>'
                 + '<td class="vs-shares__target">' + escapeHtml(row.target) + '</td>'
-                + '<td>' + pwd + '</td>'
-                + '<td>' + stats + '</td>'
-                + '<td>' + statusLabel(row) + '</td>'
+                + '<td>' + escapeHtml(passwordText(row)) + '</td>'
+                + '<td>' + row.view_count + ' / ' + row.download_count + '</td>'
+                + '<td><span class="vs-shares__badge vs-shares__badge--' + st.cls + '">' + st.text + '</span></td>'
                 + '<td><input type="text" class="vs-shares__url" readonly value="' + escapeHtml(row.share_url) + '">'
                 + '<button type="button" class="vs-btn vs-btn--default vs-shares__copy" data-copy-url="' + escapeHtml(row.share_url) + '">复制</button></td>'
                 + '<td class="vs-shares__actions">'
@@ -79,6 +88,41 @@
         }).join('');
     }
 
+    function renderCards() {
+        if (!cardList) return;
+        if (!shares.length) {
+            cardList.innerHTML = '<div class="vs-shares__empty">暂无分享链接，可在文件管理中创建</div>';
+            return;
+        }
+        cardList.innerHTML = shares.map(function (row) {
+            var st = statusLabel(row);
+            var type = row.share_type === 'folder' ? '文件夹' : '单文件';
+            var dlLimit = row.max_downloads > 0 ? row.max_downloads + ' 次' : '不限';
+            return '<article class="vs-share-card" data-id="' + row.id + '">'
+                + '<div class="vs-share-card__url">' + escapeHtml(row.share_url) + '</div>'
+                + '<h3 class="vs-share-card__title">' + escapeHtml(row.title) + '</h3>'
+                + '<div class="vs-share-card__meta">'
+                + '<span>' + type + ' · ' + escapeHtml(row.target) + '</span>'
+                + '<span>' + escapeHtml(passwordText(row)) + '</span>'
+                + '<span>过期：' + escapeHtml(expiryText(row)) + '</span>'
+                + '<span>下载上限：' + escapeHtml(dlLimit) + '</span>'
+                + '<span>访问/下载：' + row.view_count + ' / ' + row.download_count + '</span>'
+                + '</div>'
+                + '<div class="vs-share-card__foot">'
+                + '<span class="vs-shares__badge vs-shares__badge--' + st.cls + '">' + st.text + '</span>'
+                + '<div class="vs-share-card__actions">'
+                + '<button type="button" class="vs-btn vs-btn--default" data-copy-url="' + escapeHtml(row.share_url) + '">复制</button>'
+                + '<button type="button" class="vs-btn vs-btn--default" data-edit-share="' + row.id + '">编辑</button>'
+                + '<button type="button" class="vs-btn vs-btn--default vs-shares__del" data-del-share="' + row.id + '">删除</button>'
+                + '</div></div></article>';
+        }).join('');
+    }
+
+    function render() {
+        renderTable();
+        renderCards();
+    }
+
     function openEdit(row) {
         document.getElementById('shareEditId').value = row.id;
         document.getElementById('shareEditTitleInput').value = row.title || '';
@@ -86,19 +130,50 @@
         document.getElementById('shareEditMaxDl').value = row.max_downloads || 0;
         document.getElementById('shareEditPreview').checked = !!row.allow_preview;
         document.getElementById('shareEditEnabled').checked = !!row.enabled;
-        var exp = document.getElementById('shareEditExpires');
-        if (exp) {
-            if (row.expires_at) {
-                exp.value = row.expires_at.replace(' ', 'T').slice(0, 16);
-            } else {
-                exp.value = '';
-            }
+        if (window.VsDatetime) {
+            VsDatetime.setValue('#shareEditExpiresWrap', row.expires_at || '');
         }
         editModal.hidden = false;
+        editModal.classList.add('is-open');
     }
 
     function closeEdit() {
         editModal.hidden = true;
+        editModal.classList.remove('is-open');
+    }
+
+    function handleActionClick(e) {
+        var copyBtn = e.target.closest('[data-copy-url]');
+        if (copyBtn) {
+            var url = copyBtn.getAttribute('data-copy-url');
+            if (navigator.clipboard && url) {
+                navigator.clipboard.writeText(url).then(function () {
+                    showFlash('链接已复制', true);
+                });
+            }
+            return;
+        }
+        var editBtn = e.target.closest('[data-edit-share]');
+        if (editBtn) {
+            var id = parseInt(editBtn.getAttribute('data-edit-share'), 10);
+            var row = shares.filter(function (s) { return s.id === id; })[0];
+            if (row) openEdit(row);
+            return;
+        }
+        var delBtn = e.target.closest('[data-del-share]');
+        if (delBtn) {
+            var delId = parseInt(delBtn.getAttribute('data-del-share'), 10);
+            if (!window.confirm('确定删除此分享链接？删除后原短链接将失效。')) return;
+            post('delete', { id: delId }).then(function (res) {
+                if (res.code !== 1) {
+                    showFlash(res.msg || '删除失败', false);
+                    return;
+                }
+                shares = shares.filter(function (s) { return s.id !== delId; });
+                render();
+                showFlash('已删除', true);
+            });
+        }
     }
 
     try {
@@ -109,52 +184,19 @@
     }
     render();
 
-    if (tbody) {
-        tbody.addEventListener('click', function (e) {
-            var copyBtn = e.target.closest('[data-copy-url]');
-            if (copyBtn) {
-                var url = copyBtn.getAttribute('data-copy-url');
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(url).then(function () {
-                        showFlash('链接已复制', true);
-                    });
-                }
-                return;
-            }
-            var editBtn = e.target.closest('[data-edit-share]');
-            if (editBtn) {
-                var id = parseInt(editBtn.getAttribute('data-edit-share'), 10);
-                var row = shares.filter(function (s) { return s.id === id; })[0];
-                if (row) openEdit(row);
-                return;
-            }
-            var delBtn = e.target.closest('[data-del-share]');
-            if (delBtn) {
-                var delId = parseInt(delBtn.getAttribute('data-del-share'), 10);
-                if (!window.confirm('确定删除此分享链接？删除后原短链接将失效。')) return;
-                post('delete', { id: delId }).then(function (res) {
-                    if (res.code !== 1) {
-                        showFlash(res.msg || '删除失败', false);
-                        return;
-                    }
-                    shares = shares.filter(function (s) { return s.id !== delId; });
-                    render();
-                    showFlash('已删除', true);
-                });
-            }
-        });
-    }
+    if (tbody) tbody.addEventListener('click', handleActionClick);
+    if (cardList) cardList.addEventListener('click', handleActionClick);
 
     if (editForm) {
         editForm.addEventListener('submit', function (e) {
             e.preventDefault();
             var id = document.getElementById('shareEditId').value;
-            var expVal = document.getElementById('shareEditExpires').value;
+            var exp = window.VsDatetime ? VsDatetime.getValue('#shareEditExpiresWrap') : '';
             post('update', {
                 id: id,
                 title: document.getElementById('shareEditTitleInput').value,
                 password: document.getElementById('shareEditPassword').value,
-                expires_at: expVal ? expVal.replace('T', ' ') + ':00' : '',
+                expires_at: exp,
                 max_downloads: document.getElementById('shareEditMaxDl').value,
                 allow_preview: document.getElementById('shareEditPreview').checked ? 1 : 0,
                 enabled: document.getElementById('shareEditEnabled').checked ? 1 : 0,

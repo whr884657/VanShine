@@ -407,6 +407,35 @@ class FileShare
     }
 
     /**
+     * @param int $fileId
+     * @return array
+     */
+    public static function listByFileId($fileId)
+    {
+        $fileId = (int) $fileId;
+        if ($fileId <= 0) {
+            return array();
+        }
+
+        try {
+            $pdo = Database::connect();
+            $table = Database::table('file_share');
+            $stmt = $pdo->prepare(
+                'SELECT * FROM `' . $table . '` WHERE `share_type` = ? AND `file_id` = ? ORDER BY `id` DESC'
+            );
+            $stmt->execute(array(self::TYPE_FILE, $fileId));
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = array();
+            foreach ($rows as $row) {
+                $result[] = self::toAdminRow($row);
+            }
+            return $result;
+        } catch (Exception $e) {
+            return array();
+        }
+    }
+
+    /**
      * @param array $row
      * @return array
      */

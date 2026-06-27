@@ -14,7 +14,7 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('X-Frame-Options: SAMEORIGIN');
 
-$token = isset($_GET['token']) ? trim((string) $_GET['token']) : '';
+$token = ShareRouter::parseToken();
 $fileId = (int) (isset($_GET['file']) ? $_GET['file'] : 0);
 $download = !empty($_GET['download']);
 

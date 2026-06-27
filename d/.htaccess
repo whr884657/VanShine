@@ -1,18 +1,16 @@
 RewriteEngine On
 RewriteBase /d/
 
-# 禁止目录浏览
 Options -Indexes
 
-# 无 token 访问 /d/ 或 /d/index.php → 安全提醒页
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
 RewriteRule ^$ guard.php [L]
 RewriteRule ^index\.php$ guard.php [L]
 
-# 分享流式中转：/d/{token}/stream?file=ID
 RewriteRule ^([A-Za-z0-9]{16,64})/stream/?$ stream.php?token=$1 [L,QSA]
-
-# 分享页：/d/{token}
 RewriteRule ^([A-Za-z0-9]{16,64})/?$ index.php?token=$1 [L,QSA]
 
-# 拦截其它路径
 RewriteRule ^.*$ guard.php [L]

@@ -2,7 +2,7 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（短链接 /d/{token}）
- * @version 1.0.53
+ * @version 1.0.54
  */
 
 define('VS_ROOT', dirname(__DIR__));
@@ -14,7 +14,7 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('X-Content-Type-Options: nosniff');
 
-$token = isset($_GET['token']) ? trim((string) $_GET['token']) : '';
+$token = ShareRouter::parseToken();
 if ($token === '') {
     require __DIR__ . '/guard.php';
     exit;

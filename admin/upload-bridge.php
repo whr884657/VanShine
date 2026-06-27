@@ -7,7 +7,7 @@
 
 require_once __DIR__ . '/init.php';
 
-$filesUrl = vs_base_url() . '/admin/files.php';
+$filesUrl = vs_base_url() . '/admin/files/';
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">

@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.46",
+            "date": "2026-06-27",
+            "title": "移除废弃 token 密码重置",
+            "db_changes": true,
+            "migration": "1.0.46.sql",
+            "changes": [
+                "删除 password_reset 表及 createResetToken 等 token 重置代码",
+                "忘记密码统一为邮箱验证码（/admin/forgot.php）",
+                "移除 admin/reset.php、docs/flyfish-viewer.md"
+            ]
+        },
+        {
             "version": "1.0.45",
             "date": "2026-06-27",
             "title": "修复文件上传完全无响应",

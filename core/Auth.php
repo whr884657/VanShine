@@ -260,93 +260,11 @@ class Auth
         try {
             $pdo = Database::connect();
             $adminTable = Database::table('admin');
-            $resetTable = Database::table('password_reset');
 
             $stmt = $pdo->prepare('UPDATE `' . $adminTable . '` SET `password` = ? WHERE `id` = ? AND `status` = 1');
             $stmt->execute(array(vs_password_hash($newPassword), $adminId));
 
-            if ($stmt->rowCount() === 0) {
-                return false;
-            }
-
-            $pdo->prepare('DELETE FROM `' . $resetTable . '` WHERE `admin_id` = ?')->execute(array($adminId));
-
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * 创建密码重置令牌（保留兼容，当前忘记密码使用验证码）
-     *
-     * @param int $adminId
-     * @return string
-     * @throws Exception
-     */
-    public static function createResetToken($adminId)
-    {
-        $pdo = Database::connect();
-        $table = Database::table('password_reset');
-        $token = bin2hex(random_bytes(32));
-        $expireAt = date('Y-m-d H:i:s', time() + 3600);
-
-        $pdo->prepare('DELETE FROM `' . $table . '` WHERE `admin_id` = ?')->execute(array($adminId));
-
-        $stmt = $pdo->prepare('INSERT INTO `' . $table . '` (`admin_id`, `token`, `expire_at`) VALUES (?, ?, ?)');
-        $stmt->execute(array($adminId, $token, $expireAt));
-
-        return $token;
-    }
-
-    /**
-     * 验证重置令牌
-     *
-     * @param string $token
-     * @return array|false
-     */
-    public static function validateResetToken($token)
-    {
-        if ($token === '') {
-            return false;
-        }
-
-        try {
-            $pdo = Database::connect();
-            $table = Database::table('password_reset');
-            $stmt = $pdo->prepare('SELECT * FROM `' . $table . '` WHERE `token` = ? AND `expire_at` > NOW() LIMIT 1');
-            $stmt->execute(array($token));
-            return $stmt->fetch() ?: false;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * 重置密码
-     *
-     * @param string $token
-     * @param string $newPassword
-     * @return bool
-     */
-    public static function resetPassword($token, $newPassword)
-    {
-        $reset = self::validateResetToken($token);
-        if (!$reset) {
-            return false;
-        }
-
-        try {
-            $pdo = Database::connect();
-            $adminTable = Database::table('admin');
-            $resetTable = Database::table('password_reset');
-
-            $stmt = $pdo->prepare('UPDATE `' . $adminTable . '` SET `password` = ? WHERE `id` = ?');
-            $stmt->execute(array(vs_password_hash($newPassword), $reset['admin_id']));
-
-            $pdo->prepare('DELETE FROM `' . $resetTable . '` WHERE `admin_id` = ?')->execute(array($reset['admin_id']));
-
-            return true;
+            return $stmt->rowCount() > 0;
         } catch (Exception $e) {
             return false;
         }

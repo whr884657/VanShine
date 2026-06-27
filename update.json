@@ -1,12 +1,12 @@
 {
-    "version": "1.0.45",
+    "version": "1.0.46",
     "release_date": "2026-06-27",
-    "title": "修复文件上传完全无响应",
-    "db_changes": false,
+    "title": "移除废弃 token 密码重置",
+    "db_changes": true,
     "changes": [
-        "修复 upload-queue.js 缺失 uid() 导致上传 enqueue 报错",
-        "恢复拖拽/选择文件后的进度浮层与上传流程",
-        "files.js 弹窗绑定增加空节点防护"
+        "删除 password_reset 表及 token 链接重置相关代码",
+        "忘记密码仅保留邮箱验证码流程（/admin/forgot.php）",
+        "移除已弃用的 admin/reset.php 与 docs/flyfish-viewer.md"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

@@ -1,7 +1,7 @@
 -- ============================================================
 -- 文件：install/database.sql
 -- 作用：VanShine 数据库结构定义（安装时执行）
--- 版本：1.0.30
+-- 版本：1.0.46
 -- 说明：{prefix} 为表前缀占位符，安装时自动替换
 -- ============================================================
 
@@ -26,18 +26,6 @@ CREATE TABLE IF NOT EXISTS `{prefix}config` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
-
--- 密码重置令牌表
-CREATE TABLE IF NOT EXISTS `{prefix}password_reset` (
-    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `admin_id` int(10) unsigned NOT NULL,
-    `token` varchar(64) NOT NULL,
-    `expire_at` datetime NOT NULL,
-    `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_token` (`token`),
-    KEY `idx_admin_id` (`admin_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='密码重置令牌表';
 
 -- 绑定域名表（子域名独立站点名称与备案信息）
 CREATE TABLE IF NOT EXISTS `{prefix}domain` (

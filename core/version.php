@@ -2,9 +2,9 @@
 /**
  * 文件：core/version.php
  * 作用：VanShine 当前版本号
- * @version 1.0.45
+ * @version 1.0.46
  */
 
 if (!defined('VS_VERSION')) {
-    define('VS_VERSION', '1.0.45');
+    define('VS_VERSION', '1.0.46');
 }

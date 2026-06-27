@@ -2,7 +2,7 @@
 /**
  * 文件：admin/files/manage.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.54
+ * @version 1.0.64
  */
 
 require_once dirname(__DIR__) . '/init.php';
@@ -342,13 +342,14 @@ vs_admin_layout_start('文件管理', 'files');
         <div class="vs-file-preview__body">
             <div class="vs-file-preview__viewer-shell" id="filePreviewViewerShell">
                 <div class="vs-file-preview__viewer-toolbar">
-                    <button type="button" class="vs-file-preview__expand-btn" id="filePreviewExpand" title="全屏预览" aria-pressed="false">
+                    <button type="button" class="vs-file-preview__expand-btn" id="filePreviewExpand" title="全屏预览（查看完整文档）" aria-pressed="false">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 2H3v3M10 2h3v3M6 14H3v-3M10 14h3v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                     </button>
                 </div>
                 <div class="vs-file-preview__viewer-mount" id="filePreviewViewerMount"></div>
                 <div class="vs-file-preview__viewer-state" id="filePreviewViewerState">正在加载预览…</div>
             </div>
+            <p class="vs-file-preview__compact-hint">预览区高度有限，可在弹窗内上下滑动查看文件信息与操作；点击右上角按钮全屏阅读完整内容。</p>
             <details class="vs-file-preview__details" open>
                 <summary class="vs-file-preview__details-toggle">
                     <span class="vs-file-preview__details-icon" aria-hidden="true">

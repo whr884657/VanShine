@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/share-public.js
  * 作用：公开分享页交互
- * @version 1.0.62
+ * @version 1.0.63
  */
 
 (function () {

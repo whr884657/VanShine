@@ -2,7 +2,7 @@
 /**
  * 文件：d/index.php
  * 作用：公开分享页（入口 /d/?token=）
- * @version 1.0.62
+ * @version 1.0.63
  */
 
 require __DIR__ . '/boot.php';
@@ -160,6 +160,19 @@ function vs_share_format_size($bytes)
              data-share-type="<?php echo vs_e($share['share_type']); ?>"
              data-allow-preview="<?php echo $allowPreview ? '1' : '0'; ?>">
 
+            <?php if ($showPreviewPanel) { ?>
+            <section class="vs-share-preview" id="sharePreview">
+                <div class="vs-share-preview__head">
+                    <span class="vs-share-preview__label">在线预览</span>
+                    <span class="vs-share-preview__hint" id="sharePreviewHint">正在加载…</span>
+                </div>
+                <div class="vs-file-preview__viewer-shell vs-share-preview__stage" id="sharePreviewShell">
+                    <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
+                    <div class="vs-file-preview__viewer-state" id="sharePreviewState">正在加载预览…</div>
+                </div>
+            </section>
+            <?php } ?>
+
             <section class="vs-share-files">
                 <div class="vs-share-files__head">
                     <h2 class="vs-share-files__title"><?php echo $isFolderShare ? '文件列表' : '文件信息'; ?></h2>
@@ -191,19 +204,6 @@ function vs_share_format_size($bytes)
                     <?php } ?>
                 </ul>
             </section>
-
-            <?php if ($showPreviewPanel) { ?>
-            <section class="vs-share-preview" id="sharePreview">
-                <div class="vs-share-preview__head">
-                    <span class="vs-share-preview__label">在线预览</span>
-                    <span class="vs-share-preview__hint" id="sharePreviewHint">正在加载…</span>
-                </div>
-                <div class="vs-file-preview__viewer-shell vs-share-preview__stage" id="sharePreviewShell">
-                    <div class="vs-file-preview__viewer-mount" id="sharePreviewMount"></div>
-                    <div class="vs-file-preview__viewer-state" id="sharePreviewState">正在加载预览…</div>
-                </div>
-            </section>
-            <?php } ?>
         </div>
 <?php } ?>
     </main>

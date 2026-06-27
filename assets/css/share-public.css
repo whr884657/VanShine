@@ -1,4 +1,4 @@
-/* 公开分享页 @version 1.0.62 */
+/* 公开分享页 @version 1.0.63 */
 
 .vs-share-page {
     margin: 0;
@@ -153,7 +153,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     overflow: hidden;
-    background: #0b1220;
+    background: #fff;
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -165,81 +165,99 @@
     justify-content: space-between;
     gap: 8px;
     padding: 8px 12px;
-    background: #111827;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
 }
 
 .vs-share-preview__label {
     font-size: 12px;
     font-weight: 600;
-    color: #e2e8f0;
+    color: #334155;
 }
 
 .vs-share-preview__hint {
     font-size: 11px;
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .vs-share-preview__stage {
+    position: relative;
     flex: 1 1 auto;
-    min-height: 200px;
-    max-height: min(60vh, 560px);
+    min-height: 280px;
+    max-height: min(65vh, 640px);
     border: none;
     border-radius: 0;
-    background: #0b1220;
+    background: #fff;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
 }
 
 .vs-share-preview__stage .vs-file-preview__viewer-mount {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    max-height: 100%;
-    overflow: auto;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    flex: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    box-sizing: border-box;
 }
 
-.vs-share-preview__stage .vs-file-preview__viewer-mount .vs-preview-stage {
-    min-height: min-content;
-    max-height: none;
+.vs-share-preview__stage .vs-file-preview__viewer-state {
+    color: #64748b;
+    background: rgba(255, 255, 255, 0.92);
 }
 
-.vs-share-preview__stage.is-compact-audio {
-    flex: 0 0 auto;
-    max-height: 120px;
-    min-height: 0;
-    background: linear-gradient(135deg, #f8fafc, #eef2ff);
-}
-
-.vs-share-preview__stage.is-compact-audio .vs-file-preview__viewer-mount {
-    overflow: visible;
-    height: auto;
-}
-
-.vs-share-preview__stage.is-fit-video,
-.vs-share-preview__stage.is-fit-image {
-    flex: 0 1 auto;
-    max-height: min(55vh, 520px);
-}
-
+/* 文档：内容区可滚动 */
 .vs-share-preview__stage.is-doc-view {
-    flex: 1 1 auto;
-    min-height: 240px;
-    max-height: min(65vh, 640px);
-    background: #e2e8f0;
+    background: #fff;
 }
 
 .vs-share-preview__stage.is-doc-view .vs-file-preview__viewer-mount {
-    overflow: auto;
-    overscroll-behavior: contain;
+    padding: 0;
 }
 
-.vs-share-preview .vs-file-preview__viewer-state {
-    color: #94a3b8;
+.vs-share-preview__stage.is-doc-view .vs-preview-stage {
+    min-height: min-content;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 图片 / 视频 / 音频 / 不可预览图标：居中 */
+.vs-share-preview__stage.is-fit-video .vs-file-preview__viewer-mount,
+.vs-share-preview__stage.is-fit-image .vs-file-preview__viewer-mount,
+.vs-share-preview__stage.is-compact-audio .vs-file-preview__viewer-mount {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    padding: 16px;
+}
+
+.vs-share-preview__stage.is-fit-video .vs-preview-stage--video,
+.vs-share-preview__stage.is-fit-image .vs-preview-stage--image,
+.vs-share-preview__stage.is-compact-audio .vs-preview-stage--audio,
+.vs-share-preview__stage.is-fit-image .vs-preview-stage--icon {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.vs-share-preview__stage.is-compact-audio .vs-audio-bar {
+    width: 100%;
+    max-width: 720px;
+}
+
+.vs-share-preview__stage.is-fit-video .vs-preview-video-frame,
+.vs-share-preview__stage.is-fit-image .vs-preview-image-wrap {
+    margin: 0 auto;
 }
 
 /* 文件列表 */
@@ -671,7 +689,7 @@ a.vs-share-shell__beian-item:hover {
     }
 
     .vs-share-layout.has-preview {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         gap: 0;
         height: 100%;
         min-height: 0;
@@ -681,7 +699,7 @@ a.vs-share-shell__beian-item:hover {
     .vs-share-files {
         border-radius: 0;
         border: none;
-        border-right: 1px solid #e2e8f0;
+        border-left: 1px solid #e2e8f0;
         height: 100%;
         max-height: none;
     }
@@ -689,6 +707,7 @@ a.vs-share-shell__beian-item:hover {
     .vs-share-preview {
         border-radius: 0;
         border: none;
+        border-right: 1px solid #e2e8f0;
         height: 100%;
         min-height: 0;
     }
@@ -700,39 +719,17 @@ a.vs-share-shell__beian-item:hover {
         height: auto;
     }
 
-    .vs-share-preview__stage.is-compact-audio {
-        flex: 0 0 auto;
-        max-height: 120px;
-    }
-
+    .vs-share-preview__stage.is-compact-audio,
     .vs-share-preview__stage.is-fit-video,
     .vs-share-preview__stage.is-fit-image {
-        flex: 0 1 auto;
-        max-height: 100%;
+        flex: 1 1 auto;
+        max-height: none;
     }
 
     .vs-share-preview__stage.is-doc-view {
         flex: 1 1 auto;
         min-height: 0;
         max-height: none;
-        height: auto;
-    }
-
-    .vs-share-preview__stage .vs-file-preview__viewer-mount {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: 100%;
-        max-height: 100%;
-        overflow: auto;
-    }
-
-    .vs-share-preview__stage.is-doc-view .vs-file-preview__viewer-mount {
-        overflow: auto;
-    }
-
-    .vs-share-preview__stage .vs-preview-iframe,
-    .vs-share-preview__stage .vs-preview-doc {
-        max-width: 100%;
     }
 }
 
@@ -752,7 +749,7 @@ a.vs-share-shell__beian-item:hover {
     }
 
     .vs-share-layout.has-preview {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         align-items: stretch;
         gap: 12px;
     }

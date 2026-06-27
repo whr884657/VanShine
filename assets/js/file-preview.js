@@ -43,7 +43,7 @@
             shell.classList.add('is-compact-audio');
         } else if (mode === 'video') {
             shell.classList.add('is-fit-video');
-        } else if (mode === 'image') {
+        } else if (mode === 'image' || mode === 'unsupported') {
             shell.classList.add('is-fit-image');
         } else if (mode === 'word' || mode === 'pdf' || mode === 'excel' || mode === 'markdown') {
             shell.classList.add('is-doc-view');
@@ -320,7 +320,7 @@
     function clearContainer(container) {
         if (!container) return;
         container.innerHTML = '';
-        container.className = 'vs-preview-stage';
+        container.className = 'vs-file-preview__viewer-mount vs-preview-stage';
     }
 
     function escapeHtml(str) {
@@ -332,10 +332,11 @@
     function showIcon(container, file, message) {
         clearContainer(container);
         container.classList.add('vs-preview-stage--icon');
+        applyShellLayout(container, 'unsupported');
         var ext = getExt(file);
-        var icon = ARCHIVE_EXT.indexOf(ext) >= 0 ? '🗜️' : '📄';
+        var kind = ARCHIVE_EXT.indexOf(ext) >= 0 ? 'archive' : 'file';
         container.innerHTML = '<div class="vs-preview-icon">'
-            + '<div class="vs-preview-icon__glyph">' + icon + '</div>'
+            + '<span class="vs-preview-icon__glyph vs-preview-icon__glyph--' + kind + '" aria-hidden="true"></span>'
             + '<p class="vs-preview-icon__name">' + escapeHtml(file.stored_name || file.original_name || '') + '</p>'
             + '<p class="vs-preview-icon__tip">' + escapeHtml(message || '该格式不支持在线预览') + '</p>'
             + '</div>';

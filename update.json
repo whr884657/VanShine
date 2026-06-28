@@ -1,13 +1,10 @@
 {
-    "version": "1.0.79",
+    "version": "1.0.80",
     "release_date": "2026-06-29",
-    "title": "EdgeOne 无参 URL 查询与概览统计图 UX",
+    "title": "修复 EdgeOne 概览异步加载响应格式",
     "db_changes": false,
     "changes": [
-        "筛选参数写入 Session，地址栏保持无查询串",
-        "概览统计图异步加载，避免 30 秒超时",
-        "电脑端统计图双列布局；多站点折线右上角图例",
-        "优化折线配色；数据分析/套餐计费同步 Session 筛选"
+        "修复 overview_data / overview_domains 未包裹 data 字段导致前端显示「加载失败：ok」"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

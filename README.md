@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.79**
+**当前版本：1.0.80**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,17 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.80（2026-06-29）
+
+**类型：** 修复 EdgeOne 概览异步加载响应格式
+
+**变更说明：**
+- 修复 `overview_data` / `overview_domains` 响应未包裹 `data` 字段，导致统计图与配额显示「加载失败：ok」
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.79（2026-06-29）
 

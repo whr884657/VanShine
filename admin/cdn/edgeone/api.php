@@ -121,18 +121,20 @@ try {
             $quotaBundle = vs_edgeone_fetch_overview_quota($eo, $zones);
             $rangePreset = vs_edgeone_analytics_range_preset($filters['range']);
             AjaxResponse::success('ok', array(
-                'charts_html' => vs_edgeone_render_overview_charts_grid($charts),
-                'quota_html'  => vs_edgeone_render_overview_quota_block($zones, $quotaBundle),
-                'range_label' => $rangePreset['label'],
+                'data' => array(
+                    'charts_html' => vs_edgeone_render_overview_charts_grid($charts),
+                    'quota_html'  => vs_edgeone_render_overview_quota_block($zones, $quotaBundle),
+                    'range_label' => $rangePreset['label'],
+                ),
             ));
 
         case 'overview_domains':
             $filterZone = trim(isset($_POST['filter_zone']) ? $_POST['filter_zone'] : '');
             if ($filterZone === '' || $filterZone === '*') {
-                AjaxResponse::success('ok', array('domains' => array()));
+                AjaxResponse::success('ok', array('data' => array('domains' => array())));
             }
             $names = vs_edgeone_fetch_domain_names($eo, $filterZone);
-            AjaxResponse::success('ok', array('domains' => $names));
+            AjaxResponse::success('ok', array('data' => array('domains' => $names)));
 
         default:
             AjaxResponse::error('未知操作', 400);

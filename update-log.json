@@ -3,6 +3,15 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.80",
+            "date": "2026-06-29",
+            "title": "修复 EdgeOne 概览异步加载响应格式",
+            "db_changes": false,
+            "changes": [
+                "修复 overview_data 响应 data 字段缺失导致「加载失败：ok」"
+            ]
+        },
+        {
             "version": "1.0.79",
             "date": "2026-06-29",
             "title": "EdgeOne 无参 URL 查询与概览统计图 UX",

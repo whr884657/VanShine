@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.71",
+            "date": "2026-06-27",
+            "title": "EdgeOne 配额与计费 API 参数修复",
+            "db_changes": false,
+            "changes": [
+                "DescribeContentQuota 空请求体修正为 JSON 对象",
+                "DescribeBillingData 补充 Interval 与 ZoneIds"
+            ]
+        },
+        {
             "version": "1.0.70",
             "date": "2026-06-27",
             "title": "EdgeOne API 版本修复与 CDN 导航优化",

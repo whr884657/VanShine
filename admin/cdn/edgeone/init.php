@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/init.php
  * 作用：EdgeOne 后台公共引导
- * @version 1.0.1
+ * @version 1.0.2
  */
 
 require_once dirname(__DIR__, 2) . '/init.php';
@@ -222,4 +222,30 @@ function vs_edgeone_time_range($days = 30)
         'StartTime' => date('Y-m-d\T00:00:00+08:00', strtotime('-' . (int) $days . ' days')),
         'EndTime'   => date('Y-m-d\T23:59:59+08:00'),
     );
+}
+
+/**
+ * DescribeBillingData 常用参数
+ *
+ * @param int          $days
+ * @param string       $metric
+ * @param array|string|null $zoneIds 站点 ID 列表，或 '*' 查账号下全部
+ * @return array<string, mixed>
+ */
+function vs_edgeone_billing_params($days = 7, $metric = 'acc_flux', $zoneIds = null)
+{
+    $range = vs_edgeone_time_range($days);
+
+    if ($zoneIds === null) {
+        $selected = vs_edgeone_selected_zone();
+        $zoneIds = $selected !== '' ? array($selected) : array('*');
+    } elseif (is_string($zoneIds)) {
+        $zoneIds = array($zoneIds);
+    }
+
+    return array_merge($range, array(
+        'Interval'   => 'day',
+        'MetricName' => $metric,
+        'ZoneIds'    => $zoneIds,
+    ));
 }

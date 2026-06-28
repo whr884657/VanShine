@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.70**
+**当前版本：1.0.71**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,18 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.71（2026-06-27）
+
+**类型：** EdgeOne 配额与计费 API 参数修复
+
+**变更说明：**
+- `DescribeContentQuota` 空请求体修正为 JSON 对象 `{}`
+- `DescribeBillingData` 补充必填 `Interval` 与 `ZoneIds`
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.70（2026-06-27）
 

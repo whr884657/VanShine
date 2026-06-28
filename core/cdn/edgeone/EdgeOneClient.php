@@ -3,7 +3,7 @@
  * 文件：core/cdn/edgeone/EdgeOneClient.php
  * 作用：EdgeOne Open API 客户端（TC3 签名 + JSON POST，多接入点容错）
  * 依赖：本目录 vendor/（composer install 于 edgeone/）
- * @version 1.0.1
+ * @version 1.0.2
  */
 
 use TencentCloud\Common\CommonClient;
@@ -100,6 +100,11 @@ class EdgeOneClient
      */
     public function call($action, array $params = array())
     {
+        // 空参数须编码为 JSON 对象 {}，否则 json_encode([]) 得到 [] 会触发非法 JSON 错误
+        if (count($params) === 0) {
+            $params = new \stdClass();
+        }
+
         $lastException = null;
         $count = count($this->endpointChain);
 

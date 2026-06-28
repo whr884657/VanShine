@@ -19,7 +19,6 @@ if (vs_edgeone_is_ready()) {
     try {
         $eo = EdgeOne::create();
         $zones = vs_edgeone_fetch_zones($eo);
-        $range = vs_edgeone_time_range(7);
 
         $plansResult = vs_edgeone_try_call(function () use ($eo) {
             return $eo->billing->describePlans(array('Offset' => 0, 'Limit' => 20));
@@ -30,12 +29,8 @@ if (vs_edgeone_is_ready()) {
             $plansError = $plansResult['error'];
         }
 
-        $billingResult = vs_edgeone_try_call(function () use ($eo, $range) {
-            return $eo->billing->describeBillingData(array(
-                'StartTime'  => $range['StartTime'],
-                'EndTime'    => $range['EndTime'],
-                'MetricName' => 'acc_flux',
-            ));
+        $billingResult = vs_edgeone_try_call(function () use ($eo) {
+            return $eo->billing->describeBillingData(vs_edgeone_billing_params(7, 'acc_flux'));
         });
         if ($billingResult['ok']) {
             $billing = $billingResult['data'];

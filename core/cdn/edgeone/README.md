@@ -40,3 +40,8 @@ cd core/cdn/edgeone && composer install
 ## 维护
 
 编辑 `data/actions-registry.php` 后执行 `php build-apis.php` 同步 API 分类类。
+
+## 调用注意
+
+- 无参 Action（如 `DescribeContentQuota`）请求体须为 JSON 对象 `{}`；`EdgeOneClient` 会自动将空参数数组转换，避免 `[]` 触发非法 JSON 错误。
+- `DescribeBillingData` 必填 `Interval`（`min` / `5min` / `hour` / `day`）与 `ZoneIds`（站点 ID 或 `*`）。

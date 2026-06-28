@@ -26,7 +26,7 @@ if (vs_edgeone_is_ready()) {
             vs_edgeone_set_zone($zones[0]['ZoneId']);
         }
         $quotaResult = vs_edgeone_try_call(function () use ($eo) {
-            return $eo->content->describeContentQuota(array());
+            return $eo->content->describeContentQuota();
         });
         if ($quotaResult['ok']) {
             $quota = $quotaResult['data'];

@@ -1,14 +1,11 @@
 {
-    "version": "1.0.70",
+    "version": "1.0.71",
     "release_date": "2026-06-27",
-    "title": "EdgeOne API 版本修复与 CDN 导航优化",
+    "title": "EdgeOne 配额与计费 API 参数修复",
     "db_changes": false,
     "changes": [
-        "EdgeOne API 版本升级至 2022-09-01，修复多个 Describe 接口不可用",
-        "刷新/预热与计费查询补充 StartTime、EndTime 参数",
-        "CDN 侧边栏恢复 EdgeOne + ESA 两项，功能页内横向切换",
-        "站点备注 AliasZoneName 与中文状态展示",
-        "EdgeOne 页面卡片间距与 API 独立容错"
+        "DescribeContentQuota 空请求体修正为 JSON 对象 {}",
+        "DescribeBillingData 补充 Interval 与 ZoneIds 必填参数"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

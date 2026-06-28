@@ -11,6 +11,7 @@ require_once VS_ROOT . '/core/cdn/edgeone/EdgeOne.php';
 EdgeOne::load();
 TencentCloudConfig::migrateLegacyIfNeeded();
 require_once __DIR__ . '/includes/api-helpers.php';
+require_once __DIR__ . '/includes/data-view.php';
 
 /** @var string */
 const VS_EDGEONE_ACTIVE_MENU = 'cdn_edgeone';
@@ -142,6 +143,17 @@ function vs_edgeone_translate($group, $value)
             'deployed' => '已部署',
             'processing' => '部署中',
             'failed' => '部署失败',
+        ),
+        'VerificationStatus' => array(
+            'finished' => '已完成',
+            'pending'  => '待完成',
+            'failed'   => '失败',
+        ),
+        'TaskStatus' => array(
+            'success'    => '成功',
+            'processing' => '处理中',
+            'failed'     => '失败',
+            'timeout'    => '超时',
         ),
     );
 

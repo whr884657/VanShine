@@ -31,8 +31,14 @@ if ($ctx['eo'] !== null && $zoneId !== '') {
     <?php if (vs_edgeone_is_ready() && count($zones) > 0): ?>
         <p class="vs-form-tip">共 <?php echo count($zones); ?> 个站点。请使用上方分组导航切换功能模块。</p>
         <div class="vs-edgeone-stat-grid">
-            <?php foreach ($zones as $zone): ?>
-                <article class="vs-edgeone-stat-card">
+            <?php foreach ($zones as $zone):
+                $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+                $cardClass = 'vs-edgeone-stat-card' . ($zid !== '' && $zid === $zoneId ? ' is-current' : '');
+            ?>
+                <article class="<?php echo vs_e($cardClass); ?>">
+                    <?php if ($zid === $zoneId): ?>
+                        <span class="vs-edgeone-stat-card__tag">当前站点</span>
+                    <?php endif; ?>
                     <h4><?php echo vs_e(vs_edgeone_zone_display_name($zone)); ?></h4>
                     <?php if (trim((string) (isset($zone['AliasZoneName']) ? $zone['AliasZoneName'] : '')) !== ''): ?>
                         <p class="vs-form-tip">站点备注：<?php echo vs_e($zone['AliasZoneName']); ?></p>

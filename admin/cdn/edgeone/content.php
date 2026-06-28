@@ -115,7 +115,7 @@ vs_admin_layout_start('EdgeOne · 内容管理', VS_EDGEONE_ACTIVE_MENU);
         <?php elseif (count($purges) === 0): ?>
             <p class="vs-form-tip">暂无刷新记录</p>
         <?php else: ?>
-            <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($purges, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+            <?php vs_edgeone_render_api_data(array('Tasks' => $purges)); ?>
         <?php endif; ?>
         <h4 class="vs-form-subtitle">预热</h4>
         <?php if ($prefetchError !== ''): ?>
@@ -123,7 +123,7 @@ vs_admin_layout_start('EdgeOne · 内容管理', VS_EDGEONE_ACTIVE_MENU);
         <?php elseif (count($prefetches) === 0): ?>
             <p class="vs-form-tip">暂无预热记录</p>
         <?php else: ?>
-            <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($prefetches, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+            <?php vs_edgeone_render_api_data(array('Tasks' => $prefetches)); ?>
         <?php endif; ?>
     <?php endif; ?>
 </div>

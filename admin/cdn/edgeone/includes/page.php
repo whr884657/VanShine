@@ -110,10 +110,10 @@ function vs_edgeone_render_section($title, array $result, $requireZone, $zoneId,
             if ($isEmpty && !isset($data['RequestId'])) {
                 echo '<p class="vs-form-tip">' . vs_e($emptyTip) . '</p>';
             } else {
-                echo '<pre class="vs-edgeone-json">' . vs_e(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</pre>';
+                vs_edgeone_render_api_data($data);
             }
         } else {
-            echo '<pre class="vs-edgeone-json">' . vs_e(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</pre>';
+            vs_edgeone_render_api_data($data);
         }
     }
     echo '</div>';

@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.75",
+            "date": "2026-06-28",
+            "title": "EdgeOne 后台 UI 可视化重构",
+            "db_changes": false,
+            "changes": [
+                "统一 data-view 渲染层：配额、时序、验证、CNAME、列表",
+                "概览站点卡片高亮当前站点",
+                "内容刷新/预热记录表格化展示"
+            ]
+        },
+        {
             "version": "1.0.74",
             "date": "2026-06-27",
             "title": "EdgeOne API 2022-09-01 参数全面修复",

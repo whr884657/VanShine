@@ -1,0 +1,715 @@
+<?php
+/**
+ * 文件：admin/cdn/edgeone/includes/data-view.php
+ * 作用：EdgeOne API 响应可视化渲染（表格 / 卡片 / 配额 / 时序）
+ */
+
+/**
+ * @return array<string, string>
+ */
+function vs_edgeone_field_labels()
+{
+    return array(
+        'ZoneId'                 => '站点 ID',
+        'ZoneName'               => '站点域名',
+        'AliasZoneName'          => '站点备注',
+        'DomainName'             => '域名',
+        'RecordName'             => '记录名',
+        'Cname'                  => 'CNAME',
+        'Status'                 => '状态',
+        'Type'                   => '类型',
+        'ActiveStatus'           => '加速状态',
+        'Area'                   => '服务区域',
+        'JobId'                  => '任务 ID',
+        'Target'                 => '目标',
+        'CreateTime'             => '创建时间',
+        'UpdateTime'             => '更新时间',
+        'Subdomain'              => '验证子域',
+        'DnsVerificationStatus'  => 'DNS 验证',
+        'FileVerificationStatus' => '文件验证',
+        'IdentifyPath'           => '验证文件路径',
+        'IdentifyContent'        => '验证文件内容',
+        'OriginalNameServers'    => '原始 NS',
+        'Batch'                  => '单次上限',
+        'Daily'                  => '日配额',
+        'DailyAvailable'         => '今日剩余',
+        'Avg'                    => '平均值',
+        'Timestamp'              => '时间',
+        'Value'                  => '数值',
+        'Metric'                 => '指标',
+        'ProxyId'                => '代理 ID',
+        'InstanceId'             => '实例 ID',
+        'CertId'                 => '证书 ID',
+        'FunctionId'             => '函数 ID',
+        'FunctionName'           => '函数名称',
+        'GroupId'                => '配置组 ID',
+        'VersionId'              => '版本 ID',
+        'AttackType'             => '攻击类型',
+        'AttackStatus'           => '攻击状态',
+        'StartTime'              => '开始时间',
+        'EndTime'                => '结束时间',
+        'PeakBandwidth'          => '峰值带宽',
+        'EventId'                => '事件 ID',
+        'Tasks'                  => '任务列表',
+        'PurgeLogs'              => '刷新记录',
+        'PrefetchLogs'           => '预热记录',
+    );
+}
+
+/**
+ * @param string $key
+ * @return string
+ */
+function vs_edgeone_field_label($key)
+{
+    $labels = vs_edgeone_field_labels();
+    if (isset($labels[$key])) {
+        return $labels[$key];
+    }
+
+    return preg_replace('/([a-z])([A-Z])/', '$1 $2', (string) $key);
+}
+
+/**
+ * @param string $type
+ * @return string
+ */
+function vs_edgeone_quota_type_label($type)
+{
+    $map = array(
+        'purge_url'                => 'URL 刷新',
+        'purge_prefix'             => '目录刷新',
+        'purge_host'               => 'Hostname 刷新',
+        'purge_all'                => '全部刷新',
+        'purge_cache_tag'          => 'Cache Tag 刷新',
+        'purge_content_identifier' => '内容标识符刷新',
+        'prefetch_url'             => 'URL 预热',
+    );
+
+    $type = (string) $type;
+    return isset($map[$type]) ? $map[$type] : $type;
+}
+
+/**
+ * @param string $metric
+ * @return string
+ */
+function vs_edgeone_metric_label($metric)
+{
+    $map = array(
+        'l7Flow_flux'    => '七层流量',
+        'l7Flow_request' => '七层请求数',
+        'l4Flow_flux'    => '四层流量',
+        'l4Flow_conn'    => '四层连接数',
+        'acc_flux'       => '加速流量',
+        'acc_bandwidth'  => '加速带宽',
+    );
+
+    $metric = (string) $metric;
+    return isset($map[$metric]) ? $map[$metric] : $metric;
+}
+
+/**
+ * @param mixed $bytes
+ * @return string
+ */
+function vs_edgeone_format_bytes($bytes)
+{
+    $n = (float) $bytes;
+    if ($n <= 0) {
+        return '0 B';
+    }
+    $units = array('B', 'KB', 'MB', 'GB', 'TB');
+    $i = 0;
+    while ($n >= 1024 && $i < count($units) - 1) {
+        $n /= 1024;
+        $i++;
+    }
+
+    return ($i === 0 ? (string) (int) $n : number_format($n, 2)) . ' ' . $units[$i];
+}
+
+/**
+ * @param mixed $value
+ * @return string
+ */
+function vs_edgeone_format_number($value)
+{
+    if (!is_numeric($value)) {
+        return (string) $value;
+    }
+
+    return number_format((float) $value, is_float($value + 0) && floor($value) != $value ? 2 : 0);
+}
+
+/**
+ * @param mixed $ts
+ * @return string
+ */
+function vs_edgeone_format_timestamp($ts)
+{
+    if ($ts === null || $ts === '') {
+        return '-';
+    }
+    if (is_string($ts) && preg_match('/^\d{4}-\d{2}-\d{2}/', $ts)) {
+        return $ts;
+    }
+    $n = (int) $ts;
+    if ($n <= 0) {
+        return '-';
+    }
+
+    return date('Y-m-d H:i', $n);
+}
+
+/**
+ * @param string $group
+ * @param mixed  $value
+ * @return string
+ */
+function vs_edgeone_status_badge_class($group, $value)
+{
+    $value = strtolower((string) $value);
+    $good = array('active', 'online', 'deployed', 'finished', 'success', 'completed');
+    $warn = array('pending', 'process', 'processing', 'initializing');
+    $bad = array('failed', 'deactivated', 'offline', 'error');
+
+    if (in_array($value, $good, true)) {
+        return 'is-success';
+    }
+    if (in_array($value, $warn, true)) {
+        return 'is-warning';
+    }
+    if (in_array($value, $bad, true)) {
+        return 'is-danger';
+    }
+
+    return 'is-muted';
+}
+
+/**
+ * @param string $group
+ * @param mixed  $value
+ * @return void
+ */
+function vs_edgeone_render_status_badge($group, $value)
+{
+    if ($value === null || $value === '') {
+        echo '-';
+        return;
+    }
+    $text = vs_edgeone_translate($group, $value);
+    $class = vs_edgeone_status_badge_class($group, $value);
+    echo '<span class="vs-edgeone-badge ' . vs_e($class) . '">' . vs_e($text) . '</span>';
+}
+
+/**
+ * @param string $key
+ * @param mixed  $value
+ * @param array<string, mixed> $ctx
+ * @return string
+ */
+function vs_edgeone_format_cell($key, $value, array $ctx = array())
+{
+    if ($value === null || $value === '') {
+        return '-';
+    }
+
+    if (is_bool($value)) {
+        return $value ? '是' : '否';
+    }
+
+    if (is_array($value)) {
+        if (count($value) === 0) {
+            return '-';
+        }
+        if (vs_edgeone_array_is_list($value) && count($value) <= 5 && !is_array($value[0])) {
+            return implode('、', array_map('strval', $value));
+        }
+
+        return json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
+
+    $keyLower = strtolower((string) $key);
+    $str = (string) $value;
+
+    if ($key === 'Type' && isset($ctx['quota'])) {
+        return vs_edgeone_quota_type_label($str);
+    }
+
+    if (in_array($key, array('Status', 'ActiveStatus', 'CnameStatus', 'DomainStatus', 'CertStatus', 'DnsVerificationStatus', 'FileVerificationStatus', 'AttackStatus'), true)) {
+        return vs_edgeone_translate($key === 'DnsVerificationStatus' || $key === 'FileVerificationStatus' ? 'VerificationStatus' : $key, $str);
+    }
+
+    if ($key === 'Type' && !isset($ctx['quota'])) {
+        return vs_edgeone_translate('Type', $str);
+    }
+
+    if ($key === 'Area') {
+        return vs_edgeone_translate('Area', $str);
+    }
+
+    if (strpos($keyLower, 'time') !== false || $key === 'Timestamp') {
+        return vs_edgeone_format_timestamp($value);
+    }
+
+    if ($key === 'Value' && isset($ctx['metric'])) {
+        $metric = (string) $ctx['metric'];
+        if (stripos($metric, 'flux') !== false || stripos($metric, 'bandwidth') !== false) {
+            return vs_edgeone_format_bytes($value);
+        }
+        return vs_edgeone_format_number($value);
+    }
+
+    if ($key === 'Avg' && isset($ctx['metric'])) {
+        $metric = (string) $ctx['metric'];
+        if (stripos($metric, 'flux') !== false || stripos($metric, 'bandwidth') !== false) {
+            return vs_edgeone_format_bytes($value);
+        }
+        return vs_edgeone_format_number($value);
+    }
+
+    if (is_numeric($value) && strlen($str) > 6 && ($key === 'Value' || $key === 'PeakBandwidth')) {
+        return vs_edgeone_format_bytes($value);
+    }
+
+    if (is_numeric($value) && strlen($str) > 3) {
+        return vs_edgeone_format_number($value);
+    }
+
+    return $str;
+}
+
+/**
+ * @param array<mixed> $arr
+ * @return bool
+ */
+function vs_edgeone_array_is_list(array $arr)
+{
+    if ($arr === array()) {
+        return true;
+    }
+    return array_keys($arr) === range(0, count($arr) - 1);
+}
+
+/**
+ * @param mixed $data
+ * @return bool
+ */
+function vs_edgeone_response_is_empty($data)
+{
+    if ($data === null || $data === '') {
+        return true;
+    }
+    if (!is_array($data)) {
+        return false;
+    }
+    if (count($data) === 0) {
+        return true;
+    }
+
+    $skip = array('RequestId');
+    $hasContent = false;
+    foreach ($data as $key => $val) {
+        if (in_array($key, $skip, true)) {
+            continue;
+        }
+        if ($key === 'Note' && is_string($val) && $val !== '') {
+            return false;
+        }
+        if (is_array($val)) {
+            if (count($val) > 0) {
+                $hasContent = true;
+                break;
+            }
+            continue;
+        }
+        if ($val !== null && $val !== '') {
+            $hasContent = true;
+            break;
+        }
+    }
+
+    return !$hasContent;
+}
+
+/**
+ * @param mixed $data
+ * @return void
+ */
+function vs_edgeone_render_raw_toggle($data)
+{
+    echo '<details class="vs-edgeone-raw">';
+    echo '<summary>查看原始 JSON</summary>';
+    echo '<pre class="vs-edgeone-json">' . vs_e(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</pre>';
+    echo '</details>';
+}
+
+/**
+ * @param string $text
+ * @return void
+ */
+function vs_edgeone_render_note($text)
+{
+    echo '<p class="vs-form-tip vs-form-tip--highlight">' . vs_e($text) . '</p>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $rows
+ * @param array<int, string>|null          $columns
+ * @param array<string, mixed>             $ctx
+ * @return void
+ */
+function vs_edgeone_render_data_table(array $rows, $columns = null, array $ctx = array())
+{
+    if (count($rows) === 0) {
+        return;
+    }
+
+    if ($columns === null) {
+        $columns = vs_edgeone_infer_columns($rows);
+    }
+
+    echo '<div class="vs-table-wrap vs-edgeone-table-wrap">';
+    echo '<table class="vs-table vs-edgeone-data-table">';
+    echo '<thead><tr>';
+    foreach ($columns as $col) {
+        echo '<th>' . vs_e(vs_edgeone_field_label($col)) . '</th>';
+    }
+    echo '</tr></thead><tbody>';
+
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        echo '<tr>';
+        foreach ($columns as $col) {
+            $val = isset($row[$col]) ? $row[$col] : null;
+            echo '<td>';
+            if (in_array($col, array('Status', 'ActiveStatus', 'CnameStatus', 'DomainStatus', 'CertStatus', 'DnsVerificationStatus', 'FileVerificationStatus', 'AttackStatus'), true)) {
+                vs_edgeone_render_status_badge($col === 'DnsVerificationStatus' || $col === 'FileVerificationStatus' ? 'VerificationStatus' : $col, $val);
+            } else {
+                echo vs_e(vs_edgeone_format_cell($col, $val, $ctx));
+            }
+            echo '</td>';
+        }
+        echo '</tr>';
+    }
+
+    echo '</tbody></table></div>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $rows
+ * @return array<int, string>
+ */
+function vs_edgeone_infer_columns(array $rows)
+{
+    $priority = array(
+        'AliasZoneName', 'ZoneName', 'DomainName', 'RecordName', 'Cname', 'Type', 'Status',
+        'JobId', 'Target', 'CreateTime', 'Subdomain', 'DnsVerificationStatus', 'FileVerificationStatus',
+        'Metric', 'Timestamp', 'Value', 'Avg', 'FunctionName', 'CertId', 'ProxyId', 'InstanceId',
+        'AttackType', 'StartTime', 'EndTime', 'ZoneId',
+    );
+    $keys = array();
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        foreach (array_keys($row) as $k) {
+            $keys[$k] = true;
+        }
+    }
+    $all = array_keys($keys);
+    $ordered = array();
+    foreach ($priority as $p) {
+        if (isset($keys[$p])) {
+            $ordered[] = $p;
+        }
+    }
+    foreach ($all as $k) {
+        if (!in_array($k, $ordered, true) && !in_array($k, array('RequestId', 'FileAscription'), true)) {
+            $ordered[] = $k;
+        }
+    }
+
+    return count($ordered) > 0 ? $ordered : $all;
+}
+
+/**
+ * @param array<string, mixed> $data
+ * @return void
+ */
+function vs_edgeone_render_quota($data)
+{
+    $sections = array();
+    if (isset($data['PurgeQuota']) && is_array($data['PurgeQuota'])) {
+        $sections['刷新配额'] = $data['PurgeQuota'];
+    }
+    if (isset($data['PrefetchQuota']) && is_array($data['PrefetchQuota'])) {
+        $sections['预热配额'] = $data['PrefetchQuota'];
+    }
+
+    foreach ($sections as $title => $items) {
+        if (count($items) === 0) {
+            continue;
+        }
+        echo '<h4 class="vs-edgeone-subtitle">' . vs_e($title) . '</h4>';
+        echo '<div class="vs-edgeone-quota-grid">';
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $type = isset($item['Type']) ? (string) $item['Type'] : '';
+            $daily = isset($item['Daily']) ? (int) $item['Daily'] : 0;
+            $avail = isset($item['DailyAvailable']) ? (int) $item['DailyAvailable'] : 0;
+            $batch = isset($item['Batch']) ? (int) $item['Batch'] : 0;
+            $used = max(0, $daily - $avail);
+            $pct = $daily > 0 ? min(100, round($used / $daily * 100)) : 0;
+
+            echo '<article class="vs-edgeone-quota-card">';
+            echo '<h5>' . vs_e(vs_edgeone_quota_type_label($type)) . '</h5>';
+            echo '<div class="vs-edgeone-quota-meta">';
+            echo '<span>单次上限 <strong>' . vs_e(vs_edgeone_format_number($batch)) . '</strong></span>';
+            echo '<span>日配额 <strong>' . vs_e(vs_edgeone_format_number($daily)) . '</strong></span>';
+            echo '<span>今日剩余 <strong>' . vs_e(vs_edgeone_format_number($avail)) . '</strong></span>';
+            echo '</div>';
+            echo '<div class="vs-edgeone-progress" title="已用 ' . vs_e((string) $used) . ' / ' . vs_e((string) $daily) . '">';
+            echo '<div class="vs-edgeone-progress__bar" style="width:' . (int) $pct . '%"></div>';
+            echo '</div>';
+            echo '<p class="vs-edgeone-quota-foot">已用 ' . vs_e(vs_edgeone_format_number($used)) . '（' . (int) $pct . '%）</p>';
+            echo '</article>';
+        }
+        echo '</div>';
+    }
+}
+
+/**
+ * @param array<int, array<string, mixed>> $dataItems
+ * @return void
+ */
+function vs_edgeone_render_timing_data(array $dataItems)
+{
+    foreach ($dataItems as $block) {
+        if (!is_array($block)) {
+            continue;
+        }
+        $type = isset($block['Type']) ? (string) $block['Type'] : '';
+        $metric = $type;
+        $title = vs_edgeone_metric_label($type);
+        echo '<h4 class="vs-edgeone-subtitle">' . vs_e($title) . '</h4>';
+
+        $series = isset($block['TypeValue']) && is_array($block['TypeValue']) ? $block['TypeValue'] : array();
+        if (count($series) === 0 && isset($block['Detail'])) {
+            $series = array($block);
+        }
+
+        foreach ($series as $serie) {
+            if (!is_array($serie)) {
+                continue;
+            }
+            if (isset($serie['Metric']) && $serie['Metric'] !== '') {
+                $metric = (string) $serie['Metric'];
+            }
+            $ctx = array('metric' => $metric);
+            if (isset($serie['Avg'])) {
+                echo '<p class="vs-edgeone-metric-avg">周期平均：<strong>' . vs_e(vs_edgeone_format_cell('Avg', $serie['Avg'], $ctx)) . '</strong></p>';
+            }
+            $details = isset($serie['Detail']) && is_array($serie['Detail']) ? $serie['Detail'] : array();
+            if (count($details) > 0) {
+                vs_edgeone_render_data_table($details, array('Timestamp', 'Value'), $ctx);
+            }
+        }
+    }
+}
+
+/**
+ * @param array<int, array<string, mixed>> $items
+ * @return void
+ */
+function vs_edgeone_render_identifications(array $items)
+{
+    echo '<div class="vs-edgeone-id-grid">';
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        echo '<article class="vs-edgeone-id-card">';
+        echo '<h5>' . vs_e(isset($item['Subdomain']) ? (string) $item['Subdomain'] : '站点验证') . '</h5>';
+        echo '<dl class="vs-edgeone-dl">';
+        $pairs = array(
+            'DnsVerificationStatus'  => isset($item['DnsVerificationStatus']) ? $item['DnsVerificationStatus'] : null,
+            'FileVerificationStatus' => isset($item['FileVerificationStatus']) ? $item['FileVerificationStatus'] : null,
+        );
+        foreach ($pairs as $k => $v) {
+            echo '<dt>' . vs_e(vs_edgeone_field_label($k)) . '</dt><dd>';
+            vs_edgeone_render_status_badge('VerificationStatus', $v);
+            echo '</dd>';
+        }
+        if (isset($item['FileAscription']) && is_array($item['FileAscription'])) {
+            $fa = $item['FileAscription'];
+            if (isset($fa['IdentifyPath'])) {
+                echo '<dt>' . vs_e(vs_edgeone_field_label('IdentifyPath')) . '</dt><dd><code class="vs-edgeone-code">' . vs_e((string) $fa['IdentifyPath']) . '</code></dd>';
+            }
+            if (isset($fa['IdentifyContent'])) {
+                echo '<dt>' . vs_e(vs_edgeone_field_label('IdentifyContent')) . '</dt><dd><code class="vs-edgeone-code vs-edgeone-code--break">' . vs_e((string) $fa['IdentifyContent']) . '</code></dd>';
+            }
+        }
+        if (isset($item['OriginalNameServers']) && is_array($item['OriginalNameServers']) && count($item['OriginalNameServers']) > 0) {
+            echo '<dt>' . vs_e(vs_edgeone_field_label('OriginalNameServers')) . '</dt><dd>' . vs_e(implode('、', $item['OriginalNameServers'])) . '</dd>';
+        }
+        echo '</dl></article>';
+    }
+    echo '</div>';
+}
+
+/**
+ * @param array<string, mixed> $obj
+ * @return void
+ */
+function vs_edgeone_render_kv_grid(array $obj)
+{
+    $skip = array('RequestId');
+    echo '<dl class="vs-edgeone-kv-grid">';
+    foreach ($obj as $key => $val) {
+        if (in_array($key, $skip, true)) {
+            continue;
+        }
+        if (is_array($val)) {
+            continue;
+        }
+        echo '<dt>' . vs_e(vs_edgeone_field_label($key)) . '</dt>';
+        echo '<dd>' . vs_e(vs_edgeone_format_cell($key, $val)) . '</dd>';
+    }
+    echo '</dl>';
+}
+
+/**
+ * @return array<int, string>
+ */
+function vs_edgeone_list_keys()
+{
+    return array(
+        'Identifications', 'CnameStatus', 'AccelerationDomains', 'DnsRecords', 'AliasDomains',
+        'Functions', 'FunctionRules', 'Tasks', 'PurgeLogs', 'PrefetchLogs', 'SecurityTemplates',
+        'Certificates', 'L4Proxies', 'LoadBalancers', 'AttackEvents', 'DDoSAttackEvents',
+        'ConfigGroups', 'Versions', 'LogTopics', 'OriginProtectionResources', 'BillingData',
+        'TopData', 'RealtimeLogDeliveryTasks', 'Zones', 'Records', 'Rules', 'Entities',
+    );
+}
+
+/**
+ * @param mixed $data
+ * @return void
+ */
+function vs_edgeone_render_api_data($data)
+{
+    if ($data === null || $data === '') {
+        echo '<p class="vs-form-tip">暂无数据</p>';
+        return;
+    }
+
+    if (!is_array($data)) {
+        echo '<p class="vs-form-tip">' . vs_e((string) $data) . '</p>';
+        vs_edgeone_render_raw_toggle($data);
+        return;
+    }
+
+    if (vs_edgeone_array_is_list($data)) {
+        vs_edgeone_render_data_table($data);
+        vs_edgeone_render_raw_toggle($data);
+        return;
+    }
+
+    if (isset($data['Note']) && is_string($data['Note']) && $data['Note'] !== '') {
+        vs_edgeone_render_note($data['Note']);
+    }
+
+    $rendered = false;
+
+    if ((isset($data['PurgeQuota']) && is_array($data['PurgeQuota'])) || (isset($data['PrefetchQuota']) && is_array($data['PrefetchQuota']))) {
+        vs_edgeone_render_quota($data);
+        $rendered = true;
+    }
+
+    if (isset($data['Data']) && is_array($data['Data']) && count($data['Data']) > 0) {
+        vs_edgeone_render_timing_data($data['Data']);
+        $rendered = true;
+    }
+
+    if (isset($data['Identifications']) && is_array($data['Identifications'])) {
+        if (count($data['Identifications']) === 0) {
+            echo '<p class="vs-form-tip">暂无验证信息</p>';
+        } else {
+            vs_edgeone_render_identifications($data['Identifications']);
+        }
+        $rendered = true;
+    }
+
+    if (isset($data['CnameStatus']) && is_array($data['CnameStatus'])) {
+        if (count($data['CnameStatus']) === 0) {
+            echo '<p class="vs-form-tip">暂无 CNAME 记录</p>';
+        } else {
+            vs_edgeone_render_data_table($data['CnameStatus'], array('RecordName', 'Cname', 'Status'));
+        }
+        $rendered = true;
+    }
+
+    foreach (vs_edgeone_list_keys() as $listKey) {
+        if (in_array($listKey, array('Identifications', 'CnameStatus', 'Data'), true)) {
+            continue;
+        }
+        if (!isset($data[$listKey]) || !is_array($data[$listKey])) {
+            continue;
+        }
+        if (count($data[$listKey]) === 0) {
+            continue;
+        }
+        if (!vs_edgeone_array_is_list($data[$listKey])) {
+            continue;
+        }
+        if (!is_array($data[$listKey][0])) {
+            continue;
+        }
+        echo '<h4 class="vs-edgeone-subtitle">' . vs_e(vs_edgeone_field_label($listKey)) . '</h4>';
+        vs_edgeone_render_data_table($data[$listKey]);
+        $rendered = true;
+    }
+
+    if (!$rendered) {
+        $scalarCount = 0;
+        foreach ($data as $key => $val) {
+            if (in_array($key, array('RequestId', 'Note'), true)) {
+                continue;
+            }
+            if (!is_array($val)) {
+                $scalarCount++;
+            }
+        }
+        if ($scalarCount > 0) {
+            vs_edgeone_render_kv_grid($data);
+            $rendered = true;
+        } else {
+            foreach ($data as $key => $val) {
+                if (in_array($key, array('RequestId', 'Note', 'PurgeQuota', 'PrefetchQuota', 'Data', 'Identifications', 'CnameStatus'), true)) {
+                    continue;
+                }
+                if (is_array($val) && count($val) > 0) {
+                    echo '<h4 class="vs-edgeone-subtitle">' . vs_e(vs_edgeone_field_label($key)) . '</h4>';
+                    if (vs_edgeone_array_is_list($val) && isset($val[0]) && is_array($val[0])) {
+                        vs_edgeone_render_data_table($val);
+                    } else {
+                        vs_edgeone_render_kv_grid($val);
+                    }
+                    $rendered = true;
+                }
+            }
+        }
+    }
+
+    if (!$rendered && (!isset($data['Note']) || $data['Note'] === '')) {
+        echo '<p class="vs-form-tip">暂无结构化数据</p>';
+    }
+
+    vs_edgeone_render_raw_toggle($data);
+}

@@ -99,7 +99,6 @@
         if (!normalized) return false;
         document.documentElement.style.setProperty('--page-bg', normalized);
         document.documentElement.style.backgroundColor = normalized;
-        document.documentElement.style.setProperty('--vs-content-bg', normalized);
         if (document.body) {
             document.body.style.backgroundColor = normalized;
         }
@@ -152,6 +151,11 @@
         } catch (e) {}
         savedColor = DEFAULT_BG;
         currentColor = DEFAULT_BG;
+        document.documentElement.style.removeProperty('--page-bg');
+        document.documentElement.style.backgroundColor = '';
+        if (document.body) {
+            document.body.style.backgroundColor = '';
+        }
         paintPage(DEFAULT_BG);
     }
 

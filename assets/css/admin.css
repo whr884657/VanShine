@@ -1,22 +1,22 @@
 /**
  * 文件：assets/css/admin.css
  * 作用：VanShine 后台管理框架样式（自定义布局，白色主题）
- * @version 1.0.4
+ * @version 1.0.68
  */
 
-/* ── 变量 ── */
+/* ── 变量（主题色通过 --page-bg 统一，与登录页 login_page_bg 同步） ── */
 .vs-admin-body {
     --vs-sidebar-width: 240px;
     --vs-topbar-height: 56px;
-    --vs-sidebar-bg: #ffffff;
-    --vs-topbar-bg: #ffffff;
-    --vs-content-bg: #f5f7fa;
+    --vs-sidebar-bg: var(--page-bg, #ffffff);
+    --vs-topbar-bg: var(--page-bg, #ffffff);
+    --vs-content-bg: var(--page-bg, #f5f7fa);
     min-height: 100vh;
     height: auto;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    background: var(--page-bg, transparent);
+    background: var(--page-bg, #f5f7fa);
 }
 
 /* ── 整体壳层 ── */
@@ -263,6 +263,7 @@
     display: flex;
     flex-direction: column;
     transition: margin-left 0.28s ease, width 0.28s ease;
+    background: var(--page-bg, var(--vs-content-bg));
 }
 
 /* ── 顶部栏 ── */
@@ -367,6 +368,7 @@
     flex: 1;
     padding: 20px;
     width: 100%;
+    background: var(--page-bg, var(--vs-content-bg));
 }
 
 .vs-content__head {

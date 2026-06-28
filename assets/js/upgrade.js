@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/upgrade.js
  * 作用：系统升级页面交互
- * @version 1.0.17
+ * @version 1.0.66
  */
 
 (function () {
@@ -13,10 +13,15 @@
     var lastCheck = null;
 
     function setStatus(text, type) {
-        if (!statusEl) return;
-        statusEl.textContent = text;
-        statusEl.className = 'vs-alert vs-alert--' + (type || 'info');
-        statusEl.hidden = false;
+        type = type || 'info';
+        if (text && window.VsToast) {
+            var toastType = type === 'error' ? 'error' : (type === 'success' ? 'success' : 'info');
+            var duration = type === 'warning' ? 4200 : 2600;
+            VsToast.show(text, toastType, duration);
+        }
+        if (statusEl) {
+            statusEl.hidden = true;
+        }
     }
 
     function renderCheckResult(res) {

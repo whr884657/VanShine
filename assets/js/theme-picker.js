@@ -234,7 +234,17 @@
     }
 
     function showMessage(el, text, type) {
+        if (text && window.VsToast) {
+            VsToast.show(text, type === 'error' ? 'error' : 'success');
+            if (el) {
+                el.textContent = '';
+                el.className = 'theme-message';
+                el.hidden = true;
+            }
+            return;
+        }
         if (!el) return;
+        el.hidden = false;
         el.textContent = text;
         el.className = 'theme-message' + (type ? ' theme-message--' + type : '');
     }

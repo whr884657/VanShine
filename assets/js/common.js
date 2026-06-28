@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/common.js
  * 作用：VanShine 全局公共脚本（Toast、JSON 解析）
- * @version 1.0.43
+ * @version 1.0.66
  */
 
 (function (global) {

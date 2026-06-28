@@ -57,6 +57,11 @@
         var messageEl = document.getElementById('dbTestMessage');
 
         function showDbMessage(text, type) {
+            if (window.VsToast) {
+                VsToast.show(text, type === 'error' ? 'error' : 'success');
+                if (messageEl) messageEl.hidden = true;
+                return;
+            }
             if (!messageEl) return;
             messageEl.textContent = text;
             messageEl.className = 'vs-alert vs-alert--' + type;

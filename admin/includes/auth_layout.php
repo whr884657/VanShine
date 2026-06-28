@@ -110,6 +110,7 @@ function vs_auth_head($title)
     }
     vs_auth_bg_script();
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/auth-login.css?v=' . VS_VERSION . '">' . "\n";
+    echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/toast.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/theme-picker.css?v=' . VS_VERSION . '">' . "\n";
     echo '</head>' . "\n";
     echo '<body>' . "\n";
@@ -142,6 +143,7 @@ function vs_auth_foot($characterOptionsJs = '')
     if ($characterOptionsJs !== '') {
         echo '<script>' . $characterOptionsJs . '</script>' . "\n";
     }
+    echo '<script src="' . vs_e($base) . '/assets/js/common.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($base) . '/assets/js/theme-picker.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($base) . '/assets/js/auth-characters.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '</body></html>';

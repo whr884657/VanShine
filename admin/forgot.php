@@ -211,6 +211,11 @@ vs_auth_head('忘记密码');
     if (!form) return;
 
     function showMessage(text, type) {
+        if (text && window.VsToast) {
+            VsToast.show(text, type === 'error' ? 'error' : 'success');
+            if (messageEl) messageEl.hidden = true;
+            return;
+        }
         if (!messageEl) return;
         messageEl.textContent = text;
         messageEl.className = 'form-message form-message--' + type;

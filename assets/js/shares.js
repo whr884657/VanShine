@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/shares.js
  * 作用：分享管理页
- * @version 1.0.65
+ * @version 1.0.66
  */
 
 (function () {
@@ -25,6 +25,11 @@
     }
 
     function showFlash(msg, ok) {
+        var type = ok ? 'success' : 'error';
+        if (window.VsToast) {
+            VsToast.show(msg, type);
+            return;
+        }
         if (!flash) return;
         flash.textContent = msg;
         flash.className = 'vs-settings-flash' + (ok ? ' vs-settings-flash--ok' : ' vs-settings-flash--err');

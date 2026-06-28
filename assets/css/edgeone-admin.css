@@ -14,12 +14,34 @@
 
 .vs-edgeone-nav {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 10px;
     padding: 12px 16px;
     background: var(--page-bg, #fff);
     border: 1px solid var(--border-color, #e8e8e8);
     border-radius: 8px;
+}
+
+.vs-edgeone-nav__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.vs-edgeone-nav__label {
+    flex: 0 0 auto;
+    min-width: 72px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #888);
+}
+
+.vs-edgeone-nav__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
 }
 
 .vs-edgeone-nav__link {

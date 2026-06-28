@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.71**
+**当前版本：1.0.72**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.72（2026-06-27）
+
+**类型：** EdgeOne 全模块导航与 API 页面扩展
+
+**变更说明：**
+- DescribeContentQuota 补充 ZoneId；移除 EdgeKV 模块
+- EdgeOne 页内导航扩展为 7 组 18 个功能页（七层加速、DNS、证书、源站防护、负载均衡、数据分析、日志、套餐计费等）
+- 预热/刷新空记录友好提示
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.71（2026-06-27）
 

@@ -2,38 +2,20 @@
 /**
  * 文件：admin/cdn/edgeone/zones.php
  * 作用：EdgeOne 站点管理
- * @version 1.0.1
+ * @version 1.0.2
  */
-
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
+require_once __DIR__ . '/includes/page.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require __DIR__ . '/api.php';
     exit;
 }
 
-$zones = array();
-$error = '';
-
-if (vs_edgeone_is_ready()) {
-    try {
-        $eo = EdgeOne::create();
-        $zones = vs_edgeone_fetch_zones($eo);
-    } catch (Exception $e) {
-        $error = $e->getMessage();
-    }
-}
-
-vs_admin_layout_start('EdgeOne · 站点管理', VS_EDGEONE_ACTIVE_MENU);
+$ctx = vs_edgeone_page_start('cdn_edgeone_zones', 'EdgeOne · 站点管理');
+$zones = $ctx['zones'];
 ?>
-
-<link rel="stylesheet" href="<?php echo vs_e($vsBase); ?>/assets/css/edgeone-admin.css">
-
-<div class="vs-edgeone-page">
-<?php vs_edgeone_render_setup_notice(); ?>
-<?php vs_edgeone_render_error($error); ?>
-<?php vs_edgeone_nav('cdn_edgeone_zones'); ?>
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">创建站点</h3>
@@ -97,7 +79,21 @@ vs_admin_layout_start('EdgeOne · 站点管理', VS_EDGEONE_ACTIVE_MENU);
         </div>
     <?php endif; ?>
 </div>
-</div>
 
-<script>window.VS_EDGEONE_API = <?php echo json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE); ?>;</script>
-<?php vs_admin_layout_end(array('edgeone-admin.js')); ?>
+<?php
+vs_edgeone_render_sections($ctx['eo'], $ctx['zone_id'], array(
+    array(
+        'title' => '站点验证信息',
+        'fetch' => function ($eo, $zoneId) {
+            return $eo->zone->describeIdentifications(vs_edgeone_zone_params());
+        },
+    ),
+    array(
+        'title' => 'CNAME 配置状态',
+        'fetch' => function ($eo, $zoneId) {
+            return $eo->zone->checkCnameStatus(vs_edgeone_zone_params());
+        },
+    ),
+));
+
+vs_edgeone_page_end();

@@ -112,12 +112,16 @@ vs_admin_layout_start('EdgeOne · 内容管理', VS_EDGEONE_ACTIVE_MENU);
         <h4 class="vs-form-subtitle">刷新</h4>
         <?php if ($purgeError !== ''): ?>
             <p class="vs-form-tip">加载失败：<?php echo vs_e($purgeError); ?></p>
+        <?php elseif (count($purges) === 0): ?>
+            <p class="vs-form-tip">暂无刷新记录</p>
         <?php else: ?>
             <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($purges, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
         <?php endif; ?>
         <h4 class="vs-form-subtitle">预热</h4>
         <?php if ($prefetchError !== ''): ?>
             <p class="vs-form-tip">加载失败：<?php echo vs_e($prefetchError); ?></p>
+        <?php elseif (count($prefetches) === 0): ?>
+            <p class="vs-form-tip">暂无预热记录</p>
         <?php else: ?>
             <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($prefetches, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
         <?php endif; ?>

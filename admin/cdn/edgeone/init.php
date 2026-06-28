@@ -249,3 +249,28 @@ function vs_edgeone_billing_params($days = 7, $metric = 'acc_flux', $zoneIds = n
         'ZoneIds'    => $zoneIds,
     ));
 }
+
+/**
+ * 带 ZoneId 的常用参数
+ *
+ * @param array<string, mixed> $extra
+ * @return array<string, mixed>
+ */
+function vs_edgeone_zone_params(array $extra = array())
+{
+    return array_merge(array('ZoneId' => vs_edgeone_selected_zone()), $extra);
+}
+
+/**
+ * 数据分析类查询时间范围（ISO8601）
+ *
+ * @param int $days
+ * @return array{StartTime: string, EndTime: string}
+ */
+function vs_edgeone_analytics_range($days = 7)
+{
+    return array(
+        'StartTime' => date('Y-m-d\T00:00:00+08:00', strtotime('-' . (int) $days . ' days')),
+        'EndTime'   => date('Y-m-d\T23:59:59+08:00'),
+    );
+}

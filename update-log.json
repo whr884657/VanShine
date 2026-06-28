@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.72",
+            "date": "2026-06-27",
+            "title": "EdgeOne 全模块导航与 API 页面扩展",
+            "db_changes": false,
+            "changes": [
+                "DescribeContentQuota 补充 ZoneId",
+                "移除 EdgeKV 模块",
+                "页内导航扩展为 7 组 18 个功能页",
+                "预热/刷新空记录友好提示"
+            ]
+        },
+        {
             "version": "1.0.71",
             "date": "2026-06-27",
             "title": "EdgeOne 配额与计费 API 参数修复",

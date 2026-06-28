@@ -1,11 +1,13 @@
 {
-    "version": "1.0.71",
+    "version": "1.0.72",
     "release_date": "2026-06-27",
-    "title": "EdgeOne 配额与计费 API 参数修复",
+    "title": "EdgeOne 全模块导航与 API 页面扩展",
     "db_changes": false,
     "changes": [
-        "DescribeContentQuota 空请求体修正为 JSON 对象 {}",
-        "DescribeBillingData 补充 Interval 与 ZoneIds 必填参数"
+        "DescribeContentQuota 补充 ZoneId 必填参数",
+        "移除 EdgeKV 模块（未开通账户不再报错）",
+        "页内导航扩展为 7 组 18 个功能页，覆盖七层加速、别称域名、DNS、证书、源站防护、负载均衡、数据分析、日志、套餐计费、配置版本、扩展功能等",
+        "预热/刷新空记录友好提示"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

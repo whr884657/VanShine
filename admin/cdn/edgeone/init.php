@@ -12,6 +12,7 @@ EdgeOne::load();
 TencentCloudConfig::migrateLegacyIfNeeded();
 require_once __DIR__ . '/includes/api-helpers.php';
 require_once __DIR__ . '/includes/data-view.php';
+require_once __DIR__ . '/includes/metrics.php';
 
 /** @var string */
 const VS_EDGEONE_ACTIVE_MENU = 'cdn_edgeone';

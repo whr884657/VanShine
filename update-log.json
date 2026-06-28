@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.76",
+            "date": "2026-06-28",
+            "title": "EdgeOne 数据分析与套餐计费业务仪表盘",
+            "db_changes": false,
+            "changes": [
+                "数据分析页：多指标/多粒度/多时间范围 + 折线图",
+                "套餐计费页：套餐详情、绑定域名、用量 KPI",
+                "彻底移除原始 JSON 折叠查看"
+            ]
+        },
+        {
             "version": "1.0.75",
             "date": "2026-06-28",
             "title": "EdgeOne 后台 UI 可视化重构",

@@ -334,15 +334,142 @@ function vs_edgeone_response_is_empty($data)
 }
 
 /**
+ * @param string $planType
+ * @return string
+ */
+function vs_edgeone_plan_type_label($planType)
+{
+    $map = array(
+        'plan-standard'      => '标准版',
+        'plan-enterprise'    => '企业版',
+        'plan-enterprise-v2' => '企业版 V2',
+        'plan-basic'         => '基础版',
+        'plan-personal'      => '个人版',
+    );
+
+    $planType = (string) $planType;
+    return isset($map[$planType]) ? $map[$planType] : $planType;
+}
+
+/**
+ * @param string $status
+ * @return string
+ */
+function vs_edgeone_plan_status_label($status)
+{
+    $map = array(
+        'normal'    => '正常',
+        'expired'   => '已过期',
+        'isolated'  => '已隔离',
+        'destroyed' => '已销毁',
+    );
+
+    $status = (string) $status;
+    return isset($map[$status]) ? $map[$status] : $status;
+}
+
+/**
  * @param mixed $data
  * @return void
  */
 function vs_edgeone_render_raw_toggle($data)
 {
-    echo '<details class="vs-edgeone-raw">';
-    echo '<summary>查看原始 JSON</summary>';
-    echo '<pre class="vs-edgeone-json">' . vs_e(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) . '</pre>';
-    echo '</details>';
+    // 不向用户展示原始 API JSON
+}
+
+/**
+ * @param array{title?: string, unit?: string, points: array<int, array{ts: int, value: float}>} $cfg
+ * @return void
+ */
+function vs_edgeone_render_line_chart(array $cfg)
+{
+    $points = isset($cfg['points']) && is_array($cfg['points']) ? $cfg['points'] : array();
+    $unit = isset($cfg['unit']) ? (string) $cfg['unit'] : 'number';
+    if (count($points) === 0) {
+        return;
+    }
+
+    $chartId = 'eo-chart-' . substr(md5(uniqid('', true)), 0, 10);
+    echo '<div class="vs-edgeone-chart-wrap">';
+    echo '<canvas id="' . vs_e($chartId) . '" class="vs-edgeone-chart" height="260"></canvas>';
+    echo '<script type="application/json" class="vs-edgeone-chart-data" data-target="' . vs_e($chartId) . '" data-unit="' . vs_e($unit) . '">';
+    echo json_encode($points, JSON_UNESCAPED_UNICODE);
+    echo '</script>';
+    echo '</div>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $plans
+ * @param string                          $selectedZoneId
+ * @return void
+ */
+function vs_edgeone_render_plans_dashboard(array $plans, $selectedZoneId = '')
+{
+    echo '<div class="vs-edgeone-plan-grid">';
+    foreach ($plans as $plan) {
+        if (!is_array($plan)) {
+            continue;
+        }
+        $planId = isset($plan['PlanId']) ? (string) $plan['PlanId'] : '';
+        $planType = isset($plan['PlanType']) ? (string) $plan['PlanType'] : '';
+        $status = isset($plan['Status']) ? (string) $plan['Status'] : '';
+        $expired = isset($plan['ExpiredTime']) ? (string) $plan['ExpiredTime'] : '';
+        $enabled = isset($plan['EnabledTime']) ? (string) $plan['EnabledTime'] : '';
+        $area = isset($plan['Area']) ? vs_edgeone_translate('Area', $plan['Area']) : '-';
+        $zones = isset($plan['ZonesInfo']) && is_array($plan['ZonesInfo']) ? $plan['ZonesInfo'] : array();
+        $isCurrent = false;
+        foreach ($zones as $z) {
+            if (is_array($z) && isset($z['ZoneId']) && (string) $z['ZoneId'] === (string) $selectedZoneId) {
+                $isCurrent = true;
+                break;
+            }
+        }
+        $cardClass = 'vs-edgeone-plan-card' . ($isCurrent ? ' is-current' : '');
+
+        echo '<article class="' . vs_e($cardClass) . '">';
+        if ($isCurrent) {
+            echo '<span class="vs-edgeone-stat-card__tag">当前站点套餐</span>';
+        }
+        echo '<h4>' . vs_e(vs_edgeone_plan_type_label($planType)) . '</h4>';
+        echo '<p class="vs-edgeone-plan-id">套餐编号：<code>' . vs_e($planId) . '</code></p>';
+        echo '<dl class="vs-edgeone-dl">';
+        echo '<dt>状态</dt><dd>';
+        vs_edgeone_render_status_badge('Status', $status === 'normal' ? 'active' : $status);
+        echo ' ' . vs_e(vs_edgeone_plan_status_label($status)) . '</dd>';
+        echo '<dt>生效时间</dt><dd>' . vs_e(vs_edgeone_format_timestamp($enabled)) . '</dd>';
+        echo '<dt>到期时间</dt><dd>' . vs_e(vs_edgeone_format_timestamp($expired)) . '</dd>';
+        echo '<dt>服务区域</dt><dd>' . vs_e($area) . '</dd>';
+        echo '<dt>加速流量配额</dt><dd>' . vs_e(vs_edgeone_format_bytes(isset($plan['AccTrafficCapacity']) ? $plan['AccTrafficCapacity'] : 0)) . '</dd>';
+        echo '<dt>安全请求配额</dt><dd>' . vs_e(vs_edgeone_format_number(isset($plan['SecRequestCapacity']) ? $plan['SecRequestCapacity'] : 0)) . '</dd>';
+        echo '<dt>四层流量配额</dt><dd>' . vs_e(vs_edgeone_format_bytes(isset($plan['L4TrafficCapacity']) ? $plan['L4TrafficCapacity'] : 0)) . '</dd>';
+        echo '</dl>';
+
+        if (count($zones) > 0) {
+            echo '<div class="vs-edgeone-plan-zones">';
+            echo '<p class="vs-edgeone-subtitle">绑定站点</p>';
+            echo '<ul class="vs-edgeone-zone-list">';
+            foreach ($zones as $z) {
+                if (!is_array($z)) {
+                    continue;
+                }
+                $zid = isset($z['ZoneId']) ? (string) $z['ZoneId'] : '';
+                $zname = isset($z['ZoneName']) ? (string) $z['ZoneName'] : $zid;
+                $paused = !empty($z['Paused']);
+                echo '<li>';
+                echo vs_e($zname);
+                if ($zid !== '') {
+                    echo ' <code>' . vs_e($zid) . '</code>';
+                }
+                if ($paused) {
+                    echo ' <span class="vs-edgeone-badge is-warning">已暂停</span>';
+                }
+                echo '</li>';
+            }
+            echo '</ul></div>';
+        }
+        echo '</article>';
+    }
+    echo '</div>';
 }
 
 /**
@@ -611,13 +738,11 @@ function vs_edgeone_render_api_data($data)
 
     if (!is_array($data)) {
         echo '<p class="vs-form-tip">' . vs_e((string) $data) . '</p>';
-        vs_edgeone_render_raw_toggle($data);
         return;
     }
 
     if (vs_edgeone_array_is_list($data)) {
         vs_edgeone_render_data_table($data);
-        vs_edgeone_render_raw_toggle($data);
         return;
     }
 
@@ -629,6 +754,15 @@ function vs_edgeone_render_api_data($data)
 
     if ((isset($data['PurgeQuota']) && is_array($data['PurgeQuota'])) || (isset($data['PrefetchQuota']) && is_array($data['PrefetchQuota']))) {
         vs_edgeone_render_quota($data);
+        $rendered = true;
+    }
+
+    if (isset($data['Plans']) && is_array($data['Plans'])) {
+        if (count($data['Plans']) === 0) {
+            echo '<p class="vs-form-tip">暂无套餐</p>';
+        } else {
+            vs_edgeone_render_plans_dashboard($data['Plans'], vs_edgeone_selected_zone());
+        }
         $rendered = true;
     }
 
@@ -710,6 +844,4 @@ function vs_edgeone_render_api_data($data)
     if (!$rendered && (!isset($data['Note']) || $data['Note'] === '')) {
         echo '<p class="vs-form-tip">暂无结构化数据</p>';
     }
-
-    vs_edgeone_render_raw_toggle($data);
 }

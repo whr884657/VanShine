@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.73",
+            "date": "2026-06-27",
+            "title": "移除 EdgeOne 冗余跳转页",
+            "db_changes": false,
+            "changes": [
+                "删除 monitor.php 与 edgeone.php 跳转页",
+                "EdgeOne 入口统一为 index.php 及各功能页"
+            ]
+        },
+        {
             "version": "1.0.72",
             "date": "2026-06-27",
             "title": "EdgeOne 全模块导航与 API 页面扩展",

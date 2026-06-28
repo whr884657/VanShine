@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.72**
+**当前版本：1.0.73**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,18 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.73（2026-06-27）
+
+**类型：** 移除 EdgeOne 冗余跳转页
+
+**变更说明：**
+- 删除 `monitor.php`、`edgeone.php`，不再保留任何跳转兼容页
+- 套餐计费入口：`/admin/cdn/edgeone/billing.php`
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.72（2026-06-27）
 

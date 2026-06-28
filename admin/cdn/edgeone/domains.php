@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/domains.php
  * 作用：EdgeOne 域名加速与 DNS
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 require_once __DIR__ . '/init.php';
@@ -18,6 +18,8 @@ $domains = array();
 $dnsRecords = array();
 $zoneId = '';
 $error = '';
+$domainsError = '';
+$dnsError = '';
 
 if (vs_edgeone_is_ready()) {
     try {
@@ -25,22 +27,45 @@ if (vs_edgeone_is_ready()) {
         $zones = vs_edgeone_fetch_zones($eo);
         $zoneId = vs_edgeone_selected_zone();
         if ($zoneId !== '') {
-            $dResp = $eo->accelerationDomain->describeAccelerationDomains(array('ZoneId' => $zoneId, 'Offset' => 0, 'Limit' => 100));
-            $domains = isset($dResp['AccelerationDomains']) ? $dResp['AccelerationDomains'] : array();
-            $dnsResp = $eo->dns->describeDnsRecords(array('ZoneId' => $zoneId, 'Offset' => 0, 'Limit' => 100));
-            $dnsRecords = isset($dnsResp['DnsRecords']) ? $dnsResp['DnsRecords'] : array();
+            $dResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+                return $eo->accelerationDomain->describeAccelerationDomains(array(
+                    'ZoneId' => $zoneId,
+                    'Offset' => 0,
+                    'Limit'  => 100,
+                ));
+            }, array());
+            if ($dResult['ok']) {
+                $domains = isset($dResult['data']['AccelerationDomains']) ? $dResult['data']['AccelerationDomains'] : array();
+            } else {
+                $domainsError = $dResult['error'];
+            }
+
+            $dnsResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+                return $eo->dns->describeDnsRecords(array(
+                    'ZoneId' => $zoneId,
+                    'Offset' => 0,
+                    'Limit'  => 100,
+                ));
+            }, array());
+            if ($dnsResult['ok']) {
+                $dnsRecords = isset($dnsResult['data']['DnsRecords']) ? $dnsResult['data']['DnsRecords'] : array();
+            } else {
+                $dnsError = $dnsResult['error'];
+            }
         }
     } catch (Exception $e) {
         $error = $e->getMessage();
     }
 }
 
-vs_admin_layout_start('EdgeOne 域名加速', 'cdn_edgeone_domains');
+vs_admin_layout_start('EdgeOne · 域名加速', VS_EDGEONE_ACTIVE_MENU);
 ?>
 
 <link rel="stylesheet" href="<?php echo vs_e($vsBase); ?>/assets/css/edgeone-admin.css">
+
+<div class="vs-edgeone-page">
 <?php vs_edgeone_render_setup_notice(); ?>
-<?php if ($error !== ''): ?><div class="vs-panel vs-alert vs-alert--error"><?php echo vs_e($error); ?></div><?php endif; ?>
+<?php vs_edgeone_render_error($error); ?>
 <?php vs_edgeone_nav('cdn_edgeone_domains'); ?>
 
 <?php if (vs_edgeone_is_ready() && count($zones) > 0): ?>
@@ -62,6 +87,8 @@ vs_admin_layout_start('EdgeOne 域名加速', 'cdn_edgeone_domains');
     <h3 class="vs-panel__title">加速域名列表</h3>
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip">请先选择站点</p>
+    <?php elseif ($domainsError !== ''): ?>
+        <p class="vs-form-tip">加载失败：<?php echo vs_e($domainsError); ?></p>
     <?php elseif (count($domains) === 0): ?>
         <p class="vs-form-tip">暂无加速域名</p>
     <?php else: ?>
@@ -72,7 +99,7 @@ vs_admin_layout_start('EdgeOne 域名加速', 'cdn_edgeone_domains');
                 <?php foreach ($domains as $row): ?>
                     <tr>
                         <td><?php echo vs_e(isset($row['DomainName']) ? $row['DomainName'] : ''); ?></td>
-                        <td><?php echo vs_e(isset($row['DomainStatus']) ? $row['DomainStatus'] : '-'); ?></td>
+                        <td><?php echo vs_e(vs_edgeone_translate('DomainStatus', isset($row['DomainStatus']) ? $row['DomainStatus'] : '')); ?></td>
                         <td><code><?php echo vs_e(isset($row['Cname']) ? $row['Cname'] : '-'); ?></code></td>
                     </tr>
                 <?php endforeach; ?>
@@ -101,6 +128,8 @@ vs_admin_layout_start('EdgeOne 域名加速', 'cdn_edgeone_domains');
     <h3 class="vs-panel__title">DNS 记录列表</h3>
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip">请先选择站点</p>
+    <?php elseif ($dnsError !== ''): ?>
+        <p class="vs-form-tip">加载失败：<?php echo vs_e($dnsError); ?></p>
     <?php elseif (count($dnsRecords) === 0): ?>
         <p class="vs-form-tip">暂无 DNS 记录</p>
     <?php else: ?>
@@ -120,6 +149,7 @@ vs_admin_layout_start('EdgeOne 域名加速', 'cdn_edgeone_domains');
             </table>
         </div>
     <?php endif; ?>
+</div>
 </div>
 
 <script>window.VS_EDGEONE_API = <?php echo json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE); ?>;</script>

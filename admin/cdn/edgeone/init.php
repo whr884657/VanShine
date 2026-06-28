@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/init.php
  * 作用：EdgeOne 后台公共引导
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 require_once dirname(__DIR__, 2) . '/init.php';
@@ -10,6 +10,9 @@ require_once VS_ROOT . '/core/cdn/edgeone/EdgeOne.php';
 
 EdgeOne::load();
 TencentCloudConfig::migrateLegacyIfNeeded();
+
+/** @var string */
+const VS_EDGEONE_ACTIVE_MENU = 'cdn_edgeone';
 
 /**
  * @return bool
@@ -53,7 +56,6 @@ function vs_edgeone_set_zone($zoneId)
 }
 
 /**
- * @param string $activeMenu
  * @return void
  */
 function vs_edgeone_render_setup_notice()
@@ -71,6 +73,82 @@ function vs_edgeone_render_setup_notice()
         echo '<p>请先在 <a href="' . vs_e($base) . '/admin/settings.php">系统设置 → CDN 配置</a> 启用腾讯云 EdgeOne。</p>';
     }
     echo '</div>';
+}
+
+/**
+ * @param array<string, mixed> $zone
+ * @return string
+ */
+function vs_edgeone_zone_display_name(array $zone)
+{
+    $alias = trim(isset($zone['AliasZoneName']) ? (string) $zone['AliasZoneName'] : '');
+    $name = trim(isset($zone['ZoneName']) ? (string) $zone['ZoneName'] : '');
+
+    if ($alias !== '' && $name !== '') {
+        return $alias . '（' . $name . '）';
+    }
+    if ($alias !== '') {
+        return $alias;
+    }
+    if ($name !== '') {
+        return $name;
+    }
+
+    return isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+}
+
+/**
+ * @param string $group
+ * @param mixed  $value
+ * @return string
+ */
+function vs_edgeone_translate($group, $value)
+{
+    $value = (string) $value;
+    $maps = array(
+        'ActiveStatus' => array(
+            'active'   => '已启用',
+            'inactive' => '未启用',
+        ),
+        'Status' => array(
+            'active'      => '已生效',
+            'pending'     => '待配置',
+            'deactivated' => '已停用',
+            'moved'       => '已迁移',
+            'initializing'=> '初始化中',
+        ),
+        'Type' => array(
+            'full'            => 'NS 接入',
+            'partial'         => 'CNAME 接入',
+            'noDomainAccess'  => '无域名接入',
+            'dnsPodAccess'    => 'DNSPod 托管',
+        ),
+        'CnameStatus' => array(
+            'finished' => '已完成',
+            'pending'  => '待完成',
+        ),
+        'Area' => array(
+            'mainland' => '中国大陆',
+            'overseas' => '全球（不含中国大陆）',
+            'global'   => '全球',
+        ),
+        'DomainStatus' => array(
+            'online'  => '已上线',
+            'offline' => '已下线',
+            'process' => '部署中',
+        ),
+        'CertStatus' => array(
+            'deployed' => '已部署',
+            'processing' => '部署中',
+            'failed' => '部署失败',
+        ),
+    );
+
+    if (isset($maps[$group][$value])) {
+        return $maps[$group][$value];
+    }
+
+    return $value !== '' ? $value : '-';
 }
 
 /**
@@ -92,16 +170,56 @@ function vs_edgeone_render_zone_picker(array $zones)
     $selected = vs_edgeone_selected_zone();
     echo '<form method="post" class="vs-edgeone-zone-bar" id="edgeoneZoneForm">';
     echo '<input type="hidden" name="action" value="set_zone">';
-    echo '<label class="vs-label">当前站点 ZoneId</label>';
+    echo '<label class="vs-label">当前站点</label>';
     echo '<select name="zone_id" class="vs-input vs-edgeone-zone-select">';
     echo '<option value="">— 请选择站点 —</option>';
     foreach ($zones as $zone) {
         $id = isset($zone['ZoneId']) ? $zone['ZoneId'] : '';
-        $name = isset($zone['ZoneName']) ? $zone['ZoneName'] : $id;
+        $label = vs_edgeone_zone_display_name($zone);
         $sel = $id === $selected ? ' selected' : '';
-        echo '<option value="' . vs_e($id) . '"' . $sel . '>' . vs_e($name) . '</option>';
+        echo '<option value="' . vs_e($id) . '"' . $sel . '>' . vs_e($label) . '</option>';
     }
     echo '</select>';
     echo '<button type="submit" class="vs-btn vs-btn--default">切换站点</button>';
     echo '</form>';
+}
+
+/**
+ * @param callable(): mixed $callback
+ * @param mixed             $default
+ * @return array{ok: bool, data: mixed, error: string}
+ */
+function vs_edgeone_try_call($callback, $default = null)
+{
+    try {
+        return array('ok' => true, 'data' => call_user_func($callback), 'error' => '');
+    } catch (Exception $e) {
+        return array('ok' => false, 'data' => $default, 'error' => $e->getMessage());
+    }
+}
+
+/**
+ * @param string $error
+ * @return void
+ */
+function vs_edgeone_render_error($error)
+{
+    if ($error === '') {
+        return;
+    }
+    echo '<div class="vs-panel vs-alert vs-alert--error">' . vs_e($error) . '</div>';
+}
+
+/**
+ * 内容管理类查询常用时间范围
+ *
+ * @param int $days
+ * @return array{StartTime: string, EndTime: string}
+ */
+function vs_edgeone_time_range($days = 30)
+{
+    return array(
+        'StartTime' => date('Y-m-d\T00:00:00+08:00', strtotime('-' . (int) $days . ' days')),
+        'EndTime'   => date('Y-m-d\T23:59:59+08:00'),
+    );
 }

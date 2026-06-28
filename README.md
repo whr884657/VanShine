@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.69**
+**当前版本：1.0.70**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,20 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.70（2026-06-27）
+
+**类型：** EdgeOne API 版本修复与 CDN 导航优化
+
+**变更说明：**
+- EdgeOne API 版本升级至 `2022-09-01`，修复多个 Describe 接口不可用
+- 刷新/预热与计费查询补充 `StartTime` / `EndTime`
+- CDN 侧边栏恢复 EdgeOne + ESA 两项，功能页内横向切换
+- 站点备注（AliasZoneName）与中文状态展示；卡片间距优化
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.69（2026-06-28）
 

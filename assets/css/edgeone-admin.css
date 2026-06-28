@@ -1,11 +1,21 @@
 /**
  * EdgeOne 后台样式
  */
+.vs-edgeone-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vs-edgeone-page > .vs-panel,
+.vs-edgeone-page > .vs-edgeone-nav {
+    margin: 0;
+}
+
 .vs-edgeone-nav {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 16px;
     padding: 12px 16px;
     background: var(--page-bg, #fff);
     border: 1px solid var(--border-color, #e8e8e8);
@@ -38,31 +48,41 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .vs-edgeone-zone-select {
-    min-width: 240px;
+    min-width: 280px;
     max-width: 100%;
 }
 
 .vs-edgeone-stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 12px;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 .vs-edgeone-stat-card {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border: 1px solid var(--border-color, #e8e8e8);
     border-radius: 8px;
     background: var(--page-bg, #fff);
 }
 
 .vs-edgeone-stat-card h4 {
-    margin: 0 0 6px;
+    margin: 0 0 8px;
     font-size: 15px;
+    line-height: 1.4;
+}
+
+.vs-edgeone-stat-card p {
+    margin: 0 0 4px;
+    font-size: 13px;
+}
+
+.vs-edgeone-stat-card p:last-child {
+    margin-bottom: 0;
 }
 
 .vs-edgeone-json {
@@ -82,4 +102,18 @@
     background: rgba(22, 119, 255, 0.06);
     border-radius: 6px;
     border-left: 3px solid var(--primary, #1677ff);
+}
+
+.vs-edgeone-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: rgba(22, 119, 255, 0.08);
+    color: var(--primary, #1677ff);
+}
+
+.vs-edgeone-badge.is-muted {
+    background: #f0f0f0;
+    color: #666;
 }

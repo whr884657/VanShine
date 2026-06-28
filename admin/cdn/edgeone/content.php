@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/content.php
  * 作用：EdgeOne 内容刷新与预热
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 require_once __DIR__ . '/init.php';
@@ -18,6 +18,8 @@ $purges = array();
 $prefetches = array();
 $zoneId = '';
 $error = '';
+$purgeError = '';
+$prefetchError = '';
 
 if (vs_edgeone_is_ready()) {
     try {
@@ -25,22 +27,46 @@ if (vs_edgeone_is_ready()) {
         $zones = vs_edgeone_fetch_zones($eo);
         $zoneId = vs_edgeone_selected_zone();
         if ($zoneId !== '') {
-            $p = $eo->content->describePurgeTasks(array('ZoneId' => $zoneId, 'Offset' => 0, 'Limit' => 20));
-            $purges = isset($p['Tasks']) ? $p['Tasks'] : (isset($p['PurgeLogs']) ? $p['PurgeLogs'] : array());
-            $f = $eo->content->describePrefetchTasks(array('ZoneId' => $zoneId, 'Offset' => 0, 'Limit' => 20));
-            $prefetches = isset($f['Tasks']) ? $f['Tasks'] : (isset($f['PrefetchLogs']) ? $f['PrefetchLogs'] : array());
+            $range = vs_edgeone_time_range(30);
+            $pResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $range) {
+                return $eo->content->describePurgeTasks(array_merge(array(
+                    'ZoneId' => $zoneId,
+                    'Offset' => 0,
+                    'Limit'  => 20,
+                ), $range));
+            }, array());
+            if ($pResult['ok']) {
+                $purges = isset($pResult['data']['Tasks']) ? $pResult['data']['Tasks'] : (isset($pResult['data']['PurgeLogs']) ? $pResult['data']['PurgeLogs'] : array());
+            } else {
+                $purgeError = $pResult['error'];
+            }
+
+            $fResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $range) {
+                return $eo->content->describePrefetchTasks(array_merge(array(
+                    'ZoneId' => $zoneId,
+                    'Offset' => 0,
+                    'Limit'  => 20,
+                ), $range));
+            }, array());
+            if ($fResult['ok']) {
+                $prefetches = isset($fResult['data']['Tasks']) ? $fResult['data']['Tasks'] : (isset($fResult['data']['PrefetchLogs']) ? $fResult['data']['PrefetchLogs'] : array());
+            } else {
+                $prefetchError = $fResult['error'];
+            }
         }
     } catch (Exception $e) {
         $error = $e->getMessage();
     }
 }
 
-vs_admin_layout_start('EdgeOne 内容刷新', 'cdn_edgeone_content');
+vs_admin_layout_start('EdgeOne · 内容管理', VS_EDGEONE_ACTIVE_MENU);
 ?>
 
 <link rel="stylesheet" href="<?php echo vs_e($vsBase); ?>/assets/css/edgeone-admin.css">
+
+<div class="vs-edgeone-page">
 <?php vs_edgeone_render_setup_notice(); ?>
-<?php if ($error !== ''): ?><div class="vs-panel vs-alert vs-alert--error"><?php echo vs_e($error); ?></div><?php endif; ?>
+<?php vs_edgeone_render_error($error); ?>
 <?php vs_edgeone_nav('cdn_edgeone_content'); ?>
 
 <?php if (vs_edgeone_is_ready() && count($zones) > 0): ?>
@@ -79,15 +105,24 @@ vs_admin_layout_start('EdgeOne 内容刷新', 'cdn_edgeone_content');
 </div>
 
 <div class="vs-panel">
-    <h3 class="vs-panel__title">最近刷新 / 预热记录</h3>
+    <h3 class="vs-panel__title">最近刷新 / 预热记录（近 30 日）</h3>
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip">请先选择站点</p>
     <?php else: ?>
         <h4 class="vs-form-subtitle">刷新</h4>
-        <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($purges, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+        <?php if ($purgeError !== ''): ?>
+            <p class="vs-form-tip">加载失败：<?php echo vs_e($purgeError); ?></p>
+        <?php else: ?>
+            <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($purges, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+        <?php endif; ?>
         <h4 class="vs-form-subtitle">预热</h4>
-        <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($prefetches, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+        <?php if ($prefetchError !== ''): ?>
+            <p class="vs-form-tip">加载失败：<?php echo vs_e($prefetchError); ?></p>
+        <?php else: ?>
+            <pre class="vs-edgeone-json"><?php echo vs_e(json_encode($prefetches, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)); ?></pre>
+        <?php endif; ?>
     <?php endif; ?>
+</div>
 </div>
 
 <script>window.VS_EDGEONE_API = <?php echo json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE); ?>;</script>

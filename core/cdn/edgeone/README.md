@@ -4,13 +4,15 @@
 
 ## 后台入口
 
+CDN 侧边栏仅 **EdgeOne**、**ESA** 两项；EdgeOne 内通过页内横向标签切换下列页面：
+
 | 页面 | 路径 |
 |------|------|
 | 概览 | `/admin/cdn/edgeone/index.php` |
 | 站点管理 | `/admin/cdn/edgeone/zones.php` |
 | 域名加速 | `/admin/cdn/edgeone/domains.php` |
 | 内容刷新 | `/admin/cdn/edgeone/content.php` |
-| 安全证书 | `/admin/cdn/edgeone/security.php` |
+| 安全加速 | `/admin/cdn/edgeone/security.php` |
 | 边缘函数 | `/admin/cdn/edgeone/edge.php` |
 | 四层代理 | `/admin/cdn/edgeone/l4.php` |
 | 监控日志 | `/admin/cdn/edgeone/monitor.php` |

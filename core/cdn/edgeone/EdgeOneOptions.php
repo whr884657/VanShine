@@ -20,7 +20,7 @@ class EdgeOneOptions
     const REGION     = 'region';
 
     const DEFAULT_LANGUAGE = 'zh-CN';
-    const API_VERSION = '2022-01-06';
+    const API_VERSION = '2022-09-01';
     const SERVICE = 'teo';
 
     /** 三个常用地域主用接入点（随机选取其一） */

@@ -3,6 +3,19 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.70",
+            "date": "2026-06-27",
+            "title": "EdgeOne API 版本修复与 CDN 导航优化",
+            "db_changes": false,
+            "changes": [
+                "EdgeOne API 版本升级至 2022-09-01",
+                "刷新/预热与计费查询补充 StartTime、EndTime",
+                "CDN 侧边栏恢复 EdgeOne + ESA 两项",
+                "站点备注 AliasZoneName 与中文状态展示",
+                "EdgeOne 页面卡片间距与 API 独立容错"
+            ]
+        },
+        {
             "version": "1.0.69",
             "date": "2026-06-28",
             "title": "EdgeOne CDN 后台与腾讯云通用密钥",

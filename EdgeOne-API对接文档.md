@@ -13,7 +13,7 @@
 | 项目 | 值 |
 |------|-----|
 | 产品英文名 | teo |
-| API Version | `2022-01-06`（以各接口文档为准） |
+| API Version | `2022-09-01`（以各接口文档为准；`2022-01-06` 已下线） |
 | 推荐接入域名 | `teo.tencentcloudapi.com` |
 | 密钥管理 | [云 API 密钥控制台](https://console.cloud.tencent.com/capi) |
 
@@ -67,7 +67,7 @@
 | Header | 必选 | 说明 |
 |--------|------|------|
 | `X-TC-Action` | 是 | 接口名称，如 `CreateZone` |
-| `X-TC-Version` | 是 | API 版本，如 `2022-01-06` |
+| `X-TC-Version` | 是 | API 版本，如 `2022-09-01` |
 | `X-TC-Timestamp` | 是 | 当前 UNIX 时间戳；与服务器相差超过 5 分钟会签名过期 |
 | `X-TC-Region` | 视接口 | 地域；部分接口可不传 |
 | `Authorization` | 是 | `TC3-HMAC-SHA256 Credential=...` 签名串 |
@@ -81,7 +81,7 @@ POST https://teo.tencentcloudapi.com/
 Content-Type: application/json
 Host: teo.tencentcloudapi.com
 X-TC-Action: DescribeZones
-X-TC-Version: 2022-01-06
+X-TC-Version: 2022-09-01
 X-TC-Timestamp: 1710000000
 X-TC-Region: ap-guangzhou
 Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, SignedHeaders=content-type;host, Signature=...

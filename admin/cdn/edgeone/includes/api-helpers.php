@@ -5,6 +5,29 @@
  */
 
 /**
+ * DescribeTimingL7AnalysisData 筛选条件（QueryCondition）
+ *
+ * @param string               $key
+ * @param string|array<int,string> $values
+ * @param string               $operator
+ * @return array{Key: string, Operator: string, Value: array<int, string>}
+ */
+function vs_edgeone_analytics_filter($key, $values, $operator = 'equals')
+{
+    if (!is_array($values)) {
+        $values = array((string) $values);
+    } else {
+        $values = array_values(array_map('strval', $values));
+    }
+
+    return array(
+        'Key'      => (string) $key,
+        'Operator' => (string) $operator,
+        'Value'    => $values,
+    );
+}
+
+/**
  * @param string|null $zoneId
  * @return array<int, string>
  */

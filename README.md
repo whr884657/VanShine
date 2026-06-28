@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.77**
+**当前版本：1.0.78**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.78（2026-06-29）
+
+**类型：** 修复 EdgeOne 概览 API 筛选参数与全站点配额
+
+**变更说明：**
+- 修复 `DescribeTimingL7AnalysisData` Filters 参数格式（Key/Operator/Value）
+- 概览按站点逐站查询并后端汇总；访问总带宽本地合并
+- 概览页移除当前站点选择器；展示全部站点套餐与刷新配额
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.77（2026-06-29）
 

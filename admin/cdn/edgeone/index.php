@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/index.php
  * 作用：EdgeOne 概览仪表盘
- * @version 1.0.3
+ * @version 1.0.4
  */
 
 require_once __DIR__ . '/init.php';
@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 $ctx = vs_edgeone_page_start('cdn_edgeone', 'EdgeOne');
 $zones = $ctx['zones'];
-$zoneId = $ctx['zone_id'];
 $eo = $ctx['eo'];
 $filters = vs_edgeone_overview_filters_from_request();
 $rangePreset = vs_edgeone_analytics_range_preset($filters['range']);
@@ -24,38 +23,22 @@ $intervals = vs_edgeone_analytics_intervals();
 $ranges = vs_edgeone_analytics_ranges();
 
 $charts = array();
-$quotaBundle = array('plans' => array(), 'usage' => array(), 'content_quota' => array('ok' => true, 'data' => null, 'error' => ''));
+$quotaBundle = array('plans' => array(), 'usage' => array(), 'content_quota' => array());
 $domainOptions = array();
-$queryError = '';
 
 if ($eo !== null && vs_edgeone_is_ready()) {
-    if ($filters['filter_zone'] !== '' && $filters['filter_zone'] !== '*' && $filters['filter_zone'] !== $zoneId) {
-        // 概览筛选站点与顶部站点选择器独立；若筛选指定站点则按其查询
-    }
-
-    $lookupZone = $filters['filter_zone'] !== '' && $filters['filter_zone'] !== '*'
-        ? $filters['filter_zone']
-        : $zoneId;
-
-    if ($lookupZone !== '') {
-        $domainOptions = vs_edgeone_fetch_domain_names($eo, $lookupZone);
+    if ($filters['filter_zone'] !== '' && $filters['filter_zone'] !== '*') {
+        $domainOptions = vs_edgeone_fetch_domain_names($eo, $filters['filter_zone']);
     }
 
     $charts = vs_edgeone_fetch_overview_charts($eo, $zones, $filters);
-    $quotaBundle = vs_edgeone_fetch_overview_quota($eo, $zones, $zoneId);
-
-    foreach ($charts as $chart) {
-        if (!empty($chart['error'])) {
-            $queryError = $chart['error'];
-            break;
-        }
-    }
+    $quotaBundle = vs_edgeone_fetch_overview_quota($eo, $zones);
 }
 ?>
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">数据概览</h3>
-    <p class="vs-form-tip">统一筛选后，下方所有统计图同步更新。数据约有 10 分钟延迟，时间范围最长 31 天。</p>
+    <p class="vs-form-tip">账号下全部站点的统计数据。统一筛选后，下方所有统计图同步更新。数据约有 10 分钟延迟，时间范围最长 31 天。</p>
 
     <?php if (!vs_edgeone_is_ready()): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先完成 EdgeOne 配置。</p>
@@ -99,7 +82,7 @@ if ($eo !== null && vs_edgeone_is_ready()) {
                 </div>
                 <div class="vs-form-col">
                     <label class="vs-label">域名</label>
-                    <select name="filter_domain" class="vs-input" id="edgeoneFilterDomain">
+                    <select name="filter_domain" class="vs-input" id="edgeoneFilterDomain"<?php echo $filters['filter_zone'] === '*' ? ' disabled' : ''; ?>>
                         <option value="">全部域名</option>
                         <?php foreach ($domainOptions as $domainName): ?>
                             <option value="<?php echo vs_e($domainName); ?>"<?php echo $filters['filter_domain'] === $domainName ? ' selected' : ''; ?>>
@@ -107,6 +90,9 @@ if ($eo !== null && vs_edgeone_is_ready()) {
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if ($filters['filter_zone'] === '*'): ?>
+                        <p class="vs-form-tip">筛选单个站点后可选择域名</p>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="vs-form-actions">
@@ -123,12 +109,8 @@ if ($eo !== null && vs_edgeone_is_ready()) {
     <div class="vs-edgeone-stat-grid">
         <?php foreach ($zones as $zone):
             $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
-            $cardClass = 'vs-edgeone-stat-card' . ($zid !== '' && $zid === $zoneId ? ' is-current' : '');
         ?>
-            <article class="<?php echo vs_e($cardClass); ?>">
-                <?php if ($zid === $zoneId): ?>
-                    <span class="vs-edgeone-stat-card__tag">当前站点</span>
-                <?php endif; ?>
+            <article class="vs-edgeone-stat-card">
                 <h4><?php echo vs_e(vs_edgeone_zone_display_name($zone)); ?></h4>
                 <p class="vs-form-tip">域名：<?php echo vs_e(isset($zone['ZoneName']) ? $zone['ZoneName'] : '-'); ?></p>
                 <p class="vs-form-tip">ZoneId：<code><?php echo vs_e($zid); ?></code></p>
@@ -140,11 +122,6 @@ if ($eo !== null && vs_edgeone_is_ready()) {
     </div>
 </div>
 
-<?php if ($queryError !== ''): ?>
-<div class="vs-panel">
-    <p class="vs-form-tip">统计数据加载失败：<?php echo vs_e($queryError); ?></p>
-</div>
-<?php else: ?>
 <div class="vs-edgeone-chart-grid">
     <?php foreach ($charts as $metric => $chart):
         $meta = $chart['meta'];
@@ -158,7 +135,9 @@ if ($eo !== null && vs_edgeone_is_ready()) {
     ?>
         <div class="vs-panel vs-edgeone-chart-panel">
             <h3 class="vs-panel__title"><?php echo vs_e($meta['label']); ?></h3>
-            <?php if (!$hasData): ?>
+            <?php if (!empty($chart['error'])): ?>
+                <p class="vs-form-tip">查询失败：<?php echo vs_e($chart['error']); ?></p>
+            <?php elseif (!$hasData): ?>
                 <p class="vs-form-tip">该条件下暂无数据</p>
             <?php else: ?>
                 <?php if ($chart['sum'] !== null): ?>
@@ -172,28 +151,16 @@ if ($eo !== null && vs_edgeone_is_ready()) {
         </div>
     <?php endforeach; ?>
 </div>
-<?php endif; ?>
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">套餐与配额</h3>
-    <?php if ($zoneId === ''): ?>
-        <p class="vs-form-tip">请先在上方选择当前站点后查看套餐配额。</p>
-    <?php else: ?>
-        <h4 class="vs-edgeone-subtitle">套餐流量 / 请求配额</h4>
-        <?php vs_edgeone_render_package_quota_dashboard($quotaBundle['plans'], $zoneId, $quotaBundle['usage']); ?>
-
-        <h4 class="vs-edgeone-subtitle">内容刷新 / 预热配额</h4>
-        <?php
-        $quotaResult = $quotaBundle['content_quota'];
-        if (!$quotaResult['ok']) {
-            echo '<p class="vs-form-tip">加载失败：' . vs_e($quotaResult['error']) . '</p>';
-        } elseif (!is_array($quotaResult['data'])) {
-            echo '<p class="vs-form-tip">暂无配额数据</p>';
-        } else {
-            vs_edgeone_render_quota($quotaResult['data']);
-        }
-        ?>
-    <?php endif; ?>
+    <p class="vs-form-tip">展示账号下各站点绑定的套餐配额与内容刷新/预热配额。</p>
+    <?php vs_edgeone_render_overview_quota_sections(
+        $zones,
+        $quotaBundle['plans'],
+        $quotaBundle['usage'],
+        $quotaBundle['content_quota']
+    ); ?>
 </div>
 <?php endif; ?>
 

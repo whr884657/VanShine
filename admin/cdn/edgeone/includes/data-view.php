@@ -457,12 +457,8 @@ function vs_edgeone_render_package_quota_dashboard(array $plans, $selectedZoneId
         }
     }
 
-    if (count($matched) === 0 && count($plans) > 0) {
-        $matched = array($plans[0]);
-    }
-
     if (count($matched) === 0) {
-        echo '<p class="vs-form-tip">暂无套餐配额信息，请前往腾讯云 EdgeOne 控制台查看。</p>';
+        echo '<p class="vs-form-tip">该站点未绑定套餐或暂无配额信息</p>';
         return;
     }
 
@@ -530,6 +526,48 @@ function vs_edgeone_render_package_quota_dashboard(array $plans, $selectedZoneId
         }
     }
     echo '</div>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $zones
+ * @param array<int, array<string, mixed>> $plans
+ * @param array<string, array<string, array{label: string, value: float, unit: string}>> $usageByZone
+ * @param array<string, array{ok: bool, data: mixed, error: string}> $contentQuotaByZone
+ * @return void
+ */
+function vs_edgeone_render_overview_quota_sections(array $zones, array $plans, array $usageByZone, array $contentQuotaByZone)
+{
+    if (count($zones) === 0) {
+        echo '<p class="vs-form-tip">暂无站点配额数据</p>';
+        return;
+    }
+
+    foreach ($zones as $zone) {
+        if (!is_array($zone)) {
+            continue;
+        }
+        $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+        if ($zid === '') {
+            continue;
+        }
+
+        echo '<div class="vs-edgeone-quota-zone-block">';
+        echo '<h4 class="vs-edgeone-subtitle">' . vs_e(vs_edgeone_zone_display_name($zone)) . '</h4>';
+
+        $usage = isset($usageByZone[$zid]) && is_array($usageByZone[$zid]) ? $usageByZone[$zid] : array();
+        vs_edgeone_render_package_quota_dashboard($plans, $zid, $usage);
+
+        echo '<h5 class="vs-edgeone-subtitle">内容刷新 / 预热配额</h5>';
+        $quotaResult = isset($contentQuotaByZone[$zid]) ? $contentQuotaByZone[$zid] : array('ok' => false, 'data' => null, 'error' => '');
+        if (empty($quotaResult['ok'])) {
+            echo '<p class="vs-form-tip">加载失败：' . vs_e(isset($quotaResult['error']) ? $quotaResult['error'] : '未知错误') . '</p>';
+        } elseif (!is_array($quotaResult['data'])) {
+            echo '<p class="vs-form-tip">暂无配额数据</p>';
+        } else {
+            vs_edgeone_render_quota($quotaResult['data']);
+        }
+        echo '</div>';
+    }
 }
 
 /**

@@ -242,6 +242,18 @@
     display: none;
 }
 
+.vs-edgeone-quota-zone-block {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed var(--border-color, #e8e8e8);
+}
+
+.vs-edgeone-quota-zone-block:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
 .vs-edgeone-zone-bar {
     display: flex;
     flex-wrap: wrap;

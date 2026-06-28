@@ -58,7 +58,8 @@ function vs_edgeone_page_start($navId, $pageTitle)
         vs_edgeone_render_setup_notice();
         vs_edgeone_render_error($ctx['error']);
         vs_edgeone_nav($navId);
-        if (vs_edgeone_is_ready() && count($ctx['zones']) > 0) {
+        $showZonePicker = ($navId !== 'cdn_edgeone') && vs_edgeone_is_ready() && count($ctx['zones']) > 0;
+        if ($showZonePicker) {
             echo '<div class="vs-panel vs-edgeone-zone-panel">';
             vs_edgeone_render_zone_picker($ctx['zones']);
             echo '</div>';

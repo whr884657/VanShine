@@ -48,7 +48,6 @@ function vs_edgeone_l7_analysis_metrics()
         'l7Flow_request'                  => array('label' => '访问请求数', 'unit' => 'count', 'group' => '请求'),
         'l7Flow_outBandwidth'             => array('label' => '响应带宽', 'unit' => 'bps', 'group' => '带宽'),
         'l7Flow_inBandwidth'              => array('label' => '客户端请求带宽', 'unit' => 'bps', 'group' => '带宽'),
-        'l7Flow_bandwidth'                => array('label' => '访问总带宽', 'unit' => 'bps', 'group' => '带宽'),
         'l7Flow_avgResponseTime'          => array('label' => '平均响应耗时', 'unit' => 'ms', 'group' => '性能'),
         'l7Flow_avgFirstByteResponseTime' => array('label' => '平均首字节耗时', 'unit' => 'ms', 'group' => '性能'),
         'l7Flow_hitRequest'               => array('label' => '缓存命中次数', 'unit' => 'count', 'group' => '缓存'),
@@ -121,6 +120,10 @@ function vs_edgeone_metrics_for_source($source)
  */
 function vs_edgeone_metric_meta($metric, $source = 'l7')
 {
+    if ((string) $metric === 'l7Flow_totalBandwidth') {
+        return array('label' => '访问总带宽', 'unit' => 'bps', 'group' => '带宽');
+    }
+
     $all = vs_edgeone_metrics_for_source($source);
     if (isset($all[$metric])) {
         $meta = $all[$metric];
@@ -323,11 +326,80 @@ function vs_edgeone_query_billing_series(EdgeOne $eo, $zoneId, $metric, $interva
 }
 
 /**
+ * 概览页向 API 请求的指标（不含需本地汇总的虚拟指标）
+ *
+ * @return array<int, string>
+ */
+function vs_edgeone_overview_api_metric_keys()
+{
+    return array_keys(vs_edgeone_l7_analysis_metrics());
+}
+
+/**
  * @return array<string, string>
  */
 function vs_edgeone_overview_metric_keys()
 {
-    return array_keys(vs_edgeone_l7_analysis_metrics());
+    $keys = vs_edgeone_overview_api_metric_keys();
+    $keys[] = 'l7Flow_totalBandwidth';
+
+    return $keys;
+}
+
+/**
+ * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
+ * @return array<string, array{meta: array, series: array, sum: float|null, error: string}>
+ */
+function vs_edgeone_append_total_bandwidth_chart(array $charts)
+{
+    $outKey = 'l7Flow_outBandwidth';
+    $inKey = 'l7Flow_inBandwidth';
+    $totalKey = 'l7Flow_totalBandwidth';
+
+    if (!isset($charts[$outKey]) || !isset($charts[$inKey])) {
+        return $charts;
+    }
+
+    $outChart = $charts[$outKey];
+    $inChart = $charts[$inKey];
+    $series = array();
+    $maxLen = max(count($outChart['series']), count($inChart['series']));
+
+    for ($i = 0; $i < $maxLen; $i++) {
+        $outSeries = isset($outChart['series'][$i]) ? $outChart['series'][$i] : array('label' => '', 'points' => array());
+        $inSeries = isset($inChart['series'][$i]) ? $inChart['series'][$i] : array('label' => $outSeries['label'], 'points' => array());
+        $label = isset($outSeries['label']) && $outSeries['label'] !== ''
+            ? (string) $outSeries['label']
+            : (isset($inSeries['label']) ? (string) $inSeries['label'] : '');
+        $points = vs_edgeone_merge_series_sum(
+            isset($outSeries['points']) ? $outSeries['points'] : array(),
+            isset($inSeries['points']) ? $inSeries['points'] : array()
+        );
+        $item = array('label' => $label, 'points' => $points);
+        if (!empty($outSeries['is_total']) || !empty($inSeries['is_total'])) {
+            $item['is_total'] = true;
+        }
+        $series[] = $item;
+    }
+
+    $sum = null;
+    if ($outChart['sum'] !== null || $inChart['sum'] !== null) {
+        $sum = (float) ($outChart['sum'] !== null ? $outChart['sum'] : 0)
+            + (float) ($inChart['sum'] !== null ? $inChart['sum'] : 0);
+    }
+
+    $charts[$totalKey] = array(
+        'meta'   => array(
+            'label' => '访问总带宽',
+            'unit'  => 'bps',
+            'group' => '带宽',
+        ),
+        'series' => $series,
+        'sum'    => $sum,
+        'error'  => trim((string) $outChart['error'] . ' ' . (string) $inChart['error']),
+    );
+
+    return $charts;
 }
 
 /**
@@ -375,10 +447,9 @@ function vs_edgeone_query_l7_metrics_batch(EdgeOne $eo, $zoneId, array $metrics,
     ));
 
     if ($domain !== '') {
-        $params['Filters'] = array(array(
-            'Name'   => 'domain',
-            'Values' => array($domain),
-        ));
+        $params['Filters'] = array(
+            vs_edgeone_analytics_filter('domain', $domain, 'equals'),
+        );
     }
 
     return $eo->analytics->describeTimingL7AnalysisData($params);
@@ -433,7 +504,8 @@ function vs_edgeone_series_points_for_metric(array $series, $metric)
  */
 function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filters)
 {
-    $metrics = vs_edgeone_overview_metric_keys();
+    $apiMetrics = vs_edgeone_overview_api_metric_keys();
+    $displayMetrics = vs_edgeone_overview_metric_keys();
     $charts = array();
     $targetZones = array();
 
@@ -448,7 +520,7 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
         $targetZones = $zones;
     }
 
-    foreach ($metrics as $metric) {
+    foreach ($displayMetrics as $metric) {
         $charts[$metric] = array(
             'meta'   => vs_edgeone_metric_meta($metric, 'l7'),
             'series' => array(),
@@ -462,41 +534,40 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
     }
 
     $metricPoints = array();
-    foreach ($metrics as $metric) {
+    foreach ($apiMetrics as $metric) {
         $metricPoints[$metric] = array();
     }
 
+    // API 不支持一次返回多站点分线数据：按站点逐站查询，后端汇总展示
     foreach ($targetZones as $zone) {
         $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
         if ($zid === '') {
             continue;
         }
 
-        $result = vs_edgeone_try_call(function () use ($eo, $zid, $metrics, $filters) {
-            return vs_edgeone_query_l7_metrics_batch(
-                $eo,
-                $zid,
-                $metrics,
-                $filters['interval'],
-                $filters['range'],
-                $filters['filter_domain']
-            );
-        });
-
-        if (!$result['ok']) {
-            foreach ($metrics as $metric) {
-                $charts[$metric]['error'] = $result['error'];
-            }
-            return $charts;
-        }
-
-        $extracted = vs_edgeone_extract_timing_series($result['data']);
         $label = vs_edgeone_zone_display_name($zone);
         if ($filters['filter_domain'] !== '') {
             $label .= ' · ' . $filters['filter_domain'];
         }
 
-        foreach ($metrics as $metric) {
+        foreach ($apiMetrics as $metric) {
+            $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters) {
+                return vs_edgeone_query_l7_metrics_batch(
+                    $eo,
+                    $zid,
+                    array($metric),
+                    $filters['interval'],
+                    $filters['range'],
+                    $filters['filter_domain']
+                );
+            });
+
+            if (!$result['ok']) {
+                $charts[$metric]['error'] = $result['error'];
+                continue;
+            }
+
+            $extracted = vs_edgeone_extract_timing_series($result['data']);
             $points = vs_edgeone_series_points_for_metric($extracted, $metric);
             $metricPoints[$metric][] = array(
                 'label'  => $label,
@@ -513,8 +584,8 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
     }
 
     $multiZone = count($targetZones) > 1 && $filters['filter_domain'] === '';
-    foreach ($metrics as $metric) {
-        $series = $metricPoints[$metric];
+    foreach ($apiMetrics as $metric) {
+        $series = isset($metricPoints[$metric]) ? $metricPoints[$metric] : array();
         if ($multiZone && count($series) > 1) {
             $totalPoints = array();
             foreach ($series as $item) {
@@ -534,21 +605,20 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
         }
     }
 
-    return $charts;
+    return vs_edgeone_append_total_bandwidth_chart($charts);
 }
 
 /**
  * @param EdgeOne|null $eo
  * @param array<int, array<string, mixed>> $zones
- * @param string $zoneId
- * @return array{plans: array, usage: array, content_quota: array{ok: bool, data: mixed, error: string}}
+ * @return array{plans: array, usage: array<int, array<string, array{label: string, value: float, unit: string}>>, content_quota: array<string, array{ok: bool, data: mixed, error: string}>}
  */
-function vs_edgeone_fetch_overview_quota(EdgeOne $eo, array $zones, $zoneId)
+function vs_edgeone_fetch_overview_quota(EdgeOne $eo, array $zones)
 {
     $out = array(
-        'plans'          => array(),
-        'usage'          => array(),
-        'content_quota'  => array('ok' => true, 'data' => null, 'error' => ''),
+        'plans'         => array(),
+        'usage'         => array(),
+        'content_quota' => array(),
     );
 
     if ($eo === null) {
@@ -564,30 +634,37 @@ function vs_edgeone_fetch_overview_quota(EdgeOne $eo, array $zones, $zoneId)
             : array();
     }
 
-    if ($zoneId !== '') {
-        $out['content_quota'] = vs_edgeone_try_call(function () use ($eo, $zoneId) {
-            return $eo->content->describeContentQuota(array('ZoneId' => $zoneId));
+    $today = vs_edgeone_billing_window('today');
+    foreach ($zones as $zone) {
+        $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+        if ($zid === '') {
+            continue;
+        }
+
+        $out['content_quota'][$zid] = vs_edgeone_try_call(function () use ($eo, $zid) {
+            return $eo->content->describeContentQuota(array('ZoneId' => $zid));
         });
 
-        $today = vs_edgeone_billing_window('today');
+        $usage = array();
         foreach (array(
             'acc_flux'    => array('label' => '今日加速流量', 'unit' => 'bytes'),
             'sec_request' => array('label' => '今日安全请求', 'unit' => 'count'),
         ) as $mKey => $cfg) {
-            $usageResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $mKey, $today) {
-                return vs_edgeone_query_billing_series($eo, $zoneId, $mKey, 'hour', $today);
+            $usageResult = vs_edgeone_try_call(function () use ($eo, $zid, $mKey, $today) {
+                return vs_edgeone_query_billing_series($eo, $zid, $mKey, 'hour', $today);
             });
             if ($usageResult['ok']) {
                 $rows = isset($usageResult['data']['Data']) && is_array($usageResult['data']['Data'])
                     ? $usageResult['data']['Data']
                     : array();
-                $out['usage'][$mKey] = array(
+                $usage[$mKey] = array(
                     'label' => $cfg['label'],
                     'value' => vs_edgeone_sum_series_values($rows),
                     'unit'  => $cfg['unit'],
                 );
             }
         }
+        $out['usage'][$zid] = $usage;
     }
 
     return $out;

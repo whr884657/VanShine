@@ -7,9 +7,14 @@ require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'set_zone') {
-    require __DIR__ . '/api.php';
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'set_zone') {
+        require __DIR__ . '/api.php';
+        exit;
+    }
+    if (vs_edgeone_is_fragment_request()) {
+        vs_edgeone_billing_filters_from_request($_POST);
+    }
 }
 
 $ctx = vs_edgeone_page_start('cdn_edgeone_billing', 'EdgeOne · 套餐计费');
@@ -23,20 +28,15 @@ $usageMonth = array();
 $usageTrend = array();
 $usageError = '';
 
-$billingMetric = isset($_GET['metric']) ? (string) $_GET['metric'] : 'acc_flux';
-$billingMetrics = vs_edgeone_billing_metrics();
-if (!isset($billingMetrics[$billingMetric])) {
-    $billingMetric = 'acc_flux';
-}
-$billingMeta = vs_edgeone_metric_meta($billingMetric, 'l7');
+$bf = vs_edgeone_billing_filters_from_request();
+$billingMetric = $bf['metric'];
+$rangeKey = $bf['range'];
+$interval = $bf['interval'];
 
-$rangeKey = isset($_GET['range']) ? (string) $_GET['range'] : '7d';
+$billingMetrics = vs_edgeone_billing_metrics();
+$billingMeta = vs_edgeone_metric_meta($billingMetric, 'l7');
 $rangePreset = vs_edgeone_analytics_range_preset($rangeKey);
-$interval = isset($_GET['interval']) ? (string) $_GET['interval'] : $rangePreset['default_interval'];
 $intervals = vs_edgeone_analytics_intervals();
-if (!isset($intervals[$interval])) {
-    $interval = $rangePreset['default_interval'];
-}
 
 if ($eo !== null) {
     $planResult = vs_edgeone_try_call(function () use ($eo) {
@@ -180,7 +180,7 @@ if ($eo !== null) {
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">计费用量趋势</h3>
-    <form method="get" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
+    <form method="post" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
         <div class="vs-form-row vs-form-row--inline">
             <div class="vs-form-col">
                 <label class="vs-label">计费指标</label>

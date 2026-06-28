@@ -158,6 +158,10 @@ function vs_edgeone_render_zone_runtime_badge(array $zone)
  */
 function vs_edgeone_is_fragment_request()
 {
+    if (isset($_POST['fragment']) && (string) $_POST['fragment'] === '1') {
+        return true;
+    }
+
     return isset($_GET['fragment']) && (string) $_GET['fragment'] === '1';
 }
 

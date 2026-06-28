@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.79",
+            "date": "2026-06-29",
+            "title": "EdgeOne 无参 URL 查询与概览统计图 UX",
+            "db_changes": false,
+            "changes": [
+                "筛选参数 Session 存储，地址栏无查询串",
+                "概览统计图 AJAX 异步加载，避免 30 秒超时",
+                "电脑端双列统计图；多站点折线右上角图例；优化配色",
+                "数据分析/套餐计费同步 Session 筛选"
+            ]
+        },
+        {
             "version": "1.0.78",
             "date": "2026-06-29",
             "title": "修复 EdgeOne 概览 API 筛选参数与全站点配额",

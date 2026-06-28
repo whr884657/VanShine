@@ -4,7 +4,18 @@
 (function () {
     'use strict';
 
-    var COLORS = ['#1677ff', '#52c41a', '#faad14', '#722ed1', '#eb2f96', '#13c2c2', '#fa541c'];
+    var COLORS = ['#3b82f6', '#f97316', '#06b6d4', '#6366f1', '#e11d48', '#0ea5e9', '#f59e0b'];
+    var TOTAL_COLOR = '#1d4ed8';
+
+    function pagePath() {
+        return window.location.pathname;
+    }
+
+    function keepCleanUrl() {
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({ edgeone: true }, '', pagePath());
+        }
+    }
 
     function apiUrl() {
         return window.VS_EDGEONE_API || '';
@@ -32,24 +43,16 @@
         });
     }
 
-    function fragmentUrl(url) {
-        var u = url.indexOf('?') >= 0 ? url + '&fragment=1' : url + '?fragment=1';
-        return u;
-    }
-
-    function currentPageUrl() {
-        return window.location.pathname + window.location.search;
-    }
-
     function loadMainContent(url, pushState) {
         var main = document.getElementById('edgeoneMainContent');
         if (!main) {
-            window.location.href = url;
+            window.location.href = url.split('?')[0];
             return Promise.resolve();
         }
 
+        var path = url.split('?')[0];
         main.classList.add('is-loading');
-        return fetch(fragmentUrl(url), { credentials: 'same-origin' })
+        return fetch(path + '?fragment=1', { credentials: 'same-origin' })
             .then(function (res) {
                 if (!res.ok) throw new Error('load_failed');
                 return res.text();
@@ -59,20 +62,51 @@
                 main.classList.remove('is-loading');
                 bindApiForms(main);
                 bindFragmentForms(main);
+                bindOverviewPage(main);
                 bindCharts(main);
-                updateNavActive(url);
-                if (pushState !== false) {
-                    window.history.pushState({ edgeone: true }, '', url);
+                updateNavActive(path);
+                keepCleanUrl();
+                if (pushState !== false && window.history.pushState) {
+                    window.history.pushState({ edgeone: true }, '', path);
                 }
             })
             .catch(function () {
                 main.classList.remove('is-loading');
-                window.location.href = url;
+                window.location.href = path;
             });
     }
 
+    function loadMainContentPost(form) {
+        var main = document.getElementById('edgeoneMainContent');
+        if (!main) return Promise.resolve();
+
+        var body = new FormData(form);
+        body.set('fragment', '1');
+        main.classList.add('is-loading');
+
+        return fetch(pagePath(), {
+            method: 'POST',
+            body: body,
+            credentials: 'same-origin'
+        }).then(function (res) {
+            if (!res.ok) throw new Error('load_failed');
+            return res.text();
+        }).then(function (html) {
+            main.innerHTML = html;
+            main.classList.remove('is-loading');
+            bindApiForms(main);
+            bindFragmentForms(main);
+            bindOverviewPage(main);
+            bindCharts(main);
+            keepCleanUrl();
+        }).catch(function () {
+            main.classList.remove('is-loading');
+            toast('加载失败', 'error');
+        });
+    }
+
     function reloadMainContent() {
-        return loadMainContent(currentPageUrl(), false);
+        return loadMainContent(pagePath(), false);
     }
 
     function updateNavActive(url) {
@@ -80,8 +114,7 @@
         document.querySelectorAll('.vs-edgeone-nav a[href]').forEach(function (link) {
             var href = link.getAttribute('href') || '';
             var linkPath = href.split('?')[0];
-            var active = linkPath === path;
-            link.classList.toggle('is-active', active);
+            link.classList.toggle('is-active', linkPath === path);
         });
 
         document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__accordion').forEach(function (node) {
@@ -113,9 +146,9 @@
             loadMainContent(href, true);
         });
 
-        window.addEventListener('popstate', function (e) {
-            if (e.state && e.state.edgeone) {
-                loadMainContent(currentPageUrl(), false);
+        window.addEventListener('popstate', function () {
+            if (window.history.state && window.history.state.edgeone) {
+                loadMainContent(pagePath(), false);
             }
         });
     }
@@ -156,10 +189,93 @@
             form.dataset.bound = '1';
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                var params = new URLSearchParams(new FormData(form));
-                var url = window.location.pathname + '?' + params.toString();
-                loadMainContent(url, true);
+                if (form.classList.contains('vs-edgeone-overview-form')) {
+                    loadOverviewData(form);
+                    return;
+                }
+                loadMainContentPost(form);
             });
+        });
+    }
+
+    function bindOverviewPage(root) {
+        var scope = root || document;
+        var form = scope.querySelector('#edgeoneOverviewForm');
+        if (!form) return;
+
+        if (scope === document || scope.id === 'edgeoneMainContent') {
+            loadOverviewData(form);
+        }
+
+        var zoneSelect = form.querySelector('#edgeoneFilterZone');
+        var domainSelect = form.querySelector('#edgeoneFilterDomain');
+        if (zoneSelect && domainSelect && zoneSelect.dataset.bound !== '1') {
+            zoneSelect.dataset.bound = '1';
+            zoneSelect.addEventListener('change', function () {
+                var zoneId = zoneSelect.value;
+                if (zoneId === '*' || zoneId === '') {
+                    domainSelect.innerHTML = '<option value="">全部域名</option>';
+                    domainSelect.disabled = true;
+                    return;
+                }
+                domainSelect.disabled = true;
+                var body = new FormData();
+                body.set('action', 'overview_domains');
+                body.set('filter_zone', zoneId);
+                postFormData(body).then(function (data) {
+                    domainSelect.innerHTML = '<option value="">全部域名</option>';
+                    if (data.code === 1 && data.data && data.data.domains) {
+                        data.data.domains.forEach(function (name) {
+                            var opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name;
+                            domainSelect.appendChild(opt);
+                        });
+                    }
+                    domainSelect.disabled = false;
+                }).catch(function () {
+                    domainSelect.disabled = false;
+                });
+            });
+        }
+    }
+
+    function loadOverviewData(form) {
+        var chartsHost = document.getElementById('edgeoneChartsHost');
+        var quotaHost = document.getElementById('edgeoneQuotaHost');
+        if (!chartsHost) return;
+
+        chartsHost.innerHTML = '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading"><p class="vs-form-tip">统计图加载中…</p></div>';
+        if (quotaHost) {
+            quotaHost.innerHTML = '<p class="vs-form-tip">配额加载中…</p>';
+        }
+
+        var body = new FormData(form);
+        body.set('action', 'overview_data');
+
+        postFormData(body).then(function (data) {
+            if (data.code !== 1 || !data.data) {
+                chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">加载失败：' + (data.msg || '未知错误') + '</p></div>';
+                return;
+            }
+            if (data.data.charts_html) {
+                chartsHost.outerHTML = data.data.charts_html;
+            }
+            if (quotaHost && data.data.quota_html) {
+                quotaHost.outerHTML = data.data.quota_html;
+            }
+            if (data.data.range_label) {
+                var labelNode = document.getElementById('edgeoneRangeLabel');
+                if (labelNode) {
+                    var countMatch = labelNode.textContent.match(/共\s*\d+\s*个站点/);
+                    var prefix = countMatch ? countMatch[0] : labelNode.textContent.split('·')[0].trim();
+                    labelNode.textContent = prefix + ' · ' + data.data.range_label;
+                }
+            }
+            bindCharts(document);
+            keepCleanUrl();
+        }).catch(function () {
+            chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">统计图加载失败，请稍后重试</p></div>';
         });
     }
 
@@ -187,6 +303,8 @@
 
     function bindMobileAccordion() {
         document.querySelectorAll('.vs-edgeone-nav__accordion-btn').forEach(function (btn) {
+            if (btn.dataset.bound === '1') return;
+            btn.dataset.bound = '1';
             btn.addEventListener('click', function () {
                 var item = btn.closest('.vs-edgeone-nav__accordion');
                 if (!item) return;
@@ -207,7 +325,8 @@
     function bindDesktopDropdowns() {
         document.querySelectorAll('.vs-edgeone-nav__tab--dropdown').forEach(function (tab) {
             var btn = tab.querySelector('.vs-edgeone-nav__tab-btn');
-            if (!btn) return;
+            if (!btn || tab.dataset.bound === '1') return;
+            tab.dataset.bound = '1';
             tab.addEventListener('mouseenter', function () {
                 btn.setAttribute('aria-expanded', 'true');
             });
@@ -218,15 +337,17 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        keepCleanUrl();
         bindSpaNavigation();
         bindApiForms(document);
         bindFragmentForms(document);
+        bindOverviewPage(document);
         bindZoneForm();
         bindMobileAccordion();
         bindDesktopDropdowns();
         bindCharts(document);
         if (window.history && window.history.replaceState) {
-            window.history.replaceState({ edgeone: true }, '', currentPageUrl());
+            window.history.replaceState({ edgeone: true }, '', pagePath());
         }
     });
 
@@ -282,16 +403,46 @@
         });
     }
 
+    function renderChartLegend(wrap, series) {
+        var legend = wrap.querySelector('.vs-edgeone-chart-legend--overlay');
+        if (!legend) {
+            legend = document.createElement('div');
+            legend.className = 'vs-edgeone-chart-legend vs-edgeone-chart-legend--overlay';
+            wrap.insertBefore(legend, wrap.firstChild);
+        }
+        legend.innerHTML = '';
+        if (!series || series.length <= 1) {
+            legend.style.display = 'none';
+            return;
+        }
+        legend.style.display = 'flex';
+        var colorIdx = 0;
+        series.forEach(function (s) {
+            var color = s.is_total ? TOTAL_COLOR : COLORS[colorIdx++ % COLORS.length];
+            var item = document.createElement('span');
+            item.className = 'vs-edgeone-chart-legend__item' + (s.is_total ? ' is-total' : '');
+            var dot = document.createElement('i');
+            dot.className = 'vs-edgeone-chart-legend__dot';
+            dot.style.backgroundColor = color;
+            item.appendChild(dot);
+            item.appendChild(document.createTextNode(s.label || ''));
+            legend.appendChild(item);
+        });
+    }
+
     function drawLineChart(canvas, series, unit) {
         if (!series || series.length === 0) return;
 
         var wrap = canvas.parentElement;
-        var width = wrap ? wrap.clientWidth : 900;
+        if (!wrap) return;
+        renderChartLegend(wrap, series);
+
+        var width = wrap.clientWidth || 900;
         if (width < 280) width = 280;
         var height = 260;
         var padL = 56;
         var padR = 16;
-        var padT = 20;
+        var padT = series.length > 1 ? 36 : 20;
         var padB = 36;
         var dpr = window.devicePixelRatio || 1;
 
@@ -337,10 +488,11 @@
         var tsList = Object.keys(allTs).map(Number).sort(function (a, b) { return a - b; });
         if (tsList.length === 0) return;
 
-        series.forEach(function (s, idx) {
+        var colorIdx = 0;
+        series.forEach(function (s) {
             var points = s.points || [];
             if (points.length === 0) return;
-            var color = s.is_total ? '#222' : COLORS[idx % COLORS.length];
+            var color = s.is_total ? TOTAL_COLOR : COLORS[colorIdx++ % COLORS.length];
             ctx.strokeStyle = color;
             ctx.lineWidth = s.is_total ? 2.5 : 2;
             ctx.beginPath();

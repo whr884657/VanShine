@@ -405,27 +405,265 @@ function vs_edgeone_append_total_bandwidth_chart(array $charts)
 /**
  * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
  */
-function vs_edgeone_overview_filters_from_request()
+function vs_edgeone_overview_filters_default()
 {
+    return array(
+        'range'         => '7d',
+        'interval'      => 'hour',
+        'filter_zone'   => '*',
+        'filter_domain' => '',
+    );
+}
+
+/**
+ * @param array<string, mixed> $src
+ * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
+ */
+function vs_edgeone_overview_filters_normalize(array $src)
+{
+    $defaults = vs_edgeone_overview_filters_default();
     $ranges = vs_edgeone_analytics_ranges();
-    $rangeKey = isset($_GET['range']) ? (string) $_GET['range'] : '7d';
+    $intervals = vs_edgeone_analytics_intervals();
+
+    $rangeKey = isset($src['range']) ? (string) $src['range'] : $defaults['range'];
     if (!isset($ranges[$rangeKey])) {
-        $rangeKey = '7d';
+        $rangeKey = $defaults['range'];
     }
 
     $preset = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = isset($_GET['interval']) ? (string) $_GET['interval'] : $preset['default_interval'];
+    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
+    if (!isset($intervals[$interval])) {
+        $interval = $preset['default_interval'];
+    }
+
+    $filterZone = isset($src['filter_zone']) ? trim((string) $src['filter_zone']) : $defaults['filter_zone'];
+    if ($filterZone === '') {
+        $filterZone = '*';
+    }
+
+    return array(
+        'range'         => $rangeKey,
+        'interval'      => $interval,
+        'filter_zone'   => $filterZone,
+        'filter_domain' => isset($src['filter_domain']) ? trim((string) $src['filter_domain']) : '',
+    );
+}
+
+/**
+ * @param array{range: string, interval: string, filter_zone: string, filter_domain: string} $filters
+ * @return void
+ */
+function vs_edgeone_overview_filters_save(array $filters)
+{
+    $_SESSION['vs_edgeone_overview_filters'] = $filters;
+}
+
+/**
+ * @param array<string, mixed>|null $src
+ * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
+ */
+function vs_edgeone_overview_filters_from_request($src = null)
+{
+    if ($src === null) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['range'])) {
+            $src = $_POST;
+        } elseif (!empty($_GET['range']) || !empty($_GET['filter_zone'])) {
+            $src = $_GET;
+        } else {
+            $src = array();
+        }
+    }
+
+    if (!empty($src) && (isset($src['range']) || isset($src['filter_zone']))) {
+        $filters = vs_edgeone_overview_filters_normalize($src);
+        vs_edgeone_overview_filters_save($filters);
+
+        return $filters;
+    }
+
+    if (isset($_SESSION['vs_edgeone_overview_filters']) && is_array($_SESSION['vs_edgeone_overview_filters'])) {
+        return vs_edgeone_overview_filters_normalize($_SESSION['vs_edgeone_overview_filters']);
+    }
+
+    return vs_edgeone_overview_filters_default();
+}
+
+/**
+ * @return array{source: string, metric: string, range: string, interval: string}
+ */
+function vs_edgeone_analytics_filters_default()
+{
+    return array(
+        'source'   => 'l7',
+        'metric'   => 'l7Flow_outFlux',
+        'range'    => '7d',
+        'interval' => 'hour',
+    );
+}
+
+/**
+ * @param array<string, mixed> $src
+ * @return array{source: string, metric: string, range: string, interval: string}
+ */
+function vs_edgeone_analytics_filters_normalize(array $src)
+{
+    $defaults = vs_edgeone_analytics_filters_default();
+    $ranges = vs_edgeone_analytics_ranges();
     $intervals = vs_edgeone_analytics_intervals();
+
+    $source = isset($src['source']) ? (string) $src['source'] : $defaults['source'];
+    if (!in_array($source, array('l7', 'origin', 'l4'), true)) {
+        $source = $defaults['source'];
+    }
+
+    $metrics = vs_edgeone_metrics_for_source($source);
+    $metric = isset($src['metric']) ? (string) $src['metric'] : $defaults['metric'];
+    if (!isset($metrics[$metric])) {
+        $keys = array_keys($metrics);
+        $metric = count($keys) > 0 ? (string) $keys[0] : $defaults['metric'];
+    }
+
+    $rangeKey = isset($src['range']) ? (string) $src['range'] : $defaults['range'];
+    if (!isset($ranges[$rangeKey])) {
+        $rangeKey = $defaults['range'];
+    }
+
+    $preset = vs_edgeone_analytics_range_preset($rangeKey);
+    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
     if (!isset($intervals[$interval])) {
         $interval = $preset['default_interval'];
     }
 
     return array(
-        'range'          => $rangeKey,
-        'interval'       => $interval,
-        'filter_zone'    => isset($_GET['filter_zone']) ? trim((string) $_GET['filter_zone']) : '*',
-        'filter_domain'  => isset($_GET['filter_domain']) ? trim((string) $_GET['filter_domain']) : '',
+        'source'   => $source,
+        'metric'   => $metric,
+        'range'    => $rangeKey,
+        'interval' => $interval,
     );
+}
+
+/**
+ * @param array{source: string, metric: string, range: string, interval: string} $filters
+ * @return void
+ */
+function vs_edgeone_analytics_filters_save(array $filters)
+{
+    $_SESSION['vs_edgeone_analytics_filters'] = $filters;
+}
+
+/**
+ * @param array<string, mixed>|null $src
+ * @return array{source: string, metric: string, range: string, interval: string}
+ */
+function vs_edgeone_analytics_filters_from_request($src = null)
+{
+    if ($src === null) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['range'])) {
+            $src = $_POST;
+        } elseif (!empty($_GET['range']) || !empty($_GET['metric']) || !empty($_GET['source'])) {
+            $src = $_GET;
+        } else {
+            $src = array();
+        }
+    }
+
+    if (!empty($src) && (isset($src['range']) || isset($src['metric']) || isset($src['source']))) {
+        $filters = vs_edgeone_analytics_filters_normalize($src);
+        vs_edgeone_analytics_filters_save($filters);
+
+        return $filters;
+    }
+
+    if (isset($_SESSION['vs_edgeone_analytics_filters']) && is_array($_SESSION['vs_edgeone_analytics_filters'])) {
+        return vs_edgeone_analytics_filters_normalize($_SESSION['vs_edgeone_analytics_filters']);
+    }
+
+    return vs_edgeone_analytics_filters_default();
+}
+
+/**
+ * @return array{metric: string, range: string, interval: string}
+ */
+function vs_edgeone_billing_filters_default()
+{
+    return array(
+        'metric'   => 'acc_flux',
+        'range'    => '7d',
+        'interval' => 'hour',
+    );
+}
+
+/**
+ * @param array<string, mixed> $src
+ * @return array{metric: string, range: string, interval: string}
+ */
+function vs_edgeone_billing_filters_normalize(array $src)
+{
+    $defaults = vs_edgeone_billing_filters_default();
+    $ranges = vs_edgeone_analytics_ranges();
+    $intervals = vs_edgeone_analytics_intervals();
+    $billingMetrics = vs_edgeone_billing_metrics();
+
+    $metric = isset($src['metric']) ? (string) $src['metric'] : $defaults['metric'];
+    if (!isset($billingMetrics[$metric])) {
+        $metric = $defaults['metric'];
+    }
+
+    $rangeKey = isset($src['range']) ? (string) $src['range'] : $defaults['range'];
+    if (!isset($ranges[$rangeKey])) {
+        $rangeKey = $defaults['range'];
+    }
+
+    $preset = vs_edgeone_analytics_range_preset($rangeKey);
+    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
+    if (!isset($intervals[$interval])) {
+        $interval = $preset['default_interval'];
+    }
+
+    return array(
+        'metric'   => $metric,
+        'range'    => $rangeKey,
+        'interval' => $interval,
+    );
+}
+
+/**
+ * @param array{metric: string, range: string, interval: string} $filters
+ * @return void
+ */
+function vs_edgeone_billing_filters_save(array $filters)
+{
+    $_SESSION['vs_edgeone_billing_filters'] = $filters;
+}
+
+/**
+ * @param array<string, mixed>|null $src
+ * @return array{metric: string, range: string, interval: string}
+ */
+function vs_edgeone_billing_filters_from_request($src = null)
+{
+    if ($src === null) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['range'])) {
+            $src = $_POST;
+        } elseif (!empty($_GET['range']) || !empty($_GET['metric'])) {
+            $src = $_GET;
+        } else {
+            $src = array();
+        }
+    }
+
+    if (!empty($src) && (isset($src['range']) || isset($src['metric']))) {
+        $filters = vs_edgeone_billing_filters_normalize($src);
+        vs_edgeone_billing_filters_save($filters);
+
+        return $filters;
+    }
+
+    if (isset($_SESSION['vs_edgeone_billing_filters']) && is_array($_SESSION['vs_edgeone_billing_filters'])) {
+        return vs_edgeone_billing_filters_normalize($_SESSION['vs_edgeone_billing_filters']);
+    }
+
+    return vs_edgeone_billing_filters_default();
 }
 
 /**
@@ -538,7 +776,7 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
         $metricPoints[$metric] = array();
     }
 
-    // API 不支持一次返回多站点分线数据：按站点逐站查询，后端汇总展示
+    // 按站点逐站查询（API 不返回分线）；每站一次请求携带全部指标
     foreach ($targetZones as $zone) {
         $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
         if ($zid === '') {
@@ -550,24 +788,29 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
             $label .= ' · ' . $filters['filter_domain'];
         }
 
-        foreach ($apiMetrics as $metric) {
-            $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters) {
-                return vs_edgeone_query_l7_metrics_batch(
-                    $eo,
-                    $zid,
-                    array($metric),
-                    $filters['interval'],
-                    $filters['range'],
-                    $filters['filter_domain']
-                );
-            });
+        $result = vs_edgeone_try_call(function () use ($eo, $zid, $apiMetrics, $filters) {
+            return vs_edgeone_query_l7_metrics_batch(
+                $eo,
+                $zid,
+                $apiMetrics,
+                $filters['interval'],
+                $filters['range'],
+                $filters['filter_domain']
+            );
+        });
 
-            if (!$result['ok']) {
-                $charts[$metric]['error'] = $result['error'];
-                continue;
+        if (!$result['ok']) {
+            foreach ($apiMetrics as $metric) {
+                if ($charts[$metric]['error'] === '') {
+                    $charts[$metric]['error'] = $result['error'];
+                }
             }
+            continue;
+        }
 
-            $extracted = vs_edgeone_extract_timing_series($result['data']);
+        $extracted = vs_edgeone_extract_timing_series($result['data']);
+
+        foreach ($apiMetrics as $metric) {
             $points = vs_edgeone_series_points_for_metric($extracted, $metric);
             $metricPoints[$metric][] = array(
                 'label'  => $label,

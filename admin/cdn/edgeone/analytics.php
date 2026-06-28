@@ -3,39 +3,30 @@ require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'set_zone') {
-    require __DIR__ . '/api.php';
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['action']) && $_POST['action'] === 'set_zone') {
+        require __DIR__ . '/api.php';
+        exit;
+    }
+    if (vs_edgeone_is_fragment_request()) {
+        vs_edgeone_analytics_filters_from_request($_POST);
+    }
 }
 
 $ctx = vs_edgeone_page_start('cdn_edgeone_analytics', 'EdgeOne · 数据分析');
 $zoneId = $ctx['zone_id'];
 $eo = $ctx['eo'];
 
-$source = isset($_GET['source']) ? (string) $_GET['source'] : 'l7';
-if (!in_array($source, array('l7', 'origin', 'l4'), true)) {
-    $source = 'l7';
-}
+$af = vs_edgeone_analytics_filters_from_request();
+$source = $af['source'];
+$metric = $af['metric'];
+$rangeKey = $af['range'];
+$interval = $af['interval'];
 
 $metrics = vs_edgeone_metrics_for_source($source);
-$metric = isset($_GET['metric']) ? (string) $_GET['metric'] : 'l7Flow_outFlux';
-if (!isset($metrics[$metric])) {
-    $keys = array_keys($metrics);
-    $metric = count($keys) > 0 ? $keys[0] : 'l7Flow_outFlux';
-}
-
-$rangeKey = isset($_GET['range']) ? (string) $_GET['range'] : '7d';
 $ranges = vs_edgeone_analytics_ranges();
-if (!isset($ranges[$rangeKey])) {
-    $rangeKey = '7d';
-}
-
 $rangePreset = vs_edgeone_analytics_range_preset($rangeKey);
-$interval = isset($_GET['interval']) ? (string) $_GET['interval'] : $rangePreset['default_interval'];
 $intervals = vs_edgeone_analytics_intervals();
-if (!isset($intervals[$interval])) {
-    $interval = $rangePreset['default_interval'];
-}
 
 $meta = vs_edgeone_metric_meta($metric, $source);
 $queryError = '';
@@ -76,7 +67,7 @@ if ($eo !== null && $zoneId !== '') {
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先在上方选择站点后再查询。</p>
     <?php else: ?>
-        <form method="get" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
+        <form method="post" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
             <div class="vs-form-row vs-form-row--inline">
                 <div class="vs-form-col">
                     <label class="vs-label">数据类型</label>

@@ -399,6 +399,65 @@ function vs_edgeone_render_line_chart(array $cfg)
 }
 
 /**
+ * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
+ * @return string
+ */
+function vs_edgeone_render_overview_charts_grid(array $charts)
+{
+    ob_start();
+    echo '<div class="vs-edgeone-chart-grid" id="edgeoneChartsHost">';
+    foreach ($charts as $metric => $chart) {
+        $meta = $chart['meta'];
+        $hasData = false;
+        foreach ($chart['series'] as $serie) {
+            if (!empty($serie['points'])) {
+                $hasData = true;
+                break;
+            }
+        }
+        echo '<div class="vs-panel vs-edgeone-chart-panel">';
+        echo '<h3 class="vs-panel__title">' . vs_e($meta['label']) . '</h3>';
+        if (!empty($chart['error'])) {
+            echo '<p class="vs-form-tip">查询失败：' . vs_e($chart['error']) . '</p>';
+        } elseif (!$hasData) {
+            echo '<p class="vs-form-tip">该条件下暂无数据</p>';
+        } else {
+            if ($chart['sum'] !== null) {
+                echo '<p class="vs-edgeone-metric-avg">区间合计：<strong>' . vs_e(vs_edgeone_format_metric_value($chart['sum'], $meta['unit'])) . '</strong></p>';
+            }
+            vs_edgeone_render_multi_line_chart(array(
+                'unit'   => $meta['unit'],
+                'series' => $chart['series'],
+            ));
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+
+    return ob_get_clean();
+}
+
+/**
+ * @param array<int, array<string, mixed>> $zones
+ * @param array $quotaBundle
+ * @return string
+ */
+function vs_edgeone_render_overview_quota_block(array $zones, array $quotaBundle)
+{
+    ob_start();
+    echo '<div id="edgeoneQuotaHost">';
+    vs_edgeone_render_overview_quota_sections(
+        $zones,
+        isset($quotaBundle['plans']) ? $quotaBundle['plans'] : array(),
+        isset($quotaBundle['usage']) ? $quotaBundle['usage'] : array(),
+        isset($quotaBundle['content_quota']) ? $quotaBundle['content_quota'] : array()
+    );
+    echo '</div>';
+
+    return ob_get_clean();
+}
+
+/**
  * @param array{title?: string, unit?: string, series: array<int, array{label: string, points: array<int, array{ts: int, value: float}>, is_total?: bool}>} $cfg
  * @return void
  */
@@ -423,15 +482,6 @@ function vs_edgeone_render_multi_line_chart(array $cfg)
     echo '<script type="application/json" class="vs-edgeone-multi-chart-data" data-target="' . vs_e($chartId) . '" data-unit="' . vs_e($unit) . '">';
     echo json_encode($series, JSON_UNESCAPED_UNICODE);
     echo '</script>';
-    if (count($series) > 1) {
-        echo '<div class="vs-edgeone-chart-legend">';
-        foreach ($series as $item) {
-            $isTotal = !empty($item['is_total']);
-            $legendClass = 'vs-edgeone-chart-legend__item' . ($isTotal ? ' is-total' : '');
-            echo '<span class="' . vs_e($legendClass) . '">' . vs_e(isset($item['label']) ? $item['label'] : '') . '</span>';
-        }
-        echo '</div>';
-    }
     echo '</div>';
 }
 

@@ -1,4 +1,46 @@
-/* macOS 风格组合按钮 + 调色盘面板 */
+/* macOS 风格组合按钮 + 调色盘面板（登录/注册/忘记密码 + 后台顶栏） */
+
+.vs-topbar__theme {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.theme-trigger-circle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.96);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.theme-trigger-circle-btn:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    transform: translateY(-1px);
+}
+
+.theme-trigger-circle-btn:active {
+    transform: translateY(0);
+}
+
+.theme-trigger-wrap--admin-fallback {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    z-index: 1000;
+    padding: 0;
+    border: none;
+    background: none;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
 
 .theme-trigger-wrap {
     position: fixed;

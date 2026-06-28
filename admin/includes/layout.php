@@ -131,10 +131,12 @@ function vs_admin_layout_start($pageTitle, $activeMenu = '')
     if ($favicon !== '') {
         echo '<link rel="icon" href="' . vs_e(vs_favicon_href($favicon)) . '">' . "\n";
     }
+    vs_theme_bg_preload_script();
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/common.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/toast.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/modal.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/icons.css?v=' . VS_VERSION . '">' . "\n";
+    echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/theme-picker.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/admin.css?v=' . VS_VERSION . '">' . "\n";
     echo '<link rel="stylesheet" href="' . vs_e($base) . '/assets/css/upload-queue.css?v=' . VS_VERSION . '">' . "\n";
     echo '</head>' . "\n";
@@ -215,6 +217,7 @@ function vs_admin_layout_start($pageTitle, $activeMenu = '')
     echo '<span class="vs-topbar__title">' . vs_e($siteName) . '</span>' . "\n";
     echo '</div>' . "\n";
     echo '<div class="vs-topbar__right">' . "\n";
+    echo '<div class="vs-topbar__theme" id="vsThemePickerMount"></div>' . "\n";
     if ($admin) {
         $avatarUrl = UserAvatar::resolve($admin);
         echo '<a href="' . vs_e($base) . '/admin/account.php" class="vs-topbar__avatar-link" title="账号设置">' . "\n";
@@ -254,6 +257,7 @@ function vs_admin_layout_end(array $extraScripts = array())
     echo '<script src="' . vs_e($vsBase) . '/assets/js/modal.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/vs-update.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/common.js?v=' . VS_VERSION . '"></script>' . "\n";
+    echo '<script src="' . vs_e($vsBase) . '/assets/js/theme-picker.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/admin.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/upload-queue.js?v=' . VS_VERSION . '"></script>' . "\n";
     echo '<script src="' . vs_e($vsBase) . '/assets/js/update-check.js?v=' . VS_VERSION . '"></script>' . "\n";

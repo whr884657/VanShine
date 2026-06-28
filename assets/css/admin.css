@@ -16,6 +16,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--page-bg, transparent);
 }
 
 /* ── 整体壳层 ── */
@@ -23,7 +24,7 @@
     display: flex;
     min-height: 100vh;
     height: auto;
-    background: var(--vs-content-bg);
+    background: var(--page-bg, var(--vs-content-bg));
 }
 
 /* ── 侧边栏 ── */

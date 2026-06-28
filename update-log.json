@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.67",
+            "date": "2026-06-27",
+            "title": "后台顶栏主题调色盘",
+            "db_changes": false,
+            "changes": [
+                "后台顶栏用户头像旁增加圆形调色盘按钮",
+                "与登录/注册/忘记密码共用 login_page_bg 主题色，双向同步",
+                "后台主区域背景随自定义主题色变化"
+            ]
+        },
+        {
             "version": "1.0.66",
             "date": "2026-06-27",
             "title": "全站提示统一顶部 Toast",

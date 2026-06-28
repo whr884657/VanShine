@@ -47,7 +47,18 @@ function vs_render_version_display($updateCheck = null)
 }
 
 /**
- * 密码哈希（不可逆，算法不对外公开）
+ * 主题背景色预加载（与 theme-picker.js 共用 login_page_bg）
+ *
+ * @return void
+ */
+function vs_theme_bg_preload_script()
+{
+    echo '<script>';
+    echo '(function(){try{var c=localStorage.getItem(\'login_page_bg\');if(!c)return;var h=c.replace(\'#\',\'\').trim();if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];if(h.length===8)h=h.slice(0,6);if(h.length!==6)return;var color=\'#\'+h.toLowerCase();document.documentElement.style.setProperty(\'--page-bg\',color);document.documentElement.style.backgroundColor=color;document.documentElement.style.setProperty(\'--vs-content-bg\',color);}catch(e){}})();';
+    echo '</script>' . "\n";
+}
+
+/**
  *
  * @param string $password
  * @return string

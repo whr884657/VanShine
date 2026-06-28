@@ -90,11 +90,16 @@
         });
     }
 
+    function isAdminPage() {
+        return document.body && document.body.classList.contains('vs-admin-body');
+    }
+
     function paintPage(color) {
         var normalized = normalizeHex(color);
         if (!normalized) return false;
         document.documentElement.style.setProperty('--page-bg', normalized);
         document.documentElement.style.backgroundColor = normalized;
+        document.documentElement.style.setProperty('--vs-content-bg', normalized);
         if (document.body) {
             document.body.style.backgroundColor = normalized;
         }
@@ -160,19 +165,36 @@
             '</svg>';
     }
 
-    function createUI() {
+    function createUI(mode) {
+        mode = mode || (isAdminPage() ? 'admin' : 'auth');
+
         var trigger = document.createElement('button');
         trigger.type = 'button';
-        trigger.className = 'theme-trigger-wrap';
         trigger.id = 'themeTrigger';
         trigger.setAttribute('aria-label', '打开背景调色盘');
-        trigger.innerHTML =
-            '<span class="theme-trigger-oval">' +
-                '<span class="dot dot-red"></span>' +
-                '<span class="dot dot-yellow"></span>' +
-                '<span class="dot dot-green"></span>' +
-            '</span>' +
-            '<span class="theme-trigger-circle">' + paletteIconSvg() + '</span>';
+
+        if (mode === 'admin') {
+            trigger.className = 'theme-trigger-circle-btn';
+            trigger.innerHTML = paletteIconSvg();
+            var mount = document.getElementById('vsThemePickerMount');
+            if (mount) {
+                mount.appendChild(trigger);
+            } else {
+                trigger.className = 'theme-trigger-wrap theme-trigger-wrap--admin-fallback';
+                trigger.innerHTML = '<span class="theme-trigger-circle">' + paletteIconSvg() + '</span>';
+                document.body.appendChild(trigger);
+            }
+        } else {
+            trigger.className = 'theme-trigger-wrap';
+            trigger.innerHTML =
+                '<span class="theme-trigger-oval">' +
+                    '<span class="dot dot-red"></span>' +
+                    '<span class="dot dot-yellow"></span>' +
+                    '<span class="dot dot-green"></span>' +
+                '</span>' +
+                '<span class="theme-trigger-circle">' + paletteIconSvg() + '</span>';
+            document.body.appendChild(trigger);
+        }
 
         var overlay = document.createElement('div');
         overlay.className = 'theme-overlay';
@@ -203,7 +225,6 @@
                 '<button type="button" class="theme-btn theme-btn-save" id="themeSaveBtn">保存</button>' +
             '</div>';
 
-        document.body.appendChild(trigger);
         document.body.appendChild(overlay);
         document.body.appendChild(panel);
 

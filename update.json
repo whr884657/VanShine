@@ -1,13 +1,16 @@
 {
-    "version": "1.0.68",
-    "release_date": "2026-06-27",
-    "title": "后台顶栏侧边栏随主题色同步",
-    "db_changes": false,
+    "version": "1.0.69",
+    "release_date": "2026-06-28",
+    "title": "EdgeOne CDN 后台与腾讯云通用密钥",
+    "db_changes": true,
     "changes": [
-        "后台顶栏、侧边栏、内容区统一绑定 --page-bg 主题变量",
-        "登录页与后台保存的主题色全框架生效，不再仅内容区变色"
+        "系统设置新增 CDN 配置（腾讯云 EdgeOne / 阿里云 ESA 占位）",
+        "腾讯云 SecretId/SecretKey/Region/AppId 与 COS 储存共用，双向同步",
+        "储存与邮箱密钥字段改为明文可见保存",
+        "CDN 侧边栏拆分：概览、站点、域名、刷新、安全、边缘函数、四层、监控",
+        "EdgeOne 多接入点随机主用 + 后备容错"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",
-    "min_php": "7.2"
+    "min_php": "8.0"
 }

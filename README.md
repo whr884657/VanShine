@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.58**
+**当前版本：1.0.69**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -44,7 +44,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 管理员注册 | `/admin/register.php` | 注册界面（账号在安装时创建） |
 | 管理控制台 | `/admin/index.php` | 后台首页 |
 | 账号设置 | `/admin/account.php` | 修改邮箱、密码 |
-| 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱、七种储存配置 |
+| 系统设置 | `/admin/settings.php` | 站点信息、域名绑定、邮箱、储存、CDN 配置 |
 | 文件管理 | `/admin/files/manage.php` | 文件夹绑定储存、批量/拖拽上传、三种视图、创建分享 |
 | 分享管理 | `/admin/files/shares.php` | 分享短链接列表、密码/过期/下载统计 |
 | 系统升级 | `/admin/upgrade.php` | 手动检测更新、安装更新、查看更新记录 |
@@ -199,6 +199,21 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.69（2026-06-28）
+
+**类型：** EdgeOne CDN 后台与腾讯云通用密钥
+
+**变更说明：**
+- 系统设置新增 **CDN 配置**（腾讯云 EdgeOne + 阿里云 ESA 占位）
+- 腾讯云 API 密钥与 COS 储存共用（`tencent_secret_*`），COS / CDN 保存后自动同步
+- 储存与邮箱密钥字段改为明文可见
+- CDN 侧边栏：EO 概览、站点、域名、刷新、安全、边缘函数、四层、监控
+- EdgeOne API：广州/上海/重庆随机主用 + 五后备接入点容错
+
+**数据库：** `install/migrations/1.0.69.sql`（腾讯云通用密钥与 EdgeOne 配置项）
+
+---
 
 ### v1.0.68（2026-06-27）
 

@@ -1,8 +1,8 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone.php
- * @version 1.0.10
+ * 作用：重定向至 EdgeOne 概览
  */
-
-require_once dirname(__DIR__) . '/init.php';
-vs_admin_stub_page('EdgeOne', 'cdn_edgeone');
+require_once __DIR__ . '/../init.php';
+header('Location: ' . vs_base_url() . '/admin/cdn/edgeone/index.php');
+exit;

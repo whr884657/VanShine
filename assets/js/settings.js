@@ -209,11 +209,37 @@
     document.addEventListener('DOMContentLoaded', function () {
         bindAccordions();
 
-        ['siteForm', 'domainForm', 'mailForm', 'testMailForm', 'storageForm'].forEach(function (id) {
+        ['siteForm', 'domainForm', 'mailForm', 'testMailForm', 'storageForm', 'cdnForm'].forEach(function (id) {
             bindAjaxForm(document.getElementById(id));
         });
 
         bindStorageTestButtons();
+
+        var cdnTestBtn = document.getElementById('cdnEdgeOneTestBtn');
+        if (cdnTestBtn) {
+            cdnTestBtn.addEventListener('click', function () {
+                var form = document.getElementById('cdnForm');
+                if (!form) return;
+                var body = new FormData(form);
+                body.set('action', 'test_edgeone');
+                cdnTestBtn.disabled = true;
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: body,
+                    credentials: 'same-origin'
+                })
+                    .then(parseResponse)
+                    .then(function (data) {
+                        showFlash(data.msg || (data.code === 1 ? '测试成功' : '测试失败'), data.code === 1 ? 'success' : 'error');
+                    })
+                    .catch(function () {
+                        showFlash('网络异常，请稍后重试', 'error');
+                    })
+                    .finally(function () {
+                        cdnTestBtn.disabled = false;
+                    });
+            });
+        }
         document.querySelectorAll('.vs-domain-delete-form').forEach(bindDeleteForm);
     });
 })();

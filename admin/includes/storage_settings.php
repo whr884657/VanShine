@@ -62,10 +62,24 @@ function vs_settings_render_storage_section()
             <?php if ((int) $key === 1): ?>
                 <p class="vs-form-tip">本地文件对外链接为直链：<code>{访问 URL}/{文件夹路径}/{文件名}</code>，默认 <code>{站点域名}/upload/...</code>。Web 服务器需允许直接访问 upload 目录。</p>
             <?php endif; ?>
+            <?php if ((int) $key === 4): ?>
+                <p class="vs-form-tip vs-form-tip--highlight"><?php echo vs_e(TencentCloudConfig::sharedStatusHint()); ?></p>
+            <?php endif; ?>
             <?php foreach ($type['fields'] as $field):
                 $dbKey = StorageRegistry::configDbKey($key, $field['key']);
                 $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];
                 $value = Config::get($dbKey, '');
+                if ((int) $key === 4) {
+                    if ($field['key'] === 'secret_id') {
+                        $value = TencentCloudConfig::getSecretId();
+                    } elseif ($field['key'] === 'secret_key') {
+                        $value = TencentCloudConfig::getSecretKey();
+                    } elseif ($field['key'] === 'app_id') {
+                        $value = TencentCloudConfig::getAppId() !== '' ? TencentCloudConfig::getAppId() : $value;
+                    } elseif ($field['key'] === 'region') {
+                        $value = TencentCloudConfig::getRegion();
+                    }
+                }
                 ?>
                 <div class="vs-form-row">
                     <?php if ($field['type'] === 'checkbox'): ?>
@@ -79,14 +93,9 @@ function vs_settings_render_storage_section()
                         <?php if (!empty($field['hint'])): ?>
                             <p class="vs-form-tip vs-form-tip--field"><?php echo vs_e($field['hint']); ?></p>
                         <?php endif; ?>
-                        <?php if ($field['type'] === 'password'): ?>
-                            <input type="password" name="<?php echo vs_e($postKey); ?>" class="vs-input"
-                                   placeholder="留空则不修改">
-                        <?php else: ?>
-                            <input type="text" name="<?php echo vs_e($postKey); ?>" class="vs-input"
-                                   value="<?php echo vs_e($value); ?>"
-                                   placeholder="<?php echo vs_e(isset($field['placeholder']) ? $field['placeholder'] : ''); ?>">
-                        <?php endif; ?>
+                        <input type="text" name="<?php echo vs_e($postKey); ?>" class="vs-input"
+                               value="<?php echo vs_e($value); ?>"
+                               placeholder="<?php echo vs_e(isset($field['placeholder']) ? $field['placeholder'] : ''); ?>">
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>

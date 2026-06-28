@@ -1,0 +1,12 @@
+{
+    "name": "vanshine/cdn-edgeone",
+    "description": "VanShine 腾讯云 EdgeOne（TEO）CDN API 对接依赖",
+    "require": {
+        "php": "^8.0",
+        "tencentcloud/common": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

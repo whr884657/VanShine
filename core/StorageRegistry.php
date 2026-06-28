@@ -57,7 +57,7 @@ class StorageRegistry
                     array(
                         'key'  => 'secret_access_key',
                         'label'=> '访问密钥 (Secret Access Key)',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => '与 Access Key ID 配对的 Secret，仅在创建时显示一次，请妥善保管。',
                     ),
                     array(
@@ -108,7 +108,7 @@ class StorageRegistry
                     array(
                         'key'  => 'access_key_secret',
                         'label'=> 'AccessKey Secret',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => '与 AccessKey ID 配对的 Secret，创建后请立即保存，无法再次查看完整内容。',
                     ),
                     array(
@@ -158,7 +158,7 @@ class StorageRegistry
                     array(
                         'key'  => 'secret_key',
                         'label'=> 'SecretKey 密钥 Key',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => '与 SecretId 配对的 SecretKey，请勿泄露或提交到代码仓库。',
                     ),
                     array(
@@ -202,7 +202,7 @@ class StorageRegistry
                     array(
                         'key'  => 'secret_key',
                         'label'=> 'SecretKey 私钥',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => '与 AccessKey 配对的 SecretKey，用于上传签名，请妥善保管。',
                     ),
                     array(
@@ -238,7 +238,7 @@ class StorageRegistry
                     array(
                         'key'  => 'password',
                         'label'=> '登录密码',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => '蓝奏云优享版登录密码，用于自动获取上传令牌。',
                     ),
                     array(
@@ -302,7 +302,7 @@ class StorageRegistry
                     array(
                         'key'  => 'password',
                         'label'=> '密码 (Password)',
-                        'type' => 'password',
+                        'type' => 'text',
                         'hint' => 'WebDAV 服务器登录密码或应用专用密码。',
                     ),
                 ),
@@ -358,6 +358,21 @@ class StorageRegistry
             require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageDriver.php';
             if (trim((string) $configs[LocalStorageOptions::URL]) === '') {
                 $configs[LocalStorageOptions::URL] = LocalStorageDriver::defaultPublicUrl();
+            }
+        }
+
+        if ((int) $key === 4) {
+            if (trim((string) $configs['secret_id']) === '') {
+                $configs['secret_id'] = TencentCloudConfig::getSecretId();
+            }
+            if (trim((string) $configs['secret_key']) === '') {
+                $configs['secret_key'] = TencentCloudConfig::getSecretKey();
+            }
+            if (trim((string) $configs['app_id']) === '') {
+                $configs['app_id'] = TencentCloudConfig::getAppId();
+            }
+            if (trim((string) $configs['region']) === '') {
+                $configs['region'] = TencentCloudConfig::getRegion();
             }
         }
 
@@ -474,11 +489,23 @@ class StorageRegistry
             if ($post !== null) {
                 $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];
                 $value = trim(isset($post[$postKey]) ? $post[$postKey] : '');
-                if ($field['type'] === 'password' && $value === '') {
-                    $value = Config::get($dbKey, '');
-                }
             } else {
                 $value = Config::get($dbKey, '');
+            }
+
+            if ((int) $key === 4) {
+                if ($field['key'] === 'secret_id' && $value === '') {
+                    $value = TencentCloudConfig::getSecretId();
+                }
+                if ($field['key'] === 'secret_key' && $value === '') {
+                    $value = TencentCloudConfig::getSecretKey();
+                }
+                if ($field['key'] === 'app_id' && $value === '') {
+                    $value = TencentCloudConfig::getAppId();
+                }
+                if ($field['key'] === 'region' && $value === '') {
+                    $value = TencentCloudConfig::getRegion();
+                }
             }
 
             $configs[$field['key']] = $value;
@@ -595,11 +622,6 @@ class StorageRegistry
 
                 $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];
                 $value = trim(isset($post[$postKey]) ? $post[$postKey] : '');
-
-                if ($field['type'] === 'password' && $value === '') {
-                    continue;
-                }
-
                 $items[$dbKey] = $value;
             }
         }

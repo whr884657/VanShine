@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/storage_settings.php';
+require_once __DIR__ . '/includes/cdn_settings.php';
 
 /**
  * 渲染绑定域名卡片列表
@@ -158,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $items = StorageRegistry::configsFromPost($_POST);
             Config::setMany($items);
+            TencentCloudConfig::syncFromCosPost($_POST);
 
             if (StorageRegistry::isEnabled(1)) {
                 require_once VS_ROOT . '/core/Storage/LocalStorage/LocalStorageOptions.php';
@@ -184,19 +186,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'save_cdn') {
+        try {
+            Config::setMany(array(
+                'cdn_edgeone_enabled'  => isset($_POST['cdn_edgeone_enabled']) ? '1' : '0',
+                'cdn_edgeone_token'    => trim(isset($_POST['cdn_edgeone_token']) ? $_POST['cdn_edgeone_token'] : ''),
+                'cdn_edgeone_language' => trim(isset($_POST['cdn_edgeone_language']) ? $_POST['cdn_edgeone_language'] : 'zh-CN'),
+            ));
+            TencentCloudConfig::syncFromEdgeOnePost($_POST);
+            AjaxResponse::success('CDN 设置已保存');
+        } catch (Exception $e) {
+            AjaxResponse::error('保存失败：' . $e->getMessage());
+        }
+    }
+
+    if ($action === 'test_edgeone') {
+        try {
+            Config::clearCache();
+            require_once VS_ROOT . '/core/cdn/edgeone/EdgeOne.php';
+            EdgeOne::load();
+            $client = EdgeOneClient::createForTest();
+            $client->call('DescribeZones', array('Offset' => 0, 'Limit' => 1));
+            AjaxResponse::success('EdgeOne API 连接成功');
+        } catch (Exception $e) {
+            AjaxResponse::error($e->getMessage());
+        }
+    }
+
     if ($action === 'save_mail') {
         try {
-            $smtpPass = isset($_POST['mail_smtp_pass']) ? $_POST['mail_smtp_pass'] : '';
-            if ($smtpPass === '') {
-                $smtpPass = Config::get('mail_smtp_pass');
-            }
-
             Config::setMany(array(
                 'mail_enabled'     => isset($_POST['mail_enabled']) ? '1' : '0',
                 'mail_smtp_host'   => trim(isset($_POST['mail_smtp_host']) ? $_POST['mail_smtp_host'] : ''),
                 'mail_smtp_port'   => trim(isset($_POST['mail_smtp_port']) ? $_POST['mail_smtp_port'] : '465'),
                 'mail_smtp_user'   => trim(isset($_POST['mail_smtp_user']) ? $_POST['mail_smtp_user'] : ''),
-                'mail_smtp_pass'   => $smtpPass,
+                'mail_smtp_pass'   => trim(isset($_POST['mail_smtp_pass']) ? $_POST['mail_smtp_pass'] : ''),
                 'mail_smtp_secure' => trim(isset($_POST['mail_smtp_secure']) ? $_POST['mail_smtp_secure'] : 'ssl'),
                 'mail_from_email'  => trim(isset($_POST['mail_from_email']) ? $_POST['mail_from_email'] : ''),
                 'mail_from_name'   => trim(isset($_POST['mail_from_name']) ? $_POST['mail_from_name'] : SiteContext::siteName()),
@@ -394,7 +418,8 @@ vs_admin_accordion_start(
         </div>
         <div class="vs-form-row">
             <label class="vs-label">SMTP 密码</label>
-            <input type="password" name="mail_smtp_pass" class="vs-input" placeholder="留空则不修改">
+            <input type="text" name="mail_smtp_pass" class="vs-input"
+                   value="<?php echo vs_e(isset($vsCfg['mail_smtp_pass']) ? $vsCfg['mail_smtp_pass'] : ''); ?>">
         </div>
         <div class="vs-form-row vs-form-row--inline">
             <div class="vs-form-col">
@@ -424,6 +449,8 @@ vs_admin_accordion_start(
 <?php vs_admin_accordion_end(); ?>
 
 <?php vs_settings_render_storage_section(); ?>
+
+<?php vs_settings_render_cdn_section(); ?>
 
 <script>window.VS_SETTINGS_BASE = <?php echo json_encode($vsBase, JSON_UNESCAPED_UNICODE); ?>;</script>
 

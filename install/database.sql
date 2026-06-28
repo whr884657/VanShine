@@ -146,4 +146,14 @@ INSERT INTO `{prefix}config` (`key`, `value`) VALUES
 ('storage_webdav_base_uri', ''),
 ('storage_webdav_username', ''),
 ('storage_webdav_password', ''),
-('storage_webdav_queries', '');
+('storage_webdav_queries', ''),
+('tencent_secret_id', ''),
+('tencent_secret_key', ''),
+('tencent_app_id', ''),
+('tencent_region', 'ap-guangzhou'),
+('cdn_edgeone_enabled', '0'),
+('cdn_edgeone_secret_id', ''),
+('cdn_edgeone_secret_key', ''),
+('cdn_edgeone_region', ''),
+('cdn_edgeone_token', ''),
+('cdn_edgeone_language', 'zh-CN');

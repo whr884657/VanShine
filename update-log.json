@@ -3,6 +3,19 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.69",
+            "date": "2026-06-28",
+            "title": "EdgeOne CDN 后台与腾讯云通用密钥",
+            "db_changes": true,
+            "changes": [
+                "系统设置新增 CDN 配置（腾讯云 EdgeOne / 阿里云 ESA 占位）",
+                "腾讯云 SecretId/SecretKey/Region/AppId 与 COS 储存共用",
+                "储存与邮箱密钥字段改为明文可见",
+                "CDN 侧边栏拆分 EdgeOne 八个功能页",
+                "EdgeOne 三主地域随机接入 + 后备容错"
+            ]
+        },
+        {
             "version": "1.0.68",
             "date": "2026-06-27",
             "title": "后台顶栏侧边栏随主题色同步",

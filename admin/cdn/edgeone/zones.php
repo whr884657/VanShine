@@ -64,7 +64,7 @@ $zoneId = $ctx['zone_id'];
                         <td><?php echo vs_e(trim((string) (isset($zone['AliasZoneName']) ? $zone['AliasZoneName'] : '')) !== '' ? $zone['AliasZoneName'] : '—'); ?></td>
                         <td><?php echo vs_e(isset($zone['ZoneName']) ? $zone['ZoneName'] : ''); ?></td>
                         <td><code><?php echo vs_e(isset($zone['ZoneId']) ? $zone['ZoneId'] : ''); ?></code></td>
-                        <td><?php echo vs_e(vs_edgeone_translate('Status', isset($zone['Status']) ? $zone['Status'] : '')); ?></td>
+                        <td><?php vs_edgeone_render_zone_runtime_badge($zone); ?></td>
                         <td><?php echo vs_e(vs_edgeone_translate('ActiveStatus', isset($zone['ActiveStatus']) ? $zone['ActiveStatus'] : '')); ?></td>
                         <td><?php echo vs_e(vs_edgeone_translate('Type', isset($zone['Type']) ? $zone['Type'] : '')); ?></td>
                         <td><?php echo vs_e(vs_edgeone_translate('Area', isset($zone['Area']) ? $zone['Area'] : '')); ?></td>

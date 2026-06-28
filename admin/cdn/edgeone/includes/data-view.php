@@ -399,6 +399,140 @@ function vs_edgeone_render_line_chart(array $cfg)
 }
 
 /**
+ * @param array{title?: string, unit?: string, series: array<int, array{label: string, points: array<int, array{ts: int, value: float}>, is_total?: bool}>} $cfg
+ * @return void
+ */
+function vs_edgeone_render_multi_line_chart(array $cfg)
+{
+    $series = isset($cfg['series']) && is_array($cfg['series']) ? $cfg['series'] : array();
+    $unit = isset($cfg['unit']) ? (string) $cfg['unit'] : 'number';
+    $hasPoints = false;
+    foreach ($series as $item) {
+        if (!empty($item['points']) && is_array($item['points']) && count($item['points']) > 0) {
+            $hasPoints = true;
+            break;
+        }
+    }
+    if (!$hasPoints) {
+        return;
+    }
+
+    $chartId = 'eo-mchart-' . substr(md5(uniqid('', true)), 0, 10);
+    echo '<div class="vs-edgeone-chart-wrap">';
+    echo '<canvas id="' . vs_e($chartId) . '" class="vs-edgeone-chart vs-edgeone-chart--multi" height="260"></canvas>';
+    echo '<script type="application/json" class="vs-edgeone-multi-chart-data" data-target="' . vs_e($chartId) . '" data-unit="' . vs_e($unit) . '">';
+    echo json_encode($series, JSON_UNESCAPED_UNICODE);
+    echo '</script>';
+    if (count($series) > 1) {
+        echo '<div class="vs-edgeone-chart-legend">';
+        foreach ($series as $item) {
+            $isTotal = !empty($item['is_total']);
+            $legendClass = 'vs-edgeone-chart-legend__item' . ($isTotal ? ' is-total' : '');
+            echo '<span class="' . vs_e($legendClass) . '">' . vs_e(isset($item['label']) ? $item['label'] : '') . '</span>';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $plans
+ * @param string                          $selectedZoneId
+ * @param array<string, array{label: string, value: float, unit: string}> $usage
+ * @return void
+ */
+function vs_edgeone_render_package_quota_dashboard(array $plans, $selectedZoneId, array $usage = array())
+{
+    $matched = array();
+    foreach ($plans as $plan) {
+        if (!is_array($plan)) {
+            continue;
+        }
+        $zones = isset($plan['ZonesInfo']) && is_array($plan['ZonesInfo']) ? $plan['ZonesInfo'] : array();
+        foreach ($zones as $z) {
+            if (is_array($z) && isset($z['ZoneId']) && (string) $z['ZoneId'] === (string) $selectedZoneId) {
+                $matched[] = $plan;
+                break;
+            }
+        }
+    }
+
+    if (count($matched) === 0 && count($plans) > 0) {
+        $matched = array($plans[0]);
+    }
+
+    if (count($matched) === 0) {
+        echo '<p class="vs-form-tip">暂无套餐配额信息，请前往腾讯云 EdgeOne 控制台查看。</p>';
+        return;
+    }
+
+    echo '<div class="vs-edgeone-quota-grid">';
+    foreach ($matched as $plan) {
+        $planType = isset($plan['PlanType']) ? (string) $plan['PlanType'] : '';
+        $items = array(
+            array(
+                'title'    => '加速流量配额',
+                'capacity' => isset($plan['AccTrafficCapacity']) ? (float) $plan['AccTrafficCapacity'] : 0,
+                'used'     => isset($usage['acc_flux']['value']) ? (float) $usage['acc_flux']['value'] : 0,
+                'unit'     => 'bytes',
+                'usageKey' => 'acc_flux',
+            ),
+            array(
+                'title'    => '安全请求配额',
+                'capacity' => isset($plan['SecRequestCapacity']) ? (float) $plan['SecRequestCapacity'] : 0,
+                'used'     => isset($usage['sec_request']['value']) ? (float) $usage['sec_request']['value'] : 0,
+                'unit'     => 'count',
+                'usageKey' => 'sec_request',
+            ),
+            array(
+                'title'    => '四层流量配额',
+                'capacity' => isset($plan['L4TrafficCapacity']) ? (float) $plan['L4TrafficCapacity'] : 0,
+                'used'     => 0,
+                'unit'     => 'bytes',
+                'usageKey' => '',
+            ),
+        );
+
+        foreach ($items as $item) {
+            if ($item['capacity'] <= 0) {
+                continue;
+            }
+            $cap = $item['capacity'];
+            $used = min($cap, max(0, $item['used']));
+            $pct = $cap > 0 ? min(100, round($used / $cap * 100)) : 0;
+            $capLabel = $item['unit'] === 'bytes'
+                ? vs_edgeone_format_bytes($cap)
+                : vs_edgeone_format_number($cap);
+            $usedLabel = $item['unit'] === 'bytes'
+                ? vs_edgeone_format_bytes($used)
+                : vs_edgeone_format_number($used);
+
+            echo '<article class="vs-edgeone-quota-card">';
+            echo '<h5>' . vs_e($item['title']) . '</h5>';
+            if ($planType !== '') {
+                echo '<p class="vs-form-tip">' . vs_e(vs_edgeone_plan_type_label($planType)) . ' 套餐</p>';
+            }
+            echo '<div class="vs-edgeone-quota-meta">';
+            echo '<span>套餐配额 <strong>' . vs_e($capLabel) . '</strong></span>';
+            if ($item['usageKey'] !== '' && isset($usage[$item['usageKey']])) {
+                echo '<span>今日已用 <strong>' . vs_e($usedLabel) . '</strong></span>';
+            }
+            echo '</div>';
+            if ($item['usageKey'] !== '' && isset($usage[$item['usageKey']])) {
+                echo '<div class="vs-edgeone-progress" title="已用 ' . vs_e($usedLabel) . ' / ' . vs_e($capLabel) . '">';
+                echo '<div class="vs-edgeone-progress__bar" style="width:' . (int) $pct . '%"></div>';
+                echo '</div>';
+                echo '<p class="vs-edgeone-quota-foot">今日用量 ' . (int) $pct . '%（套餐周期配额以腾讯云账单为准）</p>';
+            } else {
+                echo '<p class="vs-edgeone-quota-foot">套餐周期总量</p>';
+            }
+            echo '</article>';
+        }
+    }
+    echo '</div>';
+}
+
+/**
  * @param array<int, array<string, mixed>> $plans
  * @param string                          $selectedZoneId
  * @return void

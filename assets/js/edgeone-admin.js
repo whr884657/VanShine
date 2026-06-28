@@ -4,6 +4,8 @@
 (function () {
     'use strict';
 
+    var COLORS = ['#1677ff', '#52c41a', '#faad14', '#722ed1', '#eb2f96', '#13c2c2', '#fa541c'];
+
     function apiUrl() {
         return window.VS_EDGEONE_API || '';
     }
@@ -30,8 +32,98 @@
         });
     }
 
-    function bindApiForms() {
-        document.querySelectorAll('.vs-edgeone-api-form').forEach(function (form) {
+    function fragmentUrl(url) {
+        var u = url.indexOf('?') >= 0 ? url + '&fragment=1' : url + '?fragment=1';
+        return u;
+    }
+
+    function currentPageUrl() {
+        return window.location.pathname + window.location.search;
+    }
+
+    function loadMainContent(url, pushState) {
+        var main = document.getElementById('edgeoneMainContent');
+        if (!main) {
+            window.location.href = url;
+            return Promise.resolve();
+        }
+
+        main.classList.add('is-loading');
+        return fetch(fragmentUrl(url), { credentials: 'same-origin' })
+            .then(function (res) {
+                if (!res.ok) throw new Error('load_failed');
+                return res.text();
+            })
+            .then(function (html) {
+                main.innerHTML = html;
+                main.classList.remove('is-loading');
+                bindApiForms(main);
+                bindFragmentForms(main);
+                bindCharts(main);
+                updateNavActive(url);
+                if (pushState !== false) {
+                    window.history.pushState({ edgeone: true }, '', url);
+                }
+            })
+            .catch(function () {
+                main.classList.remove('is-loading');
+                window.location.href = url;
+            });
+    }
+
+    function reloadMainContent() {
+        return loadMainContent(currentPageUrl(), false);
+    }
+
+    function updateNavActive(url) {
+        var path = url.split('?')[0];
+        document.querySelectorAll('.vs-edgeone-nav a[href]').forEach(function (link) {
+            var href = link.getAttribute('href') || '';
+            var linkPath = href.split('?')[0];
+            var active = linkPath === path;
+            link.classList.toggle('is-active', active);
+        });
+
+        document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__accordion').forEach(function (node) {
+            node.classList.remove('is-active', 'is-open');
+        });
+
+        document.querySelectorAll('.vs-edgeone-nav a.is-active').forEach(function (link) {
+            var tab = link.closest('.vs-edgeone-nav__tab');
+            if (tab) tab.classList.add('is-active');
+            var acc = link.closest('.vs-edgeone-nav__accordion');
+            if (acc) {
+                acc.classList.add('is-open', 'is-active');
+                var btn = acc.querySelector('.vs-edgeone-nav__accordion-btn');
+                if (btn) btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+    }
+
+    function bindSpaNavigation() {
+        var app = document.getElementById('edgeoneApp');
+        if (!app) return;
+
+        app.addEventListener('click', function (e) {
+            var link = e.target.closest('.vs-edgeone-nav a[href]');
+            if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            var href = link.getAttribute('href');
+            if (!href || href.indexOf('http') === 0) return;
+            e.preventDefault();
+            loadMainContent(href, true);
+        });
+
+        window.addEventListener('popstate', function (e) {
+            if (e.state && e.state.edgeone) {
+                loadMainContent(currentPageUrl(), false);
+            }
+        });
+    }
+
+    function bindApiForms(root) {
+        (root || document).querySelectorAll('.vs-edgeone-api-form').forEach(function (form) {
+            if (form.dataset.bound === '1') return;
+            form.dataset.bound = '1';
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var action = form.getAttribute('data-action');
@@ -43,7 +135,7 @@
                     .then(function (data) {
                         if (data.code === 1) {
                             toast(data.msg || '操作成功', 'success');
-                            setTimeout(function () { window.location.reload(); }, 600);
+                            setTimeout(function () { reloadMainContent(); }, 400);
                         } else {
                             toast(data.msg || '操作失败', 'error');
                         }
@@ -58,9 +150,23 @@
         });
     }
 
+    function bindFragmentForms(root) {
+        (root || document).querySelectorAll('.vs-edgeone-fragment-form').forEach(function (form) {
+            if (form.dataset.bound === '1') return;
+            form.dataset.bound = '1';
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var params = new URLSearchParams(new FormData(form));
+                var url = window.location.pathname + '?' + params.toString();
+                loadMainContent(url, true);
+            });
+        });
+    }
+
     function bindZoneForm() {
         var form = document.getElementById('edgeoneZoneForm');
-        if (!form) return;
+        if (!form || form.dataset.bound === '1') return;
+        form.dataset.bound = '1';
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             var body = new FormData(form);
@@ -68,7 +174,7 @@
                 .then(function (data) {
                     if (data.code === 1) {
                         toast(data.msg || '已切换', 'success');
-                        window.location.reload();
+                        reloadMainContent();
                     } else {
                         toast(data.msg || '切换失败', 'error');
                     }
@@ -79,10 +185,49 @@
         });
     }
 
+    function bindMobileAccordion() {
+        document.querySelectorAll('.vs-edgeone-nav__accordion-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var item = btn.closest('.vs-edgeone-nav__accordion');
+                if (!item) return;
+                var open = item.classList.contains('is-open');
+                document.querySelectorAll('.vs-edgeone-nav__accordion.is-open').forEach(function (other) {
+                    if (other !== item) {
+                        other.classList.remove('is-open');
+                        var ob = other.querySelector('.vs-edgeone-nav__accordion-btn');
+                        if (ob) ob.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                item.classList.toggle('is-open', !open);
+                btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            });
+        });
+    }
+
+    function bindDesktopDropdowns() {
+        document.querySelectorAll('.vs-edgeone-nav__tab--dropdown').forEach(function (tab) {
+            var btn = tab.querySelector('.vs-edgeone-nav__tab-btn');
+            if (!btn) return;
+            tab.addEventListener('mouseenter', function () {
+                btn.setAttribute('aria-expanded', 'true');
+            });
+            tab.addEventListener('mouseleave', function () {
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        bindApiForms();
+        bindSpaNavigation();
+        bindApiForms(document);
+        bindFragmentForms(document);
         bindZoneForm();
-        bindCharts();
+        bindMobileAccordion();
+        bindDesktopDropdowns();
+        bindCharts(document);
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({ edgeone: true }, '', currentPageUrl());
+        }
     });
 
     function formatChartValue(value, unit) {
@@ -106,8 +251,9 @@
         return n.toLocaleString();
     }
 
-    function bindCharts() {
-        document.querySelectorAll('.vs-edgeone-chart-data').forEach(function (node) {
+    function bindCharts(root) {
+        var scope = root || document;
+        scope.querySelectorAll('.vs-edgeone-chart-data').forEach(function (node) {
             var targetId = node.getAttribute('data-target');
             var unit = node.getAttribute('data-unit') || 'number';
             var canvas = document.getElementById(targetId);
@@ -118,16 +264,30 @@
             } catch (e) {
                 return;
             }
-            drawLineChart(canvas, points, unit);
+            drawLineChart(canvas, [{ label: '', points: points, is_total: true }], unit);
+        });
+
+        scope.querySelectorAll('.vs-edgeone-multi-chart-data').forEach(function (node) {
+            var targetId = node.getAttribute('data-target');
+            var unit = node.getAttribute('data-unit') || 'number';
+            var canvas = document.getElementById(targetId);
+            if (!canvas) return;
+            var series;
+            try {
+                series = JSON.parse(node.textContent || '[]');
+            } catch (e) {
+                return;
+            }
+            drawLineChart(canvas, series, unit);
         });
     }
 
-    function drawLineChart(canvas, points, unit) {
-        if (!points || points.length === 0) return;
+    function drawLineChart(canvas, series, unit) {
+        if (!series || series.length === 0) return;
 
         var wrap = canvas.parentElement;
         var width = wrap ? wrap.clientWidth : 900;
-        if (width < 320) width = 320;
+        if (width < 280) width = 280;
         var height = 260;
         var padL = 56;
         var padR = 16;
@@ -144,8 +304,15 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
 
-        var values = points.map(function (p) { return Number(p.value) || 0; });
-        var max = Math.max.apply(null, values);
+        var max = 1;
+        var allTs = {};
+        series.forEach(function (s) {
+            (s.points || []).forEach(function (p) {
+                allTs[p.ts] = true;
+                var v = Number(p.value) || 0;
+                if (v > max) max = v;
+            });
+        });
         if (max <= 0) max = 1;
 
         var plotW = width - padL - padR;
@@ -167,32 +334,33 @@
         ctx.fillText(formatChartValue(max, unit), padL - 8, padT + 4);
         ctx.fillText('0', padL - 8, padT + plotH);
 
-        ctx.strokeStyle = '#1677ff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        points.forEach(function (p, i) {
-            var x = padL + (plotW * i) / Math.max(points.length - 1, 1);
-            var y = padT + plotH - (plotH * (Number(p.value) || 0)) / max;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+        var tsList = Object.keys(allTs).map(Number).sort(function (a, b) { return a - b; });
+        if (tsList.length === 0) return;
+
+        series.forEach(function (s, idx) {
+            var points = s.points || [];
+            if (points.length === 0) return;
+            var color = s.is_total ? '#222' : COLORS[idx % COLORS.length];
+            ctx.strokeStyle = color;
+            ctx.lineWidth = s.is_total ? 2.5 : 2;
+            ctx.beginPath();
+            points.forEach(function (p, i) {
+                var tsIndex = tsList.indexOf(Number(p.ts));
+                var x = padL + (plotW * (tsIndex >= 0 ? tsIndex : i)) / Math.max(tsList.length - 1, 1);
+                var y = padT + plotH - (plotH * (Number(p.value) || 0)) / max;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
         });
-        ctx.stroke();
 
-        ctx.lineTo(padL + plotW, padT + plotH);
-        ctx.lineTo(padL, padT + plotH);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(22, 119, 255, 0.08)';
-        ctx.fill();
-
-        if (points.length >= 2) {
-            var firstTs = points[0].ts ? new Date(points[0].ts * 1000) : null;
-            var lastTs = points[points.length - 1].ts ? new Date(points[points.length - 1].ts * 1000) : null;
-            ctx.fillStyle = '#888';
-            ctx.textAlign = 'left';
-            ctx.fillText(firstTs ? formatTs(firstTs) : '', padL, height - 10);
-            ctx.textAlign = 'right';
-            ctx.fillText(lastTs ? formatTs(lastTs) : '', width - padR, height - 10);
-        }
+        var firstTs = tsList[0] ? new Date(tsList[0] * 1000) : null;
+        var lastTs = tsList[tsList.length - 1] ? new Date(tsList[tsList.length - 1] * 1000) : null;
+        ctx.fillStyle = '#888';
+        ctx.textAlign = 'left';
+        ctx.fillText(firstTs ? formatTs(firstTs) : '', padL, height - 10);
+        ctx.textAlign = 'right';
+        ctx.fillText(lastTs ? formatTs(lastTs) : '', width - padR, height - 10);
     }
 
     function formatTs(d) {

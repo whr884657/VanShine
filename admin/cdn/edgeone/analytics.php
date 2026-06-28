@@ -76,7 +76,7 @@ if ($eo !== null && $zoneId !== '') {
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先在上方选择站点后再查询。</p>
     <?php else: ?>
-        <form method="get" class="vs-form vs-edgeone-query-form">
+        <form method="get" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
             <div class="vs-form-row vs-form-row--inline">
                 <div class="vs-form-col">
                     <label class="vs-label">数据类型</label>

@@ -180,7 +180,7 @@ if ($eo !== null) {
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">计费用量趋势</h3>
-    <form method="get" class="vs-form vs-edgeone-query-form">
+    <form method="get" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form">
         <div class="vs-form-row vs-form-row--inline">
             <div class="vs-form-col">
                 <label class="vs-label">计费指标</label>

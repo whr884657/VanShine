@@ -49,17 +49,23 @@ function vs_edgeone_page_start($navId, $pageTitle)
     global $vsBase;
 
     $ctx = vs_edgeone_page_context();
-    vs_admin_layout_start($pageTitle, VS_EDGEONE_ACTIVE_MENU);
-    echo '<link rel="stylesheet" href="' . vs_e($vsBase) . '/assets/css/edgeone-admin.css">';
-    echo '<div class="vs-edgeone-page">';
-    vs_edgeone_render_setup_notice();
-    vs_edgeone_render_error($ctx['error']);
-    vs_edgeone_nav($navId);
-    if (vs_edgeone_is_ready() && count($ctx['zones']) > 0) {
-        echo '<div class="vs-panel">';
-        vs_edgeone_render_zone_picker($ctx['zones']);
-        echo '</div>';
+    $fragment = vs_edgeone_is_fragment_request();
+
+    if (!$fragment) {
+        vs_admin_layout_start($pageTitle, VS_EDGEONE_ACTIVE_MENU);
+        echo '<link rel="stylesheet" href="' . vs_e($vsBase) . '/assets/css/edgeone-admin.css">';
+        echo '<div class="vs-edgeone-page" id="edgeoneApp">';
+        vs_edgeone_render_setup_notice();
+        vs_edgeone_render_error($ctx['error']);
+        vs_edgeone_nav($navId);
+        if (vs_edgeone_is_ready() && count($ctx['zones']) > 0) {
+            echo '<div class="vs-panel vs-edgeone-zone-panel">';
+            vs_edgeone_render_zone_picker($ctx['zones']);
+            echo '</div>';
+        }
     }
+
+    echo '<div id="edgeoneMainContent" class="vs-edgeone-main">';
 
     return $ctx;
 }
@@ -70,6 +76,13 @@ function vs_edgeone_page_start($navId, $pageTitle)
 function vs_edgeone_page_end()
 {
     global $vsBase;
+
+    echo '</div>';
+
+    if (vs_edgeone_is_fragment_request()) {
+        return;
+    }
+
     echo '</div>';
     echo '<script>window.VS_EDGEONE_API = ' . json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE) . ';</script>';
     vs_admin_layout_end(array('edgeone-admin.js'));

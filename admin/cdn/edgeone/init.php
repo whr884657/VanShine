@@ -101,6 +101,67 @@ function vs_edgeone_zone_display_name(array $zone)
 }
 
 /**
+ * 综合 API 字段判断站点实际运行状态（避免 CNAME 接入时 Status=pending 误显示为待配置）
+ *
+ * @param array<string, mixed> $zone
+ * @return array{label: string, value: string, class: string}
+ */
+function vs_edgeone_zone_runtime_status(array $zone)
+{
+    $status = isset($zone['Status']) ? strtolower((string) $zone['Status']) : '';
+    $active = isset($zone['ActiveStatus']) ? strtolower((string) $zone['ActiveStatus']) : '';
+    $cname = isset($zone['CnameStatus']) ? strtolower((string) $zone['CnameStatus']) : '';
+
+    if ($active === 'active' || ($status === 'active' && $active !== 'inactive')) {
+        return array('label' => '运行中', 'value' => 'active', 'class' => 'is-success');
+    }
+    if ($status === 'active') {
+        return array('label' => '已生效', 'value' => 'active', 'class' => 'is-success');
+    }
+    if ($status === 'initializing') {
+        return array('label' => '初始化中', 'value' => 'initializing', 'class' => 'is-warning');
+    }
+    if ($status === 'deactivated') {
+        return array('label' => '已停用', 'value' => 'deactivated', 'class' => 'is-danger');
+    }
+    if ($status === 'moved') {
+        return array('label' => '已迁移', 'value' => 'moved', 'class' => 'is-muted');
+    }
+    if ($status === 'pending') {
+        $type = isset($zone['Type']) ? strtolower((string) $zone['Type']) : '';
+        if ($active === 'active' || $cname === 'finished' || $type === 'partial') {
+            return array('label' => '运行中', 'value' => 'active', 'class' => 'is-success');
+        }
+        return array('label' => '待配置', 'value' => 'pending', 'class' => 'is-warning');
+    }
+
+    $raw = vs_edgeone_translate('Status', $status);
+    return array(
+        'label' => $raw,
+        'value' => $status !== '' ? $status : 'unknown',
+        'class' => vs_edgeone_status_badge_class('Status', $status),
+    );
+}
+
+/**
+ * @param array<string, mixed> $zone
+ * @return void
+ */
+function vs_edgeone_render_zone_runtime_badge(array $zone)
+{
+    $runtime = vs_edgeone_zone_runtime_status($zone);
+    echo '<span class="vs-edgeone-badge ' . vs_e($runtime['class']) . '">' . vs_e($runtime['label']) . '</span>';
+}
+
+/**
+ * @return bool
+ */
+function vs_edgeone_is_fragment_request()
+{
+    return isset($_GET['fragment']) && (string) $_GET['fragment'] === '1';
+}
+
+/**
  * @param string $group
  * @param mixed  $value
  * @return string

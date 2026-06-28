@@ -42,16 +42,73 @@ function vs_edgeone_nav($active)
         ),
     );
 
-    echo '<nav class="vs-edgeone-nav" aria-label="EdgeOne 功能导航">';
+    $activeGroup = '';
     foreach ($groups as $label => $items) {
-        echo '<div class="vs-edgeone-nav__group">';
-        echo '<span class="vs-edgeone-nav__label">' . vs_e($label) . '</span>';
-        echo '<div class="vs-edgeone-nav__links">';
+        if (isset($items[$active])) {
+            $activeGroup = $label;
+            break;
+        }
+    }
+
+    echo '<nav class="vs-edgeone-nav" aria-label="EdgeOne 功能导航">';
+
+    echo '<div class="vs-edgeone-nav__desktop" role="menubar">';
+    foreach ($groups as $label => $items) {
+        $itemCount = count($items);
+        $isSingle = $itemCount === 1;
+        $groupActive = ($label === $activeGroup);
+        $groupClass = 'vs-edgeone-nav__tab' . ($groupActive ? ' is-active' : '');
+
+        if ($isSingle) {
+            $id = key($items);
+            $item = reset($items);
+            $linkClass = 'vs-edgeone-nav__tab-link' . ($id === $active ? ' is-active' : '');
+            echo '<div class="' . vs_e($groupClass) . '">';
+            echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '" role="menuitem">' . vs_e($item[0]) . '</a>';
+            echo '</div>';
+            continue;
+        }
+
+        echo '<div class="' . vs_e($groupClass) . ' vs-edgeone-nav__tab--dropdown">';
+        echo '<button type="button" class="vs-edgeone-nav__tab-btn" aria-haspopup="true" aria-expanded="false">';
+        echo vs_e($label);
+        echo '<span class="vs-edgeone-nav__caret" aria-hidden="true"></span>';
+        echo '</button>';
+        echo '<div class="vs-edgeone-nav__dropdown" role="menu">';
         foreach ($items as $id => $item) {
-            $cls = 'vs-edgeone-nav__link' . ($id === $active ? ' is-active' : '');
-            echo '<a class="' . $cls . '" href="' . vs_e($item[1]) . '">' . vs_e($item[0]) . '</a>';
+            $linkClass = 'vs-edgeone-nav__dropdown-link' . ($id === $active ? ' is-active' : '');
+            echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '" role="menuitem">' . vs_e($item[0]) . '</a>';
         }
         echo '</div></div>';
     }
+    echo '</div>';
+
+    echo '<div class="vs-edgeone-nav__mobile">';
+    foreach ($groups as $label => $items) {
+        $itemCount = count($items);
+        $groupActive = ($label === $activeGroup);
+        $openClass = $groupActive ? ' is-open' : '';
+        echo '<div class="vs-edgeone-nav__accordion' . $openClass . '">';
+        if ($itemCount === 1) {
+            $id = key($items);
+            $item = reset($items);
+            $linkClass = 'vs-edgeone-nav__accordion-link' . ($id === $active ? ' is-active' : '');
+            echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '">' . vs_e($label) . ' · ' . vs_e($item[0]) . '</a>';
+        } else {
+            echo '<button type="button" class="vs-edgeone-nav__accordion-btn" aria-expanded="' . ($groupActive ? 'true' : 'false') . '">';
+            echo vs_e($label);
+            echo '<span class="vs-edgeone-nav__caret" aria-hidden="true"></span>';
+            echo '</button>';
+            echo '<div class="vs-edgeone-nav__accordion-panel">';
+            foreach ($items as $id => $item) {
+                $linkClass = 'vs-edgeone-nav__accordion-link' . ($id === $active ? ' is-active' : '');
+                echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '">' . vs_e($item[0]) . '</a>';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+    echo '</div>';
+
     echo '</nav>';
 }

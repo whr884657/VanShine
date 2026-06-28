@@ -1,9 +1,4 @@
 <?php
-/**
- * 文件：admin/cdn/edgeone/domains.php
- * 作用：EdgeOne 域名加速
- * @version 1.0.2
- */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
@@ -20,10 +15,11 @@ $domainsError = '';
 
 if ($ctx['eo'] !== null && $zoneId !== '') {
     $dResult = vs_edgeone_try_call(function () use ($ctx, $zoneId) {
-        return $ctx['eo']->accelerationDomain->describeAccelerationDomains(vs_edgeone_zone_params(array(
+        return $ctx['eo']->accelerationDomain->describeAccelerationDomains(array(
+            'ZoneId' => $zoneId,
             'Offset' => 0,
             'Limit'  => 100,
-        )));
+        ));
     }, array());
     if ($dResult['ok']) {
         $domains = isset($dResult['data']['AccelerationDomains']) ? $dResult['data']['AccelerationDomains'] : array();
@@ -70,18 +66,4 @@ if ($ctx['eo'] !== null && $zoneId !== '') {
     <?php endif; ?>
 </div>
 
-<?php
-vs_edgeone_render_sections($ctx['eo'], $zoneId, array(
-    array(
-        'title' => '共享 CNAME 列表',
-        'fetch' => function ($eo, $zoneId) {
-            return $eo->accelerationDomain->describeSharedCNAME(vs_edgeone_zone_params(array(
-                'Offset' => 0,
-                'Limit'  => 50,
-            )));
-        },
-        'empty_tip' => '暂无共享 CNAME',
-    ),
-));
-
-vs_edgeone_page_end();
+<?php vs_edgeone_page_end(); ?>

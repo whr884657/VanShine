@@ -1,9 +1,4 @@
 <?php
-/**
- * 文件：admin/cdn/edgeone/l4.php
- * 作用：EdgeOne 四层代理
- * @version 1.0.2
- */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
@@ -14,17 +9,14 @@ vs_edgeone_render_sections($ctx['eo'], $ctx['zone_id'], array(
     array(
         'title' => '四层代理实例',
         'fetch' => function ($eo, $zoneId) {
-            return $eo->l4Proxy->describeL4Proxy(vs_edgeone_zone_params());
+            return $eo->l4Proxy->describeL4Proxy(array('ZoneId' => $zoneId));
         },
         'empty_tip' => '暂无四层代理实例',
     ),
     array(
-        'title' => '四层转发规则',
+        'title' => '四层转发规则（首个实例）',
         'fetch' => function ($eo, $zoneId) {
-            return $eo->l4Proxy->describeL4ProxyRules(vs_edgeone_zone_params(array(
-                'Offset' => 0,
-                'Limit'  => 100,
-            )));
+            return vs_edgeone_fetch_l4_proxy_rules($eo, $zoneId);
         },
         'empty_tip' => '暂无转发规则',
     ),

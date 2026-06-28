@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/init.php
  * 作用：EdgeOne 后台公共引导
- * @version 1.0.2
+ * @version 1.0.3
  */
 
 require_once dirname(__DIR__, 2) . '/init.php';
@@ -10,6 +10,7 @@ require_once VS_ROOT . '/core/cdn/edgeone/EdgeOne.php';
 
 EdgeOne::load();
 TencentCloudConfig::migrateLegacyIfNeeded();
+require_once __DIR__ . '/includes/api-helpers.php';
 
 /** @var string */
 const VS_EDGEONE_ACTIVE_MENU = 'cdn_edgeone';

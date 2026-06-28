@@ -171,7 +171,10 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 4. **限频**：默认多为 **20 次/秒**（维度：API + 接入地域 + 子账号），数据分析类接口更高，超限需退避重试。
 5. **幂等**：创建类接口注意记录 `ZoneId` / `DomainId` 等，避免重复创建。
 6. **JSON 请求体**：`Content-Type: application/json` 时 body 必须是 **对象** `{}`；空参数勿传 `[]`，否则返回「请求内容不是合法的 Json 格式」。VanShine `EdgeOneClient` 已自动处理。
-7. **DescribeBillingData**：除 `StartTime` / `EndTime` / `MetricName` 外，必填 `Interval`（`min` / `5min` / `hour` / `day`）与 `ZoneIds`（站点 ID 数组，或 `*` 表示账号下全部站点）。
+7. **DescribeBillingData**：除 `StartTime` / `EndTime` / `MetricName` 外，必填 `Interval`（`min` / `5min` / `hour` / `day`）与 `ZoneIds`（站点 ID 数组，或 `*`）。
+8. **数据分析类接口**（如 `DescribeTimingL7AnalysisData`）使用 `ZoneIds` 数组，勿传 `ZoneId`；部分接口需 `Interval`。
+9. **DescribeIdentifications** 必填 `Filters`（如 `zone-name`）；**CheckCnameStatus** 必填 `RecordNames`（加速域名列表）。
+10. **DescribeL7AccRules** 仅需 `ZoneId`，勿传已废弃的 `Entity` 参数。
 
 ---
 
@@ -512,5 +515,6 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 
 | 日期 | 说明 |
 |------|------|
+| 2026-06-27 | v1.0.74：修正 ZoneIds/Filters/RecordNames 等 2022-09-01 必填参数 |
 | 2026-06-27 | v1.0.71：补充空 JSON 对象与 DescribeBillingData 必填参数说明 |
 | 2026-06-27 | 初版：整理 EO 调用方式与全量 API 索引，供 VanShine 对接参考 |

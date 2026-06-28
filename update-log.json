@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.74",
+            "date": "2026-06-27",
+            "title": "EdgeOne API 2022-09-01 参数全面修复",
+            "db_changes": false,
+            "changes": [
+                "数据分析改用 ZoneIds 与 Interval",
+                "站点验证 Filters、CNAME RecordNames",
+                "七层/边缘/安全/四层/负载/配置 API 参数修复",
+                "移除共享 CNAME 与无效二级查询"
+            ]
+        },
+        {
             "version": "1.0.73",
             "date": "2026-06-27",
             "title": "移除 EdgeOne 冗余跳转页",

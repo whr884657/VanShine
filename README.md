@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.73**
+**当前版本：1.0.74**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.0.74（2026-06-27）
+
+**类型：** EdgeOne API 2022-09-01 参数全面修复
+
+**变更说明：**
+- 数据分析、站点验证、七层加速、边缘函数、安全策略等页面对齐最新 API 必填参数
+- 四层/负载/配置页自动串联 ProxyId、LBInstanceId、GroupId、EnvId
+- 移除共享 CNAME 及需 FunctionId/TemplateId 的无效查询
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.73（2026-06-27）
 

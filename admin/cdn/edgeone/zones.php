@@ -1,9 +1,4 @@
 <?php
-/**
- * 文件：admin/cdn/edgeone/zones.php
- * 作用：EdgeOne 站点管理
- * @version 1.0.2
- */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
@@ -15,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $ctx = vs_edgeone_page_start('cdn_edgeone_zones', 'EdgeOne · 站点管理');
 $zones = $ctx['zones'];
+$zoneId = $ctx['zone_id'];
 ?>
 
 <div class="vs-panel">
@@ -81,18 +77,38 @@ $zones = $ctx['zones'];
 </div>
 
 <?php
-vs_edgeone_render_sections($ctx['eo'], $ctx['zone_id'], array(
+vs_edgeone_render_sections($ctx['eo'], $zoneId, array(
     array(
         'title' => '站点验证信息',
-        'fetch' => function ($eo, $zoneId) {
-            return $eo->zone->describeIdentifications(vs_edgeone_zone_params());
+        'fetch' => function ($eo, $zoneId) use ($zones) {
+            $zoneName = vs_edgeone_find_zone_name($zones, $zoneId);
+            if ($zoneName === '') {
+                throw new Exception('无法获取站点域名');
+            }
+            return $eo->zone->describeIdentifications(array(
+                'Filters' => array(array(
+                    'Name'   => 'zone-name',
+                    'Values' => array($zoneName),
+                )),
+                'Offset' => 0,
+                'Limit'  => 20,
+            ));
         },
+        'empty_tip' => '暂无验证信息',
     ),
     array(
         'title' => 'CNAME 配置状态',
         'fetch' => function ($eo, $zoneId) {
-            return $eo->zone->checkCnameStatus(vs_edgeone_zone_params());
+            $names = vs_edgeone_fetch_domain_names($eo, $zoneId);
+            if (count($names) === 0) {
+                return array('CnameStatus' => array(), 'Note' => '暂无加速域名，无法校验 CNAME');
+            }
+            return $eo->zone->checkCnameStatus(array(
+                'ZoneId'      => $zoneId,
+                'RecordNames' => $names,
+            ));
         },
+        'empty_tip' => '暂无 CNAME 状态',
     ),
 ));
 

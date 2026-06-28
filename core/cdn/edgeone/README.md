@@ -46,4 +46,5 @@ cd core/cdn/edgeone && composer install
 
 - 无参 Action 请求体须为 JSON 对象 `{}`；`EdgeOneClient` 自动处理空参数数组。
 - `DescribeContentQuota`、`DescribeBillingData` 等接口需传 `ZoneId` / `Interval` / `ZoneIds`。
-- 边缘函数页已移除 EdgeKV（未开通 KV 存储的账号会报错）。
+- 数据分析类 API 使用 `ZoneIds`（数组），勿传 `ZoneId`。
+- 边缘函数页已移除 EdgeKV；域名加速页已移除共享 CNAME。

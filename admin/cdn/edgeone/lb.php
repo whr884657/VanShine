@@ -1,8 +1,4 @@
 <?php
-/**
- * 文件：admin/cdn/edgeone/lb.php
- * 作用：负载均衡实例
- */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';
@@ -13,14 +9,14 @@ vs_edgeone_render_sections($ctx['eo'], $ctx['zone_id'], array(
     array(
         'title' => '负载均衡实例列表',
         'fetch' => function ($eo, $zoneId) {
-            return $eo->loadBalancer->describeLoadBalancerList(vs_edgeone_zone_params());
+            return $eo->loadBalancer->describeLoadBalancerList(array('ZoneId' => $zoneId));
         },
         'empty_tip' => '暂无负载均衡实例',
     ),
     array(
-        'title' => '源站组健康状态',
+        'title' => '源站组健康状态（首个实例）',
         'fetch' => function ($eo, $zoneId) {
-            return $eo->loadBalancer->describeOriginGroupHealthStatus(vs_edgeone_zone_params());
+            return vs_edgeone_fetch_lb_health($eo, $zoneId);
         },
     ),
 ));

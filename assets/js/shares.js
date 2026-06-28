@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/shares.js
  * 作用：分享管理页
- * @version 1.0.61
+ * @version 1.0.65
  */
 
 (function () {
@@ -189,6 +189,49 @@
         document.body.classList.remove('vs-modal-open');
     }
 
+    function copyShareUrl(url, btn) {
+        if (!url) {
+            showFlash('暂无分享链接', false);
+            return;
+        }
+
+        function onSuccess() {
+            showFlash('链接已复制到剪贴板', true);
+            if (btn) {
+                var label = btn.textContent;
+                btn.textContent = '已复制';
+                btn.disabled = true;
+                setTimeout(function () {
+                    btn.textContent = label;
+                    btn.disabled = false;
+                }, 2000);
+            }
+        }
+
+        function fallbackCopy() {
+            var ta = document.createElement('textarea');
+            ta.value = url;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                onSuccess();
+            } catch (e) {
+                showFlash('复制失败，请手动选择链接', false);
+            }
+            document.body.removeChild(ta);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(onSuccess).catch(fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+    }
+
     function handleActionClick(e) {
         var toggleBtn = e.target.closest('[data-toggle-share]');
         if (toggleBtn) {
@@ -200,12 +243,7 @@
 
         var copyBtn = e.target.closest('[data-copy-url]');
         if (copyBtn) {
-            var url = copyBtn.getAttribute('data-copy-url');
-            if (navigator.clipboard && url) {
-                navigator.clipboard.writeText(url).then(function () {
-                    showFlash('链接已复制', true);
-                });
-            }
+            copyShareUrl(copyBtn.getAttribute('data-copy-url'), copyBtn);
             return;
         }
         var editBtn = e.target.closest('[data-edit-share]');

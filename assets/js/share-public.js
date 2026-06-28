@@ -1,7 +1,7 @@
 /**
  * 文件：assets/js/share-public.js
  * 作用：公开分享页交互
- * @version 1.0.63
+ * @version 1.0.65
  */
 
 (function () {
@@ -43,9 +43,15 @@
         }
     }
 
+    function revealPreviewPanel() {
+        if (!preview || !layout) return;
+        preview.hidden = false;
+        layout.classList.add('has-preview');
+    }
+
     function openPreview(file) {
         if (!file || !mount) return;
-        if (preview) preview.hidden = false;
+        revealPreviewPanel();
         if (state) {
             state.hidden = false;
             state.textContent = '正在加载预览…';
@@ -76,9 +82,5 @@
             var file = findFile(btn.getAttribute('data-preview-file'));
             if (file) openPreview(file);
         });
-    }
-
-    if (layout && layout.getAttribute('data-allow-preview') === '1' && files.length > 0) {
-        openPreview(files[0]);
     }
 })();

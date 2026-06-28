@@ -242,13 +242,9 @@
 
     function loadOverviewData(form) {
         var chartsHost = document.getElementById('edgeoneChartsHost');
-        var quotaHost = document.getElementById('edgeoneQuotaHost');
         if (!chartsHost) return;
 
         chartsHost.innerHTML = '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading"><p class="vs-form-tip">统计图加载中…</p></div>';
-        if (quotaHost) {
-            quotaHost.innerHTML = '<p class="vs-form-tip">配额加载中…</p>';
-        }
 
         var body = new FormData(form);
         body.set('action', 'overview_data');
@@ -260,9 +256,6 @@
             }
             if (data.data.charts_html) {
                 chartsHost.outerHTML = data.data.charts_html;
-            }
-            if (quotaHost && data.data.quota_html) {
-                quotaHost.outerHTML = data.data.quota_html;
             }
             if (data.data.range_label) {
                 var labelNode = document.getElementById('edgeoneRangeLabel');

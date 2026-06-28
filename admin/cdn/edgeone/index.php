@@ -125,14 +125,6 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
         <p class="vs-form-tip">统计图加载中…</p>
     </div>
 </div>
-
-<div class="vs-panel">
-    <h3 class="vs-panel__title">套餐与配额</h3>
-    <p class="vs-form-tip">展示账号下各站点绑定的套餐配额与内容刷新/预热配额。</p>
-    <div id="edgeoneQuotaHost">
-        <p class="vs-form-tip">配额加载中…</p>
-    </div>
-</div>
 <?php endif; ?>
 
 <?php

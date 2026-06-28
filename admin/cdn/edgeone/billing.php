@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $ctx = vs_edgeone_page_start('cdn_edgeone_billing', 'EdgeOne · 套餐计费');
 $zoneId = $ctx['zone_id'];
+$zones = $ctx['zones'];
 $eo = $ctx['eo'];
 
 $plans = array();
@@ -251,6 +252,22 @@ if ($eo !== null) {
         ));
         ?>
     <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<?php if ($eo !== null && count($zones) > 0): ?>
+<div class="vs-panel">
+    <h3 class="vs-panel__title">套餐配额与内容配额</h3>
+    <p class="vs-form-tip">展示账号下各站点绑定的套餐流量/请求配额，以及内容刷新、预热配额。</p>
+    <?php
+    $quotaBundle = vs_edgeone_fetch_overview_quota($eo, $zones);
+    vs_edgeone_render_overview_quota_sections(
+        $zones,
+        isset($quotaBundle['plans']) ? $quotaBundle['plans'] : array(),
+        isset($quotaBundle['usage']) ? $quotaBundle['usage'] : array(),
+        isset($quotaBundle['content_quota']) ? $quotaBundle['content_quota'] : array()
+    );
+    ?>
 </div>
 <?php endif; ?>
 

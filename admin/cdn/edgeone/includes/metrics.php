@@ -166,6 +166,43 @@ function vs_edgeone_analytics_range_preset($rangeKey)
 }
 
 /**
+ * 按时间范围限制可用 Interval，避免 API 返回「无效的参数」
+ *
+ * @param string $rangeKey
+ * @param string $interval
+ * @return string
+ */
+function vs_edgeone_clamp_analytics_interval($rangeKey, $interval)
+{
+    $ranges = vs_edgeone_analytics_ranges();
+    if (!isset($ranges[$rangeKey])) {
+        $rangeKey = '7d';
+    }
+    $seconds = (int) $ranges[$rangeKey]['seconds'];
+    $default = vs_edgeone_analytics_range_preset($rangeKey)['default_interval'];
+    $intervals = vs_edgeone_analytics_intervals();
+
+    if (!isset($intervals[$interval])) {
+        return $default;
+    }
+
+    $allowed = array('day');
+    if ($seconds <= 7200) {
+        $allowed = array('min', '5min', 'hour', 'day');
+    } elseif ($seconds <= 172800) {
+        $allowed = array('5min', 'hour', 'day');
+    } elseif ($seconds <= 604800) {
+        $allowed = array('hour', 'day');
+    }
+
+    if (!in_array($interval, $allowed, true)) {
+        return $default;
+    }
+
+    return $interval;
+}
+
+/**
  * @param string $kind today|month
  * @return array{StartTime: string, EndTime: string}
  */
@@ -292,10 +329,11 @@ function vs_edgeone_sum_series_values(array $rows)
 function vs_edgeone_query_analytics(EdgeOne $eo, $zoneId, $source, $metric, $interval, $rangeKey)
 {
     $range = vs_edgeone_analytics_range_preset($rangeKey);
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
         'ZoneIds'     => vs_edgeone_zone_ids($zoneId),
         'MetricNames' => array($metric),
-        'Interval'    => $interval !== '' ? $interval : $range['default_interval'],
+        'Interval'    => $interval,
     ));
 
     if ($source === 'origin') {
@@ -435,6 +473,7 @@ function vs_edgeone_overview_filters_normalize(array $src)
     if (!isset($intervals[$interval])) {
         $interval = $preset['default_interval'];
     }
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
 
     $filterZone = isset($src['filter_zone']) ? trim((string) $src['filter_zone']) : $defaults['filter_zone'];
     if ($filterZone === '') {
@@ -530,9 +569,7 @@ function vs_edgeone_analytics_filters_normalize(array $src)
 
     $preset = vs_edgeone_analytics_range_preset($rangeKey);
     $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
-    if (!isset($intervals[$interval])) {
-        $interval = $preset['default_interval'];
-    }
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
 
     return array(
         'source'   => $source,
@@ -616,9 +653,7 @@ function vs_edgeone_billing_filters_normalize(array $src)
 
     $preset = vs_edgeone_analytics_range_preset($rangeKey);
     $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
-    if (!isset($intervals[$interval])) {
-        $interval = $preset['default_interval'];
-    }
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
 
     return array(
         'metric'   => $metric,
@@ -678,10 +713,11 @@ function vs_edgeone_billing_filters_from_request($src = null)
 function vs_edgeone_query_l7_metrics_batch(EdgeOne $eo, $zoneId, array $metrics, $interval, $rangeKey, $domain = '')
 {
     $range = vs_edgeone_analytics_range_preset($rangeKey);
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
         'ZoneIds'     => array($zoneId),
         'MetricNames' => array_values($metrics),
-        'Interval'    => $interval !== '' ? $interval : $range['default_interval'],
+        'Interval'    => $interval,
     ));
 
     if ($domain !== '') {
@@ -776,41 +812,38 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
         $metricPoints[$metric] = array();
     }
 
-    // 按站点逐站查询（API 不返回分线）；每站一次请求携带全部指标
-    foreach ($targetZones as $zone) {
-        $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
-        if ($zid === '') {
-            continue;
-        }
+    // 按站点 × 指标逐条查询（与数据分析页一致；批量 MetricNames 会触发「无效的参数」）
+    foreach ($apiMetrics as $metric) {
+        foreach ($targetZones as $zone) {
+            $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+            if ($zid === '') {
+                continue;
+            }
 
-        $label = vs_edgeone_zone_display_name($zone);
-        if ($filters['filter_domain'] !== '') {
-            $label .= ' · ' . $filters['filter_domain'];
-        }
+            $label = vs_edgeone_zone_display_name($zone);
+            if ($filters['filter_domain'] !== '') {
+                $label .= ' · ' . $filters['filter_domain'];
+            }
 
-        $result = vs_edgeone_try_call(function () use ($eo, $zid, $apiMetrics, $filters) {
-            return vs_edgeone_query_l7_metrics_batch(
-                $eo,
-                $zid,
-                $apiMetrics,
-                $filters['interval'],
-                $filters['range'],
-                $filters['filter_domain']
-            );
-        });
+            $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters) {
+                return vs_edgeone_query_l7_metrics_batch(
+                    $eo,
+                    $zid,
+                    array($metric),
+                    $filters['interval'],
+                    $filters['range'],
+                    $filters['filter_domain']
+                );
+            });
 
-        if (!$result['ok']) {
-            foreach ($apiMetrics as $metric) {
+            if (!$result['ok']) {
                 if ($charts[$metric]['error'] === '') {
                     $charts[$metric]['error'] = $result['error'];
                 }
+                continue;
             }
-            continue;
-        }
 
-        $extracted = vs_edgeone_extract_timing_series($result['data']);
-
-        foreach ($apiMetrics as $metric) {
+            $extracted = vs_edgeone_extract_timing_series($result['data']);
             $points = vs_edgeone_series_points_for_metric($extracted, $metric);
             $metricPoints[$metric][] = array(
                 'label'  => $label,
@@ -819,7 +852,7 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
 
             foreach ($extracted as $block) {
                 if (isset($block['metric']) && (string) $block['metric'] === (string) $metric && isset($block['sum'])) {
-                    $prev = isset($charts[$metric]['sum']) ? (float) $charts[$metric]['sum'] : 0.0;
+                    $prev = $charts[$metric]['sum'] !== null ? (float) $charts[$metric]['sum'] : 0.0;
                     $charts[$metric]['sum'] = $prev + (float) $block['sum'];
                 }
             }
@@ -845,6 +878,12 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
         $charts[$metric]['series'] = $series;
         if ($charts[$metric]['sum'] !== null && (float) $charts[$metric]['sum'] <= 0) {
             $charts[$metric]['sum'] = null;
+        }
+        foreach ($series as $item) {
+            if (!empty($item['points'])) {
+                $charts[$metric]['error'] = '';
+                break;
+            }
         }
     }
 

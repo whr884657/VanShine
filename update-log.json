@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.81",
+            "date": "2026-06-29",
+            "title": "修复 EdgeOne 概览统计图查询与配额板块调整",
+            "db_changes": false,
+            "changes": [
+                "概览逐条查询 MetricNames，修复无效参数",
+                "Interval 与时间范围自动匹配",
+                "套餐配额移至套餐计费页"
+            ]
+        },
+        {
             "version": "1.0.80",
             "date": "2026-06-29",
             "title": "修复 EdgeOne 概览异步加载响应格式",

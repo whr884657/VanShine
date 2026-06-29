@@ -1,4 +1,18 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/advanced.php
+ * 页面：EdgeOne · 扩展功能
+ * 路由：/admin/cdn/edgeone/advanced.php
+ * 菜单：cdn_edgeone_advanced（配置与扩展 → 扩展功能）
+ *
+ * 作用：
+ * - 查询并展示多通道安全加速网关、内容标识符等扩展能力
+ * - 通过 vs_edgeone_render_sections() 统一渲染 API 结果为表格/卡片
+ *
+ * 说明：
+ * - 只读查询页，无写操作表单
+ * - 需先在 EdgeOne 控制台开通对应增值功能
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

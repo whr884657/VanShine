@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/data-view.php
  * 作用：EdgeOne API 响应可视化渲染（表格 / 卡片 / 配额 / 时序）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

@@ -3,7 +3,8 @@
  * 文件：core/Storage/LocalStorage/LocalStorageDriver.php
  * 作用：本地储存对接
  * 依赖：本目录 vendor/（composer install 于 LocalStorage/）
- * @version 1.0.40
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 use League\Flysystem\Filesystem;

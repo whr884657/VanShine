@@ -2,7 +2,8 @@
 /**
  * 文件：admin/file-stream.php
  * 作用：后台鉴权文件流（供在线预览，支持 Range）
- * @version 1.0.43
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

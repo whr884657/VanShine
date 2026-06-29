@@ -2,7 +2,8 @@
 /**
  * 文件：core/Updater.php
  * 作用：VanShine 在线更新（Gitee 版本检测与更新包应用）
- * @version 1.0.32
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class Updater

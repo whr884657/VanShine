@@ -2,7 +2,8 @@
 /**
  * 文件：admin/update.php
  * 作用：VanShine 在线更新 API（版本检测 / 执行更新）
- * @version 1.0.29
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

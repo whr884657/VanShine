@@ -2,7 +2,8 @@
 /**
  * 文件：core/Domain.php
  * 作用：绑定域名读写（存于 config.bound_domains JSON）
- * @version 1.0.47
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class Domain

@@ -1,7 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/logs.php
- * 作用：日志投递与离线日志
+ * 页面：EdgeOne · 日志服务
+ * 路由：/admin/cdn/edgeone/logs.php
+ * 菜单：cdn_edgeone_logs
+ *
+ * 作用：展示实时日志投递等日志服务配置
+ *
+ * 说明：只读查询页，日志投递任务需在腾讯云控制台创建
  */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';

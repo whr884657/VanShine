@@ -4,6 +4,8 @@
  * 作用：EdgeOne 负载均衡
  * @version 1.0.0
  * @generated build-apis.php
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class EdgeOneLoadBalancerApi extends EdgeOneApiBase

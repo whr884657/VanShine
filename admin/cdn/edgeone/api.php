@@ -1,8 +1,12 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/api.php
- * 作用：EdgeOne 后台 AJAX 接口
- * @version 1.0.1
+ * 作用：EdgeOne 后台统一 AJAX 接口（POST only）
+ *
+ * 说明：
+ * - 各功能页 POST 时 require 本文件；action 参数路由到具体业务
+ * - 含 set_zone、域名 domain_*、规则 rule_*、概览/站点等局部刷新接口
+ * - 返回 JSON（AjaxResponse）；失败时携带腾讯云 API 错误信息
  */
 
 require_once __DIR__ . '/init.php';

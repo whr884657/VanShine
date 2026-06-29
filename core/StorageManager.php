@@ -2,7 +2,8 @@
 /**
  * 文件：core/StorageManager.php
  * 作用：文件上传、删除与储存驱动调度
- * @version 1.0.43
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class StorageManager

@@ -4,6 +4,8 @@
  * 作用：EdgeOne 多通道安全加速网关
  * @version 1.0.0
  * @generated build-apis.php
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class EdgeOneMultiPathGatewayApi extends EdgeOneApiBase

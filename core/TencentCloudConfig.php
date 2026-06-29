@@ -2,7 +2,8 @@
 /**
  * 文件：core/TencentCloudConfig.php
  * 作用：腾讯云通用 API 凭证（COS 与 EdgeOne 共用 SecretId/SecretKey；Region 各自独立）
- * @version 1.0.1
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class TencentCloudConfig

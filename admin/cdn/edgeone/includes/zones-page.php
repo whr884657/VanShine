@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/zones-page.php
  * 作用：站点管理页数据与渲染（对标腾讯云站点列表）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

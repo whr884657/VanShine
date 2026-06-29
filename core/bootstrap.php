@@ -1,8 +1,11 @@
 <?php
 /**
  * 文件：core/bootstrap.php
- * 作用：VanShine 系统引导入口，加载核心依赖
- * @version 1.0.30
+ * 作用：VanShine 系统引导入口，按序加载 core 下全部核心类
+ *
+ * 说明：
+ * - 前台 /admin /install 等入口在定义 VS_ROOT 后 require 本文件
+ * - 不在此加载 EdgeOne SDK（由 admin/cdn/edgeone/init.php 按需加载）
  */
 
 defined('VS_ROOT') or define('VS_ROOT', dirname(__DIR__));

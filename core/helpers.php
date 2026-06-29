@@ -2,7 +2,8 @@
 /**
  * 文件：core/helpers.php
  * 作用：VanShine 通用辅助函数
- * @version 1.0.13
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

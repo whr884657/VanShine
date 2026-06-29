@@ -2,7 +2,8 @@
 /**
  * 文件：core/AjaxResponse.php
  * 作用：后台/安装 AJAX JSON 响应
- * @version 1.0.10
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class AjaxResponse

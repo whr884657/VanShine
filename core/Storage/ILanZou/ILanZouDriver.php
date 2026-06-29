@@ -3,7 +3,8 @@
  * 文件：core/Storage/ILanZou/ILanZouDriver.php
  * 作用：蓝奏云优享版储存对接
  * 依赖：PHP curl、openssl 扩展（无需 Composer）
- * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/ILanZouException.php';

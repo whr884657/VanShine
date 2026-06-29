@@ -2,7 +2,8 @@
 /**
  * 文件：core/FileFolder.php
  * 作用：文件管理虚拟文件夹
- * @version 1.0.31
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class FileFolder

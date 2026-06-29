@@ -1,4 +1,19 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/zones.php
+ * 页面：EdgeOne · 站点管理
+ * 路由：/admin/cdn/edgeone/zones.php
+ * 菜单：cdn_edgeone_zones（站点与域名 → 站点管理）
+ *
+ * 作用：
+ * - 站点数据概览（KPI + 指标折线图 Tab）
+ * - 官方式站点列表：套餐、状态、接入方式、搜索与快捷操作
+ * - 新增站点抽屉（仅展示未绑定 EdgeOne 的套餐）
+ *
+ * 说明：
+ * - 渲染逻辑在 includes/zones-page.php
+ * - 列表操作可跳转域名管理、规则引擎、安全策略等子页
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

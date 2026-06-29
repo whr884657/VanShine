@@ -2,7 +2,8 @@
 /**
  * 文件：admin/includes/auth_layout.php
  * 作用：后台认证页统一布局（登录/注册/忘记密码）
- * @version 1.0.13
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

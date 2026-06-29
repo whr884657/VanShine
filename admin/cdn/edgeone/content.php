@@ -1,8 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/content.php
- * 作用：EdgeOne 内容刷新与预热
- * @version 1.0.2
+ * 页面：EdgeOne · 内容管理
+ * 路由：/admin/cdn/edgeone/content.php
+ * 菜单：cdn_edgeone_content
+ *
+ * 作用：缓存刷新（Purge）与预热（Prefetch）任务提交与列表
+ *
+ * 说明：调用 CreatePurgeTask / CreatePrefetchTask 等 API
  */
 
 require_once __DIR__ . '/init.php';

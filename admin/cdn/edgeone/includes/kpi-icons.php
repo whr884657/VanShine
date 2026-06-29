@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/kpi-icons.php
  * 作用：概览 KPI 内联 SVG 图标（无外链）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

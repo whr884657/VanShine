@@ -2,7 +2,8 @@
 /**
  * 文件：admin/includes/layout.php
  * 作用：VanShine 后台自定义布局（分组侧边栏）
- * @version 1.0.29
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

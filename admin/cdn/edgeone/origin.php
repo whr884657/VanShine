@@ -1,7 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/origin.php
- * 作用：源站防护与源站组
+ * 页面：EdgeOne · 源站防护
+ * 路由：/admin/cdn/edgeone/origin.php
+ * 菜单：cdn_edgeone_origin
+ *
+ * 作用：展示源站 ACL 与源站组列表
+ *
+ * 说明：只读查询页，策略编辑建议在腾讯云控制台完成
  */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';

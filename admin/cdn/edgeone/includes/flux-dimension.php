@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/flux-dimension.php
  * 作用：L7 访问流量多维折线图（维度 Tab + TOP 排行图例）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

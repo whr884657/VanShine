@@ -1,4 +1,18 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/edge.php
+ * 页面：EdgeOne · 边缘函数
+ * 路由：/admin/cdn/edgeone/edge.php
+ * 菜单：cdn_edgeone_edge（内容与函数 → 边缘函数）
+ *
+ * 作用：
+ * - 展示边缘函数列表与触发规则
+ * - 调用 DescribeFunctions / DescribeFunctionRules 等 API
+ *
+ * 说明：
+ * - 只读查询页；已移除 EdgeKV 相关入口
+ * - 函数创建与代码编辑请在腾讯云控制台完成
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

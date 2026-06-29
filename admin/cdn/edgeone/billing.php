@@ -1,7 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/billing.php
- * 作用：套餐与计费用量
+ * 页面：EdgeOne · 套餐计费
+ * 路由：/admin/cdn/edgeone/billing.php
+ * 菜单：cdn_edgeone_billing
+ *
+ * 作用：套餐卡片、站点用量、计费趋势与配额进度
+ *
+ * 说明：筛选条件存 Session；底部展示全部站点套餐与刷新/预热配额
  */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';

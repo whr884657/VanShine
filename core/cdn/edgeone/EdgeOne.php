@@ -2,7 +2,8 @@
 /**
  * 文件：core/cdn/edgeone/EdgeOne.php
  * 作用：EdgeOne API 统一入口（供后台 CDN 模块调用）
- * @version 1.0.1
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class EdgeOne

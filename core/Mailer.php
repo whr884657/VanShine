@@ -2,7 +2,8 @@
 /**
  * 文件：core/Mailer.php
  * 作用：系统邮件发送（SMTP）
- * @version 1.0.5
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class Mailer

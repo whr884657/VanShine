@@ -2,7 +2,8 @@
 /**
  * 文件：core/cdn/edgeone/EdgeOneOptions.php
  * 作用：EdgeOne 配置键（凭证与 COS 共用 TencentCloudConfig）
- * @version 1.0.2
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class EdgeOneOptions

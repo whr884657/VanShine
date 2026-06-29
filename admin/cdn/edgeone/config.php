@@ -1,4 +1,18 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/config.php
+ * 页面：EdgeOne · 配置版本
+ * 路由：/admin/cdn/edgeone/config.php
+ * 菜单：cdn_edgeone_config（配置与扩展 → 配置版本）
+ *
+ * 作用：
+ * - 展示环境信息、配置组版本列表、版本发布历史
+ * - 调用 DescribeEnvironments / 配置组相关 API
+ *
+ * 说明：
+ * - 版本管理需站点已开通 EdgeOne 配置版本能力
+ * - 无数据时显示「可能未开通」类提示，非 API 报错
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

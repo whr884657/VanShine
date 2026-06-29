@@ -2,7 +2,8 @@
 /**
  * 文件：core/AuthSecurity.php
  * 作用：认证页安全防护（CSRF、频率限制、登录防暴力）
- * @version 1.0.8
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class AuthSecurity

@@ -1,7 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/dns.php
- * 作用：DNS 记录管理
+ * 页面：EdgeOne · DNS 记录
+ * 路由：/admin/cdn/edgeone/dns.php
+ * 菜单：cdn_edgeone_dns
+ *
+ * 作用：展示与创建站点 DNS 记录（调用 EdgeOne DNS API）
+ *
+ * 说明：需站点使用 EdgeOne DNS 托管方可管理记录
  */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';

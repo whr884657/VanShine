@@ -1,7 +1,13 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/cert.php
- * 作用：SSL 证书管理
+ * 页面：EdgeOne · 证书管理
+ * 路由：/admin/cdn/edgeone/cert.php
+ * 菜单：cdn_edgeone_cert
+ *
+ * 作用：展示站点默认 HTTPS 证书列表
+ *
+ * 说明：域名级免费证书申请在域名管理页 HTTPS 抽屉中完成
  */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';

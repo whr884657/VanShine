@@ -2,7 +2,8 @@
 /**
  * 文件：admin/about.php
  * 作用：VanShine 后台关于页面（系统与环境信息）
- * @version 1.0.27
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

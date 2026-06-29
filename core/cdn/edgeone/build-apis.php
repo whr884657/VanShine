@@ -2,6 +2,8 @@
 /**
  * 生成分类 Api 类与 EdgeOneActions 注册表
  * 用法：php build-apis.php
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 $apiDir = __DIR__ . '/Api';
@@ -91,7 +93,6 @@ function renderApiClass($meta, $actions, $title)
 /**
  * 文件：core/cdn/edgeone/Api/{$meta['file']}
  * 作用：EdgeOne {$title}
- * @version 1.0.0
  * @generated build-apis.php
  */
 
@@ -122,7 +123,6 @@ $registryPhp = <<<PHP
 /**
  * 文件：core/cdn/edgeone/EdgeOneActions.php
  * 作用：EdgeOne Action 注册表（频率、文档 ID）
- * @version 1.0.0
  * @generated build-apis.php
  */
 

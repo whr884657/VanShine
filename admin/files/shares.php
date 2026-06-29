@@ -2,7 +2,8 @@
 /**
  * 文件：admin/files/shares.php
  * 作用：分享链接管理
- * @version 1.0.53
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once dirname(__DIR__) . '/init.php';

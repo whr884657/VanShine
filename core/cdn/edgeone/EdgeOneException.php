@@ -2,7 +2,8 @@
 /**
  * 文件：core/cdn/edgeone/EdgeOneException.php
  * 作用：EdgeOne API 调用异常
- * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class EdgeOneException extends Exception

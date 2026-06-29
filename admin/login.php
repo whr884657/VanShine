@@ -2,7 +2,8 @@
 /**
  * 文件：admin/login.php
  * 作用：VanShine 管理员登录页面
- * @version 1.0.14
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 define('VS_ROOT', dirname(__DIR__));

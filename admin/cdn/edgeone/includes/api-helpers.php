@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/api-helpers.php
  * 作用：EdgeOne 后台 API 参数组装（2022-09-01）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

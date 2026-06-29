@@ -2,7 +2,8 @@
 /**
  * 文件：core/ShareRouter.php
  * 作用：分享页 token 解析（/d/?token=）
- * @version 1.0.59
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class ShareRouter

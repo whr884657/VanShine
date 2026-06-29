@@ -1,8 +1,12 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/init.php
- * 作用：EdgeOne 后台公共引导
- * @version 1.0.3
+ * 作用：EdgeOne 后台模块公共引导与 Session 站点上下文
+ *
+ * 说明：
+ * - 加载 EdgeOne SDK、各 includes 辅助文件与页面渲染函数
+ * - vs_edgeone_is_ready() 检查凭证与开关；vs_edgeone_client() 创建 API 客户端
+ * - 所有 edgeone/*.php 页面入口均 require 本文件
  */
 
 require_once dirname(__DIR__, 2) . '/init.php';

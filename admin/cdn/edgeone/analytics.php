@@ -1,4 +1,18 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/analytics.php
+ * 页面：EdgeOne · 数据分析
+ * 路由：/admin/cdn/edgeone/analytics.php
+ * 菜单：cdn_edgeone_analytics（监控与计费 → 数据分析）
+ *
+ * 作用：
+ * - 按站点/域名/时间范围查询 L7 流量、请求、带宽等指标
+ * - KPI 卡片 + 折线图；支持自定义筛选（fragment 局部刷新）
+ *
+ * 说明：
+ * - 筛选条件存 Session，切换页不丢失
+ * - 时间颗粒度由腾讯云 API 根据起止时间自动推算
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

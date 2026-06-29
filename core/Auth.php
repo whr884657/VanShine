@@ -2,7 +2,8 @@
 /**
  * 文件：core/Auth.php
  * 作用：管理员认证、登录态管理、会话超时
- * @version 1.0.12
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class Auth

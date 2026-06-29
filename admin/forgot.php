@@ -2,7 +2,8 @@
 /**
  * 文件：admin/forgot.php
  * 作用：VanShine 管理员忘记密码（邮箱验证码重置）
- * @version 1.0.8
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 define('VS_ROOT', dirname(__DIR__));

@@ -2,7 +2,8 @@
 /**
  * 文件：core/FileShare.php
  * 作用：文件/文件夹分享链接
- * @version 1.0.59
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class FileShare

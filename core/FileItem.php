@@ -2,7 +2,8 @@
 /**
  * 文件：core/FileItem.php
  * 作用：文件管理记录
- * @version 1.0.38
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class FileItem

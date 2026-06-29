@@ -2,7 +2,8 @@
 /**
  * 文件：core/Config.php
  * 作用：系统配置读写（vs_config 表，初始数据见 database.sql）
- * @version 1.0.5
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class Config

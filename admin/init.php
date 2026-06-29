@@ -2,7 +2,8 @@
 /**
  * 文件：admin/init.php
  * 作用：后台页面统一引导（认证 + 布局依赖）
- * @version 1.0.5
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 define('VS_ROOT', dirname(__DIR__));

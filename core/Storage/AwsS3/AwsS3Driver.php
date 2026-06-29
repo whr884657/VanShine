@@ -3,7 +3,8 @@
  * 文件：core/Storage/AwsS3/AwsS3Driver.php
  * 作用：AWS S3 储存对接
  * 依赖：本目录 vendor/（composer install 于 AwsS3/）
- * @version 1.0.1
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 use Aws\S3\S3Client;

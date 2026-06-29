@@ -2,7 +2,8 @@
 /**
  * 文件：core/DatabaseMigrator.php
  * 作用：版本更新时执行 install/migrations 下的增量 SQL（数据库结构更新）
- * @version 1.0.47
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class DatabaseMigrator

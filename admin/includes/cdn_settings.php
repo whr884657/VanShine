@@ -2,7 +2,8 @@
 /**
  * 文件：admin/includes/cdn_settings.php
  * 作用：系统设置 — CDN 配置折叠板块
- * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

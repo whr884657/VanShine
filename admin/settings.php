@@ -2,7 +2,8 @@
 /**
  * 文件：admin/settings.php
  * 作用：VanShine 后台系统设置（站点信息、域名绑定、邮箱发信）
- * @version 1.0.31
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

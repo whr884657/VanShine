@@ -1,7 +1,15 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/includes/nav.php
- * @param string $active
+ * 作用：EdgeOne 后台页内导航（桌面横向下拉 + 手机折叠抽屉）
+ *
+ * 说明：
+ * - 调用 vs_edgeone_nav($active) 输出导航 HTML，$active 为当前菜单键
+ * - 分组与各页面链接定义在本文件 $groups 数组中
+ */
+
+/**
+ * @param string $active 当前激活菜单键，如 cdn_edgeone_rules
  * @return void
  */
 function vs_edgeone_nav($active)

@@ -1,7 +1,11 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/includes/domains-page.php
- * 作用：域名管理页数据解析与渲染
+ * 作用：域名管理页（domains.php）的数据解析、HTTPS 状态与 HTML 渲染
+ *
+ * 说明：
+ * - 证书状态解析对齐腾讯云 Certificate.List[].Status
+ * - 列表/抽屉 HTML 与 CNAME 复制、免费证书流程均在此文件
  */
 
 /**

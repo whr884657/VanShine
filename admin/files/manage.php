@@ -2,7 +2,8 @@
 /**
  * 文件：admin/files/manage.php
  * 作用：文件管理（文件夹绑定储存、上传、浏览）
- * @version 1.0.64
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once dirname(__DIR__) . '/init.php';

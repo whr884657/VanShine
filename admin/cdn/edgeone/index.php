@@ -1,8 +1,16 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/index.php
- * 作用：EdgeOne 概览仪表盘
- * @version 1.1.1
+ * 页面：EdgeOne · 概览
+ * 路由：/admin/cdn/edgeone/index.php
+ * 菜单：cdn_edgeone（总览）
+ *
+ * 作用：
+ * - 自定义筛选 + 侧栏 KPI + L7 流量多维折线图
+ * - 支持 fragment 局部刷新，筛选存 Session
+ *
+ * 说明：
+ * - 仪表盘数据由 api.php overview 相关 action 异步加载
  */
 
 require_once __DIR__ . '/init.php';

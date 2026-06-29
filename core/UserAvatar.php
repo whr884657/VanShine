@@ -2,7 +2,8 @@
 /**
  * 文件：core/UserAvatar.php
  * 作用：用户头像解析（QQ 邮箱 / 自定义链接 / 本地随机）
- * @version 1.0.20
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class UserAvatar

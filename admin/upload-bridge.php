@@ -2,7 +2,8 @@
 /**
  * 文件：admin/upload-bridge.php
  * 作用：后台跨页面文件上传桥接窗口（接收 postMessage 后在后台完成 XHR 上传）
- * @version 1.0.42
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

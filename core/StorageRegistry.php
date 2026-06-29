@@ -2,7 +2,8 @@
 /**
  * 文件：core/StorageRegistry.php
  * 作用：七种储存类型注册、配置键映射与驱动加载
- * @version 1.0.47
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class StorageRegistry

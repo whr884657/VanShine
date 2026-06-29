@@ -2,7 +2,8 @@
 /**
  * 文件：core/SystemInfo.php
  * 作用：服务器与运行环境信息（关于页面）
- * @version 1.0.27
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class SystemInfo

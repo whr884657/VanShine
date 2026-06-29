@@ -1,7 +1,12 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/includes/rules-page.php
- * 作用：站点加速规则引擎页渲染与数据
+ * 作用：规则引擎页（rules.php）的数据拉取与 HTML 渲染
+ *
+ * 说明：
+ * - 封装 DescribeL7AccRules 及规则 CRUD 所需的 Branches/Actions 构建
+ * - 首版表单仅支持 HOST/全站 + 常用操作；复杂规则请在腾讯云控制台编辑
+ * - 列表 UI 由 vs_edgeone_render_rules_* 系列函数输出
  */
 
 /**

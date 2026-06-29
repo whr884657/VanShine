@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/filter-builder.php
  * 作用：EdgeOne L7 指标分析自定义筛选（Filters.N / QueryCondition）
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

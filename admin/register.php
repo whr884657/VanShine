@@ -2,7 +2,8 @@
 /**
  * 文件：admin/register.php
  * 作用：VanShine 管理员注册页（界面与参考一致，账号由安装向导创建）
- * @version 1.0.8
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 define('VS_ROOT', dirname(__DIR__));

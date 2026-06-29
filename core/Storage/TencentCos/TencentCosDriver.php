@@ -3,7 +3,8 @@
  * 文件：core/Storage/TencentCos/TencentCosDriver.php
  * 作用：腾讯云 COS 储存对接
  * 依赖：本目录 vendor/（composer install 于 TencentCos/）
- * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 use League\Flysystem\Filesystem;

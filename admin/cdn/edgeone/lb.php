@@ -1,4 +1,17 @@
 <?php
+/**
+ * 文件：admin/cdn/edgeone/lb.php
+ * 页面：EdgeOne · 负载均衡
+ * 路由：/admin/cdn/edgeone/lb.php
+ * 菜单：cdn_edgeone_lb（网络与负载 → 负载均衡）
+ *
+ * 作用：
+ * - 展示负载均衡实例列表
+ * - 展示源站健康检查状态
+ *
+ * 说明：
+ * - 只读查询页；依赖 DescribeLoadBalancerList 等 API
+ */
 require_once __DIR__ . '/init.php';
 require_once __DIR__ . '/includes/nav.php';
 require_once __DIR__ . '/includes/page.php';

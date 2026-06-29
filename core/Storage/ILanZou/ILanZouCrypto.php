@@ -2,7 +2,8 @@
 /**
  * 文件：core/Storage/ILanZou/ILanZouCrypto.php
  * 作用：蓝奏云优享版 API 签名加密（AES-128-ECB）
- * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/ILanZouException.php';

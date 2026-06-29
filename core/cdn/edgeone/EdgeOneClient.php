@@ -3,7 +3,8 @@
  * 文件：core/cdn/edgeone/EdgeOneClient.php
  * 作用：EdgeOne Open API 客户端（TC3 签名 + JSON POST，多接入点容错）
  * 依赖：本目录 vendor/（composer install 于 edgeone/）
- * @version 1.0.2
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 use TencentCloud\Common\CommonClient;

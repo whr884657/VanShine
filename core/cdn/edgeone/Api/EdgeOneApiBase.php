@@ -3,6 +3,8 @@
  * 文件：core/cdn/edgeone/Api/EdgeOneApiBase.php
  * 作用：EdgeOne 分类 API 基类
  * @version 1.0.0
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 abstract class EdgeOneApiBase

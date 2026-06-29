@@ -2,7 +2,8 @@
 /**
  * 文件：core/DatabaseInstaller.php
  * 作用：读取 install/database.sql 并执行建表
- * @version 1.0.5
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 class DatabaseInstaller

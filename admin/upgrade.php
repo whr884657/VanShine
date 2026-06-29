@@ -2,7 +2,8 @@
 /**
  * 文件：admin/upgrade.php
  * 作用：VanShine 系统升级（手动检测、更新、更新记录）
- * @version 1.0.28
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 require_once __DIR__ . '/init.php';

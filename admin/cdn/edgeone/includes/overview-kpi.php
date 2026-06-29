@@ -2,6 +2,8 @@
 /**
  * 文件：admin/cdn/edgeone/includes/overview-kpi.php
  * 作用：概览侧栏 KPI 卡片定义、聚合与迷你折线图
+ *
+ * 说明：系统版本以 core/version.php 中 VS_VERSION 为准。
  */
 
 /**

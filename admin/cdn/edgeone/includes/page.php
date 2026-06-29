@@ -1,7 +1,11 @@
 <?php
 /**
  * 文件：admin/cdn/edgeone/includes/page.php
- * 作用：EdgeOne 后台页面公共渲染
+ * 作用：EdgeOne 各页面公共上下文与布局片段（page_start / page_end）
+ *
+ * 说明：
+ * - vs_edgeone_page_start() 返回 eo、zones、zone_id 等上下文
+ * - 支持 fragment=1 局部刷新；SPA 切换由 edgeone-admin.js 驱动
  */
 
 /**

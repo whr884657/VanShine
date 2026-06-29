@@ -278,84 +278,196 @@
         var wrap = form.querySelector('#edgeoneCustomFilters');
         if (!wrap) return;
 
-        var list = wrap.querySelector('#edgeoneCustomFiltersList');
         var jsonInput = wrap.querySelector('#edgeoneCustomFiltersJson');
         var addBtn = wrap.querySelector('#edgeoneAddFilterBtn');
-        var tpl = document.getElementById('edgeoneCustomFilterRowTpl');
+        var chipsHost = wrap.querySelector('#edgeoneCustomFilterChips');
+        var popup = wrap.querySelector('#edgeoneCustomFilterPopup');
+        var keySel = wrap.querySelector('#edgeoneCustomFilterKey');
+        var opSel = wrap.querySelector('#edgeoneCustomFilterOp');
+        var valueWrap = wrap.querySelector('#edgeoneCustomFilterValueWrap');
+        var confirmBtn = wrap.querySelector('#edgeoneCustomFilterConfirm');
+        var cancelBtn = wrap.querySelector('#edgeoneCustomFilterCancel');
         var defs = {};
+        var ops = {};
+        var filters = [];
+
         try {
             defs = JSON.parse(wrap.getAttribute('data-defs') || '{}');
+            ops = JSON.parse(wrap.getAttribute('data-ops') || '{}');
         } catch (e) {
             defs = {};
+            ops = {};
         }
 
-        function syncJson() {
-            if (!jsonInput || !list) return;
-            var rows = [];
-            list.querySelectorAll('.vs-edgeone-custom-filter-row').forEach(function (row) {
-                var keyEl = row.querySelector('.vs-edgeone-custom-filter-row__key');
-                var opEl = row.querySelector('.vs-edgeone-custom-filter-row__op');
-                var valEl = row.querySelector('.vs-edgeone-custom-filter-row__value');
-                if (!keyEl || !opEl || !valEl) return;
-                var key = keyEl.value.trim();
+        function loadFilters() {
+            try {
+                filters = JSON.parse(jsonInput.value || '[]');
+                if (!Array.isArray(filters)) filters = [];
+            } catch (e) {
+                filters = [];
+            }
+        }
+
+        function syncHidden() {
+            if (!jsonInput) return;
+            jsonInput.value = JSON.stringify(filters);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderChips() {
+            if (!chipsHost) return;
+            chipsHost.innerHTML = '';
+            filters.forEach(function (row, idx) {
+                var label = (defs[row.key] && defs[row.key].label) ? defs[row.key].label : row.key;
+                var opLabel = ops[row.operator] || row.operator;
+                var valText = (row.values || []).join(', ');
+                var chip = document.createElement('span');
+                chip.className = 'vs-edgeone-filter-chip';
+                chip.innerHTML = '<span class="vs-edgeone-filter-chip__text">' + escapeHtml(label) + ' · ' + escapeHtml(opLabel) + ' · ' + escapeHtml(valText) + '</span><button type="button" class="vs-edgeone-filter-chip__remove" data-idx="' + idx + '" aria-label="删除">×</button>';
+                chipsHost.appendChild(chip);
+            });
+        }
+
+        function updateOpOptions() {
+            if (!keySel || !opSel) return;
+            var key = keySel.value;
+            var def = defs[key];
+            var allowed = def && def.operators ? def.operators : Object.keys(ops);
+            var current = opSel.value;
+            opSel.innerHTML = '';
+            allowed.forEach(function (opKey) {
+                if (!ops[opKey]) return;
+                var opt = document.createElement('option');
+                opt.value = opKey;
+                opt.textContent = ops[opKey];
+                opSel.appendChild(opt);
+            });
+            if (current && allowed.indexOf(current) !== -1) {
+                opSel.value = current;
+            }
+        }
+
+        function rebuildValueField() {
+            if (!valueWrap || !keySel) return;
+            var key = keySel.value;
+            var def = defs[key];
+            valueWrap.innerHTML = '';
+            if (def && def.value_type === 'enum' && def.options) {
+                var sel = document.createElement('select');
+                sel.className = 'vs-input';
+                sel.id = 'edgeoneCustomFilterValue';
+                sel.multiple = true;
+                sel.setAttribute('aria-label', '筛选值');
+                Object.keys(def.options).forEach(function (val) {
+                    var opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = def.options[val];
+                    sel.appendChild(opt);
+                });
+                valueWrap.appendChild(sel);
+            } else {
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'vs-input';
+                inp.id = 'edgeoneCustomFilterValue';
+                inp.setAttribute('aria-label', '筛选值');
+                inp.placeholder = def && def.value_type === 'multitext' ? '多个值用逗号分隔' : '输入筛选值，多个用逗号分隔';
+                valueWrap.appendChild(inp);
+            }
+        }
+
+        function getValuesFromPopup() {
+            var el = valueWrap ? valueWrap.querySelector('#edgeoneCustomFilterValue') : null;
+            if (!el) return [];
+            if (el.tagName === 'SELECT') {
+                return Array.prototype.slice.call(el.selectedOptions).map(function (opt) {
+                    return opt.value.trim();
+                }).filter(Boolean);
+            }
+            return el.value.split(/[\r\n,;|]+/).map(function (v) {
+                return v.trim();
+            }).filter(Boolean);
+        }
+
+        function openPopup() {
+            if (!popup) return;
+            popup.hidden = false;
+            if (keySel) keySel.value = '';
+            updateOpOptions();
+            rebuildValueField();
+        }
+
+        function closePopup() {
+            if (!popup) return;
+            popup.hidden = true;
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (popup && popup.hidden) {
+                    openPopup();
+                } else {
+                    closePopup();
+                }
+            });
+        }
+
+        if (keySel) {
+            keySel.addEventListener('change', function () {
+                updateOpOptions();
+                rebuildValueField();
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function () {
+                if (!keySel) return;
+                var key = keySel.value.trim();
                 if (!key) return;
-                var values = valEl.value.split(/[\r\n,;|]+/).map(function (v) { return v.trim(); }).filter(Boolean);
+                var values = getValuesFromPopup();
                 if (!values.length) return;
-                rows.push({ key: key, operator: opEl.value, values: values });
-            });
-            jsonInput.value = JSON.stringify(rows);
-        }
-
-        function bindRow(row) {
-            row.querySelectorAll('select, input').forEach(function (el) {
-                el.addEventListener('change', syncJson);
-                el.addEventListener('input', syncJson);
-            });
-            var enumSel = row.querySelector('.vs-edgeone-custom-filter-row__value-enum');
-            if (enumSel) {
-                enumSel.addEventListener('change', function () {
-                    var hidden = row.querySelector('.vs-edgeone-custom-filter-row__value');
-                    if (!hidden) return;
-                    var vals = [];
-                    enumSel.querySelectorAll('option:checked').forEach(function (opt) {
-                        vals.push(opt.value);
-                    });
-                    hidden.value = vals.join('\n');
-                    syncJson();
+                filters.push({
+                    key: key,
+                    operator: opSel ? opSel.value : 'equals',
+                    values: values
                 });
-            }
-            var removeBtn = row.querySelector('.vs-edgeone-custom-filter-row__remove');
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function () {
-                    row.remove();
-                    syncJson();
-                });
-            }
-            var keyEl = row.querySelector('.vs-edgeone-custom-filter-row__key');
-            if (keyEl) {
-                keyEl.addEventListener('change', function () {
-                    syncJson();
-                });
-            }
-        }
-
-        list.querySelectorAll('.vs-edgeone-custom-filter-row').forEach(bindRow);
-
-        if (addBtn && tpl && list) {
-            addBtn.addEventListener('click', function () {
-                var html = tpl.innerHTML.replace(/__IDX__/g, String(Date.now()));
-                var holder = document.createElement('div');
-                holder.innerHTML = html.trim();
-                var row = holder.firstElementChild;
-                if (!row) return;
-                list.appendChild(row);
-                bindRow(row);
-                syncJson();
+                syncHidden();
+                renderChips();
+                closePopup();
             });
         }
 
-        form.addEventListener('submit', syncJson);
-        syncJson();
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function () {
+                closePopup();
+            });
+        }
+
+        if (chipsHost) {
+            chipsHost.addEventListener('click', function (e) {
+                var btn = e.target.closest('.vs-edgeone-filter-chip__remove');
+                if (!btn) return;
+                var idx = parseInt(btn.getAttribute('data-idx'), 10);
+                if (isNaN(idx)) return;
+                filters.splice(idx, 1);
+                syncHidden();
+                renderChips();
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!popup || popup.hidden) return;
+            if (popup.contains(e.target) || (addBtn && addBtn.contains(e.target))) return;
+            closePopup();
+        });
+
+        loadFilters();
+        renderChips();
+        form.addEventListener('submit', syncHidden);
     }
 
     function loadOverviewData(form) {

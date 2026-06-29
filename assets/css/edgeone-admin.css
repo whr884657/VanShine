@@ -688,13 +688,78 @@
     border: 1px solid var(--border-color, #e8e8e8);
     border-radius: 8px;
     background: #fafafa;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.vs-edgeone-kpi:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.vs-edgeone-kpi__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.vs-edgeone-kpi__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(22, 119, 255, 0.12), rgba(22, 119, 255, 0.04));
+    color: #1677ff;
+    flex-shrink: 0;
+    animation: vs-edgeone-icon-pulse 2.4s ease-in-out infinite;
+}
+
+.vs-edgeone-kpi__meta {
+    min-width: 0;
+}
+
+.vs-edgeone-kpi__hint {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+}
+
+.vs-edgeone-kpi--animate {
+    animation: vs-edgeone-kpi-in 0.45s ease both;
+    animation-delay: calc(var(--kpi-delay, 0) * 0.06s);
+}
+
+@keyframes vs-edgeone-kpi-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes vs-edgeone-icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.04);
+    }
 }
 
 .vs-edgeone-kpi__label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 0;
     font-size: 12px;
     color: var(--text-secondary, #888);
+}
+
+.vs-edgeone-kpi__head + .vs-edgeone-kpi__value {
+    margin-top: 0;
 }
 
 .vs-edgeone-kpi__value {
@@ -818,16 +883,124 @@
 .vs-edgeone-filter-grid .vs-form-col--custom {
     flex: 1.4;
     min-width: 220px;
+    position: relative;
 }
 
-.vs-edgeone-custom-filters__add {
-    margin-bottom: 8px;
+.vs-edgeone-custom-filters__bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    flex-wrap: nowrap;
 }
 
-.vs-edgeone-custom-filters__list {
+.vs-edgeone-custom-filters__bar .vs-btn {
+    flex-shrink: 0;
+}
+
+.vs-edgeone-custom-filters__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    max-height: 64px;
+    overflow: auto;
+}
+
+.vs-edgeone-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    padding: 2px 6px 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(22, 119, 255, 0.25);
+    background: rgba(22, 119, 255, 0.06);
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-primary, #333);
+    animation: vs-edgeone-chip-in 0.25s ease both;
+}
+
+.vs-edgeone-filter-chip__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+}
+
+.vs-edgeone-filter-chip__remove {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-secondary, #888);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.vs-edgeone-filter-chip__remove:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #ff4d4f;
+}
+
+.vs-edgeone-custom-filter-popup {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+}
+
+.vs-edgeone-custom-filter-popup__card {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    animation: vs-edgeone-popup-in 0.2s ease both;
+}
+
+.vs-edgeone-custom-filter-popup__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary, #222);
+}
+
+.vs-edgeone-custom-filter-popup__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+@keyframes vs-edgeone-chip-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes vs-edgeone-popup-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .vs-help-tip {
@@ -928,7 +1101,7 @@
 /* 概览主布局：侧栏 KPI + 主内容 */
 .vs-edgeone-overview {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
     gap: 16px;
     align-items: start;
 }
@@ -936,11 +1109,35 @@
 .vs-edgeone-overview__sidebar {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .vs-edgeone-kpi--sidebar {
     margin: 0;
+    background: #fff;
+}
+
+.vs-edgeone-overview__main .vs-panel {
+    animation: vs-edgeone-panel-in 0.4s ease both;
+}
+
+.vs-edgeone-overview-chart {
+    animation-delay: 0.05s;
+}
+
+.vs-edgeone-country-panel {
+    animation-delay: 0.1s;
+}
+
+@keyframes vs-edgeone-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .vs-edgeone-overview__main {
@@ -954,18 +1151,40 @@
     display: grid;
     grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr);
     gap: 16px;
-    align-items: start;
+    align-items: center;
 }
 
-.vs-edgeone-country-map__placeholder {
-    min-height: 180px;
-    border: 1px dashed var(--border-color, #e8e8e8);
-    border-radius: 8px;
+.vs-edgeone-country-map {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary, #888);
-    background: linear-gradient(135deg, rgba(22, 119, 255, 0.04), rgba(22, 119, 255, 0.12));
+    min-height: 180px;
+    padding: 8px;
+}
+
+.vs-edgeone-country-donut {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.vs-edgeone-country-donut__seg {
+    transition: opacity 0.2s ease;
+}
+
+.vs-edgeone-country-donut__seg:hover {
+    opacity: 0.85;
+}
+
+.vs-edgeone-country-donut__pct {
+    font-size: 18px;
+    font-weight: 700;
+    fill: #1677ff;
+}
+
+.vs-edgeone-country-donut__label {
+    font-size: 10px;
+    fill: #888;
 }
 
 .vs-edgeone-country-list__item {
@@ -1029,6 +1248,7 @@
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, #69b1ff, #1677ff);
+    transition: width 0.5s ease;
 }
 
 @media (max-width: 1199px) {
@@ -1045,6 +1265,15 @@
     .vs-edgeone-overview__sidebar {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .vs-edgeone-custom-filters__chips {
+        max-height: 48px;
+    }
+
+    .vs-edgeone-filter-chip__text {
+        max-width: 120px;
     }
 
     .vs-edgeone-top-grid {

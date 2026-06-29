@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.1.2",
+            "date": "2026-06-29",
+            "title": "EdgeOne 概览 UI 优化：紧凑筛选、SVG 区域图与 KPI 图标",
+            "db_changes": false,
+            "changes": [
+                "自定义筛选弹层 + 标签",
+                "纯 SVG 区域占比图",
+                "KPI SVG 图标与动效",
+                "访问请求数指标"
+            ]
+        },
+        {
             "version": "1.1.1",
             "date": "2026-06-29",
             "title": "修复 EdgeOne Top 排行参数并优化查询条件 UI",

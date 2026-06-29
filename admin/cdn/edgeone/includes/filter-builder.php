@@ -241,25 +241,46 @@ function vs_edgeone_render_overview_custom_filters(array $filters)
         ? $filters['custom_filters']
         : array();
 
-    echo '<div class="vs-form-col vs-form-col--custom vs-edgeone-custom-filters" id="edgeoneCustomFilters" data-defs="' . vs_e(json_encode($defs, JSON_UNESCAPED_UNICODE)) . '">';
+    echo '<div class="vs-form-col vs-form-col--custom vs-edgeone-custom-filters" id="edgeoneCustomFilters"';
+    echo ' data-defs="' . vs_e(json_encode($defs, JSON_UNESCAPED_UNICODE)) . '"';
+    echo ' data-ops="' . vs_e(json_encode($ops, JSON_UNESCAPED_UNICODE)) . '">';
+
     echo '<label class="vs-label">';
     echo '自定义筛选 ';
     vs_edgeone_render_help_tip('对应 API 的 Filters.N。多个条件为且关系，同一条件内多个取值为或关系。');
     echo '</label>';
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm vs-edgeone-custom-filters__add" id="edgeoneAddFilterBtn">+ 添加筛选</button>';
-    echo '<div class="vs-edgeone-custom-filters__list" id="edgeoneCustomFiltersList">';
 
-    foreach ($active as $idx => $row) {
-        vs_edgeone_render_custom_filter_row($idx, $row, $defs, $ops);
-    }
-
+    echo '<div class="vs-edgeone-custom-filters__bar">';
+    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm" id="edgeoneAddFilterBtn">+ 添加筛选</button>';
+    echo '<div class="vs-edgeone-custom-filters__chips" id="edgeoneCustomFilterChips"></div>';
     echo '</div>';
+
+    echo '<div class="vs-edgeone-custom-filter-popup" id="edgeoneCustomFilterPopup" hidden>';
+    echo '<div class="vs-edgeone-custom-filter-popup__card">';
+    echo '<div class="vs-edgeone-custom-filter-popup__title">添加筛选条件</div>';
+    echo '<select class="vs-input" id="edgeoneCustomFilterKey" aria-label="筛选项">';
+    echo '<option value="">选择筛选项</option>';
+    foreach ($defs as $k => $item) {
+        echo '<option value="' . vs_e($k) . '">' . vs_e($item['label']) . '</option>';
+    }
+    echo '</select>';
+    echo '<select class="vs-input" id="edgeoneCustomFilterOp" aria-label="运算符">';
+    foreach ($ops as $opKey => $opLabel) {
+        echo '<option value="' . vs_e($opKey) . '">' . vs_e($opLabel) . '</option>';
+    }
+    echo '</select>';
+    echo '<div id="edgeoneCustomFilterValueWrap">';
+    echo '<input type="text" class="vs-input" id="edgeoneCustomFilterValue" placeholder="输入筛选值，多个用逗号分隔">';
+    echo '</div>';
+    echo '<div class="vs-edgeone-custom-filter-popup__actions">';
+    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm" id="edgeoneCustomFilterCancel">取消</button>';
+    echo '<button type="button" class="vs-btn vs-btn--primary vs-btn--sm" id="edgeoneCustomFilterConfirm">确定</button>';
+    echo '</div>';
+    echo '</div>';
+    echo '</div>';
+
     echo '<input type="hidden" name="custom_filters_json" id="edgeoneCustomFiltersJson" value="' . vs_e(json_encode($active, JSON_UNESCAPED_UNICODE)) . '">';
     echo '</div>';
-
-    echo '<template id="edgeoneCustomFilterRowTpl">';
-    vs_edgeone_render_custom_filter_row('__IDX__', array('key' => '', 'operator' => 'equals', 'values' => array()), $defs, $ops);
-    echo '</template>';
 }
 
 /**
@@ -271,44 +292,5 @@ function vs_edgeone_render_overview_custom_filters(array $filters)
  */
 function vs_edgeone_render_custom_filter_row($idx, array $row, array $defs, array $ops)
 {
-    $key = isset($row['key']) ? (string) $row['key'] : '';
-    $operator = isset($row['operator']) ? (string) $row['operator'] : 'equals';
-    $values = isset($row['values']) && is_array($row['values']) ? $row['values'] : array();
-    $def = ($key !== '' && isset($defs[$key])) ? $defs[$key] : null;
-    $allowedOps = ($def && isset($def['operators'])) ? $def['operators'] : array_keys($ops);
-
-    echo '<div class="vs-edgeone-custom-filter-row" data-idx="' . vs_e((string) $idx) . '">';
-    echo '<select class="vs-input vs-edgeone-custom-filter-row__key" aria-label="筛选项">';
-    echo '<option value="">选择筛选项</option>';
-    foreach ($defs as $k => $item) {
-        echo '<option value="' . vs_e($k) . '"' . ($k === $key ? ' selected' : '') . '>' . vs_e($item['label']) . '</option>';
-    }
-    echo '</select>';
-
-    echo '<select class="vs-input vs-edgeone-custom-filter-row__op" aria-label="运算符">';
-    foreach ($allowedOps as $opKey) {
-        if (!isset($ops[$opKey])) {
-            continue;
-        }
-        echo '<option value="' . vs_e($opKey) . '"' . ($opKey === $operator ? ' selected' : '') . '>' . vs_e($ops[$opKey]) . '</option>';
-    }
-    echo '</select>';
-
-    echo '<div class="vs-edgeone-custom-filter-row__value-wrap">';
-    if ($def && $def['value_type'] === 'enum' && !empty($def['options'])) {
-        echo '<select class="vs-input vs-edgeone-custom-filter-row__value-enum" multiple size="1" aria-label="筛选值">';
-        foreach ($def['options'] as $val => $label) {
-            $sel = in_array((string) $val, $values, true) ? ' selected' : '';
-            echo '<option value="' . vs_e($val) . '"' . $sel . '>' . vs_e($label) . '</option>';
-        }
-        echo '</select>';
-        echo '<input type="hidden" class="vs-edgeone-custom-filter-row__value" value="' . vs_e(implode("\n", $values)) . '">';
-    } else {
-        $placeholder = ($def && $def['value_type'] === 'multitext') ? '多个值用回车或逗号分隔' : '输入筛选值';
-        echo '<input type="text" class="vs-input vs-edgeone-custom-filter-row__value" value="' . vs_e(implode("\n", $values)) . '" placeholder="' . vs_e($placeholder) . '">';
-    }
-    echo '</div>';
-
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm vs-edgeone-custom-filter-row__remove" aria-label="删除">删除</button>';
-    echo '</div>';
+    // 保留供兼容；UI 已改为弹层 + 标签，不再输出多行表单
 }

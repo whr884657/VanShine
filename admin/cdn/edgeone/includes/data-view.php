@@ -399,22 +399,110 @@ function vs_edgeone_render_line_chart(array $cfg)
 }
 
 /**
- * @param array<int, array{label: string, value: string}> $items
+ * @param array<int, array{label: string, value: string, hint?: string, icon?: string}> $items
  * @return string
  */
 function vs_edgeone_render_overview_summary_sidebar(array $items)
 {
     ob_start();
     echo '<aside class="vs-edgeone-overview__sidebar" id="edgeoneSummaryHost">';
+    $idx = 0;
     foreach ($items as $item) {
-        echo '<article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar">';
+        $icon = isset($item['icon']) ? (string) $item['icon'] : 'flux';
+        $hint = isset($item['hint']) ? (string) $item['hint'] : '';
+        echo '<article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar vs-edgeone-kpi--animate" style="--kpi-delay:' . (int) $idx . '">';
+        echo '<div class="vs-edgeone-kpi__head">';
+        echo vs_edgeone_kpi_icon_svg($icon);
+        echo '<div class="vs-edgeone-kpi__meta">';
         echo '<span class="vs-edgeone-kpi__label">' . vs_e($item['label']) . '</span>';
+        if ($hint !== '') {
+            echo '<span class="vs-edgeone-kpi__hint">' . vs_e($hint) . '</span>';
+        }
+        echo '</div>';
+        echo '</div>';
         echo '<strong class="vs-edgeone-kpi__value">' . vs_e($item['value']) . '</strong>';
         echo '</article>';
+        $idx++;
     }
     echo '</aside>';
 
     return ob_get_clean();
+}
+
+/**
+ * 纯 SVG 环形图（不依赖外网地图资源）
+ *
+ * @param array<int, array{key: string, value: float}> $rows
+ * @param float $total
+ * @return string
+ */
+function vs_edgeone_render_country_donut_svg(array $rows, $total)
+{
+    $total = (float) $total;
+    if ($total <= 0 || empty($rows)) {
+        return '';
+    }
+
+    $colors = array('#1677ff', '#69b1ff', '#95de64', '#ffc069', '#ff7875', '#b37feb', '#5cdbd3', '#ffd666');
+    $cx = 90;
+    $cy = 90;
+    $ro = 72;
+    $ri = 46;
+    $start = -90.0;
+    $segments = array();
+    $i = 0;
+
+    foreach ($rows as $row) {
+        $val = (float) $row['value'];
+        if ($val <= 0) {
+            continue;
+        }
+        $pct = $val / $total;
+        $angle = $pct * 360.0;
+        if ($angle >= 359.99) {
+            $angle = 359.99;
+        }
+        $end = $start + $angle;
+        $large = $angle > 180 ? 1 : 0;
+
+        $sRad = deg2rad($start);
+        $eRad = deg2rad($end);
+        $x1 = $cx + $ro * cos($sRad);
+        $y1 = $cy + $ro * sin($sRad);
+        $x2 = $cx + $ro * cos($eRad);
+        $y2 = $cy + $ro * sin($eRad);
+        $x3 = $cx + $ri * cos($eRad);
+        $y3 = $cy + $ri * sin($eRad);
+        $x4 = $cx + $ri * cos($sRad);
+        $y4 = $cy + $ri * sin($sRad);
+
+        $color = $colors[$i % count($colors)];
+        $d = sprintf(
+            'M %.2f %.2f A %.2f %.2f 0 %d 1 %.2f %.2f L %.2f %.2f A %.2f %.2f 0 %d 0 %.2f %.2f Z',
+            $x1, $y1, $ro, $ro, $large, $x2, $y2,
+            $x3, $y3, $ri, $ri, $large, $x4, $y4
+        );
+        $segments[] = array('d' => $d, 'color' => $color, 'pct' => round($pct * 100, 1));
+        $start = $end;
+        $i++;
+        if ($i >= 8) {
+            break;
+        }
+    }
+
+    $topPct = isset($segments[0]['pct']) ? $segments[0]['pct'] : 0;
+    $topLabel = isset($rows[0]['key']) ? vs_edgeone_format_top_label($rows[0]['key']) : '';
+
+    $svg = '<svg class="vs-edgeone-country-donut" viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="访问区域占比">';
+    foreach ($segments as $seg) {
+        $svg .= '<path d="' . $seg['d'] . '" fill="' . $seg['color'] . '" class="vs-edgeone-country-donut__seg"/>';
+    }
+    $svg .= '<circle cx="' . $cx . '" cy="' . $cy . '" r="' . $ri . '" fill="#fff"/>';
+    $svg .= '<text x="' . $cx . '" y="' . ($cy - 4) . '" text-anchor="middle" class="vs-edgeone-country-donut__pct">' . $topPct . '%</text>';
+    $svg .= '<text x="' . $cx . '" y="' . ($cy + 14) . '" text-anchor="middle" class="vs-edgeone-country-donut__label">' . htmlspecialchars(mb_substr($topLabel, 0, 8), ENT_QUOTES, 'UTF-8') . '</text>';
+    $svg .= '</svg>';
+
+    return $svg;
 }
 
 /**
@@ -525,7 +613,7 @@ function vs_edgeone_render_overview_dashboard(array $dashboard)
             $total += (float) $row['value'];
         }
         echo '<div class="vs-edgeone-country-layout">';
-        echo '<div class="vs-edgeone-country-map" aria-hidden="true"></div>';
+        echo '<div class="vs-edgeone-country-map">' . vs_edgeone_render_country_donut_svg($country['rows'], $total) . '</div>';
         echo '<div class="vs-edgeone-country-list">';
         foreach ($country['rows'] as $row) {
             $pct = $total > 0 ? round(((float) $row['value'] / $total) * 100, 2) : 0;

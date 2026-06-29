@@ -1135,7 +1135,7 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
 
 /**
  * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
- * @return array<int, array{label: string, value: string}>
+ * @return array<int, array{label: string, value: string, hint: string, icon: string}>
  */
 function vs_edgeone_overview_summary_from_charts(array $charts)
 {
@@ -1154,18 +1154,32 @@ function vs_edgeone_overview_summary_from_charts(array $charts)
         array(
             'label' => '总流量',
             'value' => vs_edgeone_format_metric_value($flux, 'bytes'),
+            'hint'  => '区间合计',
+            'icon'  => 'flux',
         ),
         array(
             'label' => 'EdgeOne 响应流量',
             'value' => vs_edgeone_format_metric_value($outFlux, 'bytes'),
+            'hint'  => '区间合计',
+            'icon'  => 'out',
         ),
         array(
             'label' => '客户端请求流量',
             'value' => vs_edgeone_format_metric_value($inFlux, 'bytes'),
+            'hint'  => '区间合计',
+            'icon'  => 'in',
         ),
         array(
-            'label' => '缓存命中率',
+            'label' => '访问请求数',
+            'value' => vs_edgeone_format_metric_value($request, 'count'),
+            'hint'  => '区间合计',
+            'icon'  => 'request',
+        ),
+        array(
+            'label' => '平均缓存命中率',
             'value' => $hitRate !== null ? number_format($hitRate, 2) . '%' : '-',
+            'hint'  => '命中率均值',
+            'icon'  => 'cache',
         ),
     );
 }

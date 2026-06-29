@@ -13,6 +13,7 @@ TencentCloudConfig::migrateLegacyIfNeeded();
 require_once __DIR__ . '/includes/api-helpers.php';
 require_once __DIR__ . '/includes/data-view.php';
 require_once __DIR__ . '/includes/filter-builder.php';
+require_once __DIR__ . '/includes/kpi-icons.php';
 require_once __DIR__ . '/includes/metrics.php';
 
 /** @var string */

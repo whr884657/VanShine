@@ -1,12 +1,13 @@
 {
-    "version": "1.1.1",
+    "version": "1.1.2",
     "release_date": "2026-06-29",
-    "title": "修复 EdgeOne Top 排行参数并优化查询条件 UI",
+    "title": "EdgeOne 概览 UI 优化：紧凑筛选、SVG 区域图与 KPI 图标",
     "db_changes": false,
     "changes": [
-        "修正 DescribeTopL7AnalysisData 的 MetricName（如 outFlux_sip/referers/ua_*）",
-        "时间范围恢复下拉选择，自定义筛选移至查询按钮前",
-        "说明文字改为标题旁 ? 悬停提示"
+        "自定义筛选改为弹层 + 标签，不再堆叠多行表单",
+        "访问区域分布使用纯 SVG 环形图（无外网地图依赖）",
+        "侧栏 KPI 增加 SVG 图标、区间/均值标注与入场动效",
+        "新增访问请求数指标卡片"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

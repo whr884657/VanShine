@@ -1,13 +1,13 @@
 {
-    "version": "1.4.0",
+    "version": "1.4.1",
     "release_date": "2026-06-30",
-    "title": "EdgeOne 域名管理页整页改版",
+    "title": "EdgeOne 域名管理页 UI 与 HTTPS 配置优化",
     "db_changes": false,
     "changes": [
-        "域名加速更名为域名管理，官方式列表与域名配置区",
-        "站点切换+添加域名同一行，添加/编辑改为抽屉",
-        "支持停用/启用/删除及完整源站与 HTTPS 展示",
-        "Pages 站点禁用自助操作，跳转自动绑定站点"
+        "站点信息与站点选择合并为同一板块，手机端两行布局",
+        "CNAME 一键复制；HTTPS 列增加配置抽屉（免费证书申请/部署）",
+        "DDoS 防护中文映射；IPv6 分段选择；源站类型改为静态展示",
+        "板块间距与弹窗样式统一优化"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

@@ -438,11 +438,93 @@
     }
 
     function closeDomainDrawers() {
-        document.querySelectorAll('#edgeoneDomainCreateDrawer, #edgeoneDomainEditDrawer').forEach(function (drawer) {
+        document.querySelectorAll('#edgeoneDomainCreateDrawer, #edgeoneDomainEditDrawer, #edgeoneDomainCertDrawer').forEach(function (drawer) {
             drawer.hidden = true;
             drawer.setAttribute('aria-hidden', 'true');
             drawer.classList.remove('is-open');
         });
+    }
+
+    function copyTextToClipboard(text) {
+        if (!text) return Promise.reject(new Error('empty'));
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+        }
+        return new Promise(function (resolve, reject) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                resolve();
+            } catch (err) {
+                reject(err);
+            }
+            document.body.removeChild(ta);
+        });
+    }
+
+    function certModeLabel(mode) {
+        var map = {
+            disable: '未部署',
+            eofreecert: 'EdgeOne 免费证书',
+            eofreecert_manual: 'EdgeOne 免费证书（手动验证）',
+            sslcert: 'SSL 托管证书',
+            off: '未部署'
+        };
+        return map[String(mode || '').toLowerCase()] || (mode || '未配置');
+    }
+
+    function renderCertVerifyBox(data) {
+        var box = document.getElementById('edgeoneDomainCertVerify');
+        var checkBtn = document.getElementById('edgeoneDomainCertCheckBtn');
+        if (!box) return;
+        box.hidden = false;
+        var html = '';
+        if (data && data.FileVerification) {
+            var file = data.FileVerification;
+            html += '<p><strong>HTTP 文件验证</strong></p>';
+            html += '<p>路径：<code>' + String(file.Path || '') + '</code></p>';
+            html += '<p>文件内容：<code>' + String(file.Content || '') + '</code></p>';
+            html += '<p class="vs-form-tip">请将上述文件部署到源站对应路径，完成后点击「验证并部署」。</p>';
+        } else if (data && data.DnsVerification) {
+            var dns = data.DnsVerification;
+            html += '<p><strong>DNS 委派验证</strong></p>';
+            html += '<p>记录类型：' + String(dns.RecordType || 'CNAME') + '</p>';
+            html += '<p>主机记录：<code>' + String(dns.RecordValue || '') + '</code></p>';
+            html += '<p>记录值：<code>' + String(dns.Subdomain || '') + '</code></p>';
+            html += '<p class="vs-form-tip">请在 DNS 服务商添加上述记录，完成后点击「验证并部署」。</p>';
+        } else {
+            html += '<p class="vs-form-tip">请按 EdgeOne 控制台要求完成验证后，点击「验证并部署」。</p>';
+        }
+        box.innerHTML = html;
+        if (checkBtn) checkBtn.hidden = false;
+    }
+
+    function openCertDrawer(domainName, certMode) {
+        var drawer = document.getElementById('edgeoneDomainCertDrawer');
+        if (!drawer) return;
+        drawer.dataset.domain = domainName || '';
+        var title = document.getElementById('edgeoneDomainCertDomain');
+        if (title) title.textContent = domainName;
+        var status = document.getElementById('edgeoneDomainCertStatus');
+        if (status) {
+            var row = findDomainRow(domainName);
+            var label = row ? certModeLabel((row.Certificate && row.Certificate.Mode) || certMode) : certModeLabel(certMode);
+            status.innerHTML = '<p>当前配置：<strong>' + label + '</strong></p>';
+        }
+        var verify = document.getElementById('edgeoneDomainCertVerify');
+        if (verify) {
+            verify.hidden = true;
+            verify.innerHTML = '';
+        }
+        var checkBtn = document.getElementById('edgeoneDomainCertCheckBtn');
+        if (checkBtn) checkBtn.hidden = true;
+        openDomainDrawer('edgeoneDomainCertDrawer');
     }
 
     function getDomainRowsMeta() {
@@ -514,8 +596,13 @@
                 if (!form) return;
                 document.getElementById('edgeoneDomainEditName').value = name;
                 document.getElementById('edgeoneDomainEditTitle').textContent = name;
-                var ipv6 = document.getElementById('edgeoneDomainEditIpv6');
-                if (ipv6) ipv6.value = row.IPv6Status || 'follow';
+                var ipv6Wrap = document.getElementById('edgeoneDomainEditIpv6Wrap');
+                if (ipv6Wrap) {
+                    var ipv6Val = (row.IPv6Status || 'follow').toLowerCase();
+                    ipv6Wrap.querySelectorAll('input[name="ipv6_status"]').forEach(function (radio) {
+                        radio.checked = radio.value === ipv6Val;
+                    });
+                }
                 var origin = row.OriginDetail && row.OriginDetail.Origin ? row.OriginDetail.Origin : '';
                 var originInput = document.getElementById('edgeoneDomainEditOrigin');
                 if (originInput) originInput.value = origin;
@@ -552,6 +639,27 @@
                 return;
             }
 
+            var copyBtn = e.target.closest('.vs-edgeone-domain-cname-copy');
+            if (copyBtn) {
+                e.preventDefault();
+                var cname = copyBtn.getAttribute('data-copy') || '';
+                copyTextToClipboard(cname).then(function () {
+                    toast('CNAME 已复制', 'success');
+                }).catch(function () {
+                    toast('复制失败，请手动选择复制', 'error');
+                });
+                return;
+            }
+
+            var certBtn = e.target.closest('.vs-edgeone-domain-cert-config');
+            if (certBtn) {
+                e.preventDefault();
+                var certDomain = certBtn.getAttribute('data-domain') || '';
+                var certMode = certBtn.getAttribute('data-cert-mode') || '';
+                openCertDrawer(certDomain, certMode);
+                return;
+            }
+
             var deleteLink = e.target.closest('.vs-edgeone-domain-delete');
             if (deleteLink) {
                 e.preventDefault();
@@ -572,6 +680,75 @@
                 });
             }
         });
+
+        var certDrawer = page.querySelector('#edgeoneDomainCertDrawer');
+        if (certDrawer) {
+            certDrawer.querySelectorAll('.vs-edgeone-cert-apply').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var domainName = certDrawer.dataset.domain || '';
+                    var method = btn.getAttribute('data-method') || 'http_challenge';
+                    if (!domainName) return;
+                    var body = new FormData();
+                    body.set('action', 'domain_cert_apply');
+                    body.set('domain_name', domainName);
+                    body.set('verification_method', method);
+                    postFormData(body).then(function (data) {
+                        if (data.code === 1) {
+                            toast(data.msg || '申请已发起', 'success');
+                            renderCertVerifyBox(data.data || {});
+                        } else {
+                            toast(data.msg || '申请失败', 'error');
+                        }
+                    }).catch(function () {
+                        toast('网络异常', 'error');
+                    });
+                });
+            });
+
+            certDrawer.querySelectorAll('.vs-edgeone-cert-deploy').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var domainName = certDrawer.dataset.domain || '';
+                    var mode = btn.getAttribute('data-mode') || '';
+                    if (!domainName || !mode) return;
+                    if (mode === 'disable' && !window.confirm('确定关闭该域名的 HTTPS ？')) return;
+                    var body = new FormData();
+                    body.set('action', 'domain_cert_deploy');
+                    body.set('domain_name', domainName);
+                    body.set('mode', mode);
+                    postFormData(body).then(function (data) {
+                        if (data.code === 1) {
+                            toast(data.msg || '配置成功', 'success');
+                            window.location.reload();
+                        } else {
+                            toast(data.msg || '配置失败', 'error');
+                        }
+                    }).catch(function () {
+                        toast('网络异常', 'error');
+                    });
+                });
+            });
+
+            var checkBtn = certDrawer.querySelector('#edgeoneDomainCertCheckBtn');
+            if (checkBtn) {
+                checkBtn.addEventListener('click', function () {
+                    var domainName = certDrawer.dataset.domain || '';
+                    if (!domainName) return;
+                    var body = new FormData();
+                    body.set('action', 'domain_cert_check');
+                    body.set('domain_name', domainName);
+                    postFormData(body).then(function (data) {
+                        if (data.code === 1) {
+                            toast(data.msg || '验证并部署成功', 'success');
+                            window.location.reload();
+                        } else {
+                            toast(data.msg || '验证失败', 'error');
+                        }
+                    }).catch(function () {
+                        toast('网络异常', 'error');
+                    });
+                });
+            }
+        }
     }
 
     function openFilterDrawer(drawer) {

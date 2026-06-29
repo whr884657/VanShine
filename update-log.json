@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.1",
+            "date": "2026-06-30",
+            "title": "EdgeOne 域名管理页 UI 与 HTTPS 配置优化",
+            "db_changes": false,
+            "changes": [
+                "站点信息并入站点选择板块，手机两行布局",
+                "CNAME 复制、HTTPS 配置抽屉与免费证书 API",
+                "DDoS 中文、IPv6 分段、表单与间距优化"
+            ]
+        },
+        {
             "version": "1.4.0",
             "date": "2026-06-30",
             "title": "EdgeOne 域名管理页整页改版",

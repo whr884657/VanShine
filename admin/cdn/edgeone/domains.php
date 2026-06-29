@@ -20,38 +20,36 @@ $domainsError = '';
 $ddosData = array();
 $ddosLabel = array('label' => '—', 'raw' => '');
 
-if ($eo !== null && $zoneId !== '' && $canManage) {
-    $dResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
-        return $eo->accelerationDomain->describeAccelerationDomains(array(
-            'ZoneId' => $zoneId,
-            'Offset' => 0,
-            'Limit'  => 100,
-        ));
-    }, array());
-    if ($dResult['ok']) {
-        $domains = isset($dResult['data']['AccelerationDomains']) && is_array($dResult['data']['AccelerationDomains'])
-            ? $dResult['data']['AccelerationDomains']
-            : array();
-    } else {
-        $domainsError = $dResult['error'];
-    }
+if ($eo !== null && $zoneId !== '') {
+    if ($canManage) {
+        $dResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+            return $eo->accelerationDomain->describeAccelerationDomains(array(
+                'ZoneId' => $zoneId,
+                'Offset' => 0,
+                'Limit'  => 100,
+            ));
+        }, array());
+        if ($dResult['ok']) {
+            $domains = isset($dResult['data']['AccelerationDomains']) && is_array($dResult['data']['AccelerationDomains'])
+                ? $dResult['data']['AccelerationDomains']
+                : array();
+        } else {
+            $domainsError = $dResult['error'];
+        }
 
-    $ddosResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
-        return $eo->security->describeDDoSProtection(array('ZoneId' => $zoneId));
-    });
-    if ($ddosResult['ok'] && is_array($ddosResult['data'])) {
-        $ddosData = $ddosResult['data'];
+        $ddosResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+            return $eo->security->describeDDoSProtection(array('ZoneId' => $zoneId));
+        });
+        if ($ddosResult['ok'] && is_array($ddosResult['data'])) {
+            $ddosData = $ddosResult['data'];
+        }
     }
     $ddosLabel = vs_edgeone_fetch_zone_ddos_label($eo, $zoneId);
 }
 ?>
 
 <div id="edgeoneDomainsPage">
-    <?php echo vs_edgeone_render_domain_toolbar($zones, $zoneId, $canManage); ?>
-
-    <div class="vs-panel vs-edgeone-domain-config-panel">
-        <?php echo vs_edgeone_render_domain_zone_config($currentZone, $ddosLabel); ?>
-    </div>
+    <?php echo vs_edgeone_render_domain_site_panel($zones, $zoneId, $currentZone, $ddosLabel, $canManage); ?>
 
     <?php echo vs_edgeone_render_domain_list_panel($domains, $ddosData, $domainsError, $zoneId, $canManage); ?>
 

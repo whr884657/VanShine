@@ -112,19 +112,23 @@ try {
                 'DomainName' => $domain,
             );
             $origin = trim(isset($_POST['origin']) ? $_POST['origin'] : '');
-            if ($origin !== '') {
-                $originType = trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN');
-                $originInfo = array(
-                    'OriginType' => $originType !== '' ? $originType : 'IP_DOMAIN',
-                    'Origin'     => $origin,
-                );
-                $hostMode = trim(isset($_POST['host_header_mode']) ? $_POST['host_header_mode'] : '');
-                $hostHeader = trim(isset($_POST['host_header']) ? $_POST['host_header'] : '');
-                if ($hostMode === 'custom' && $hostHeader !== '') {
-                    $originInfo['HostHeader'] = $hostHeader;
-                }
-                $params['OriginInfo'] = $originInfo;
+            if ($origin === '') {
+                throw new Exception('请填写源站地址');
             }
+            $originType = strtolower(trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'ip_domain'));
+            if ($originType === '' || $originType === 'ip/domain') {
+                $originType = 'ip_domain';
+            }
+            $originInfo = array(
+                'OriginType' => $originType !== '' ? $originType : 'ip_domain',
+                'Origin'     => $origin,
+            );
+            $hostMode = trim(isset($_POST['host_header_mode']) ? $_POST['host_header_mode'] : '');
+            $hostHeader = trim(isset($_POST['host_header']) ? $_POST['host_header'] : '');
+            if ($hostMode === 'custom' && $hostHeader !== '') {
+                $originInfo['HostHeader'] = $hostHeader;
+            }
+            $params['OriginInfo'] = $originInfo;
             $protocol = trim(isset($_POST['origin_protocol']) ? $_POST['origin_protocol'] : '');
             if ($protocol !== '') {
                 $params['OriginProtocol'] = $protocol;
@@ -158,9 +162,12 @@ try {
             );
             $origin = trim(isset($_POST['origin']) ? $_POST['origin'] : '');
             if ($origin !== '') {
-                $originType = trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN');
+                $originType = strtolower(trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'ip_domain'));
+                if (strtoupper($originType) === 'IP_DOMAIN') {
+                    $originType = 'ip_domain';
+                }
                 $params['OriginInfo'] = array(
-                    'OriginType' => $originType !== '' ? $originType : 'IP_DOMAIN',
+                    'OriginType' => $originType !== '' ? $originType : 'ip_domain',
                     'Origin'     => $origin,
                 );
             }
@@ -212,6 +219,69 @@ try {
                 'DomainNames' => array($domain),
             ));
             AjaxResponse::success('域名已删除', array('data' => $resp));
+
+        case 'domain_cert_apply':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            $method = trim(isset($_POST['verification_method']) ? $_POST['verification_method'] : 'http_challenge');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            if (!in_array($method, array('http_challenge', 'dns_challenge'), true)) {
+                throw new Exception('无效的验证方式');
+            }
+            $resp = $eo->certificate->applyFreeCertificate(array(
+                'ZoneId'             => $zoneId,
+                'Domain'             => $domain,
+                'VerificationMethod' => $method,
+            ));
+            AjaxResponse::success('免费证书申请已发起，请按提示完成验证', array('data' => $resp));
+
+        case 'domain_cert_check':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            $check = $eo->certificate->checkFreeCertificateVerification(array(
+                'ZoneId' => $zoneId,
+                'Domain' => $domain,
+            ));
+            $deploy = $eo->certificate->modifyHostsCertificate(array(
+                'ZoneId' => $zoneId,
+                'Hosts'  => array($domain),
+                'Mode'   => 'eofreecert_manual',
+            ));
+            AjaxResponse::success('免费证书已验证并部署', array(
+                'data' => array(
+                    'check'  => $check,
+                    'deploy' => $deploy,
+                ),
+            ));
+
+        case 'domain_cert_deploy':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            $mode = trim(isset($_POST['mode']) ? $_POST['mode'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            if (!in_array($mode, array('disable', 'eofreecert', 'eofreecert_manual'), true)) {
+                throw new Exception('无效的证书模式');
+            }
+            $resp = $eo->certificate->modifyHostsCertificate(array(
+                'ZoneId' => $zoneId,
+                'Hosts'  => array($domain),
+                'Mode'   => $mode,
+            ));
+            $msg = $mode === 'disable' ? 'HTTPS 已关闭' : 'HTTPS 证书配置已更新';
+            AjaxResponse::success($msg, array('data' => $resp));
 
         case 'zones_overview_data':
             @set_time_limit(300);

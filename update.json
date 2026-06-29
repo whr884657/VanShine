@@ -1,12 +1,12 @@
 {
-    "version": "1.0.87",
+    "version": "1.1.0",
     "release_date": "2026-06-29",
-    "title": "EdgeOne 概览基础数据与时间范围优化",
+    "title": "EdgeOne 概览改版：自定义筛选与腾讯云式布局",
     "db_changes": false,
     "changes": [
-        "时间范围精简为 30 分钟~30 天共 9 档",
-        "概览新增基础数据 KPI（总流量/响应/请求/缓存命中率）",
-        "查询按钮与筛选条件同行，移除多余提示"
+        "概览支持 Filters.N 自定义筛选（国家/状态码/协议/缓存等）",
+        "侧栏 KPI + 流量图 + 区域分布 + Top 排行布局",
+        "时间范围改为 Tab 快捷选择"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

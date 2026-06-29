@@ -267,42 +267,133 @@
                 });
             });
         }
+
+        bindCustomFilters(form);
+    }
+
+    function bindCustomFilters(form) {
+        if (!form || form.dataset.customBound === '1') return;
+        form.dataset.customBound = '1';
+
+        var wrap = form.querySelector('#edgeoneCustomFilters');
+        if (!wrap) return;
+
+        var list = wrap.querySelector('#edgeoneCustomFiltersList');
+        var jsonInput = wrap.querySelector('#edgeoneCustomFiltersJson');
+        var addBtn = wrap.querySelector('#edgeoneAddFilterBtn');
+        var tpl = document.getElementById('edgeoneCustomFilterRowTpl');
+        var defs = {};
+        try {
+            defs = JSON.parse(wrap.getAttribute('data-defs') || '{}');
+        } catch (e) {
+            defs = {};
+        }
+
+        function syncJson() {
+            if (!jsonInput || !list) return;
+            var rows = [];
+            list.querySelectorAll('.vs-edgeone-custom-filter-row').forEach(function (row) {
+                var keyEl = row.querySelector('.vs-edgeone-custom-filter-row__key');
+                var opEl = row.querySelector('.vs-edgeone-custom-filter-row__op');
+                var valEl = row.querySelector('.vs-edgeone-custom-filter-row__value');
+                if (!keyEl || !opEl || !valEl) return;
+                var key = keyEl.value.trim();
+                if (!key) return;
+                var values = valEl.value.split(/[\r\n,;|]+/).map(function (v) { return v.trim(); }).filter(Boolean);
+                if (!values.length) return;
+                rows.push({ key: key, operator: opEl.value, values: values });
+            });
+            jsonInput.value = JSON.stringify(rows);
+            var emptyTip = list.querySelector('#edgeoneCustomFiltersEmpty');
+            if (emptyTip) {
+                emptyTip.style.display = rows.length ? 'none' : '';
+            }
+        }
+
+        function bindRow(row) {
+            row.querySelectorAll('select, input').forEach(function (el) {
+                el.addEventListener('change', syncJson);
+                el.addEventListener('input', syncJson);
+            });
+            var enumSel = row.querySelector('.vs-edgeone-custom-filter-row__value-enum');
+            if (enumSel) {
+                enumSel.addEventListener('change', function () {
+                    var hidden = row.querySelector('.vs-edgeone-custom-filter-row__value');
+                    if (!hidden) return;
+                    var vals = [];
+                    enumSel.querySelectorAll('option:checked').forEach(function (opt) {
+                        vals.push(opt.value);
+                    });
+                    hidden.value = vals.join('\n');
+                    syncJson();
+                });
+            }
+            var removeBtn = row.querySelector('.vs-edgeone-custom-filter-row__remove');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function () {
+                    row.remove();
+                    syncJson();
+                });
+            }
+            var keyEl = row.querySelector('.vs-edgeone-custom-filter-row__key');
+            if (keyEl) {
+                keyEl.addEventListener('change', function () {
+                    syncJson();
+                });
+            }
+        }
+
+        list.querySelectorAll('.vs-edgeone-custom-filter-row').forEach(bindRow);
+
+        if (addBtn && tpl && list) {
+            addBtn.addEventListener('click', function () {
+                var html = tpl.innerHTML.replace(/__IDX__/g, String(Date.now()));
+                var holder = document.createElement('div');
+                holder.innerHTML = html.trim();
+                var row = holder.firstElementChild;
+                if (!row) return;
+                list.appendChild(row);
+                bindRow(row);
+                syncJson();
+            });
+        }
+
+        form.querySelectorAll('.vs-edgeone-range-tabs__item input').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                form.querySelectorAll('.vs-edgeone-range-tabs__item').forEach(function (item) {
+                    item.classList.toggle('is-active', item.contains(radio) && radio.checked);
+                });
+            });
+        });
+
+        form.addEventListener('submit', syncJson);
+        syncJson();
     }
 
     function loadOverviewData(form) {
-        var chartsHost = document.getElementById('edgeoneChartsHost');
-        var summaryHost = document.getElementById('edgeoneSummaryHost');
-        if (!chartsHost) return;
+        var dashboardHost = document.getElementById('edgeoneDashboardHost');
+        if (!dashboardHost) return;
 
-        if (summaryHost) {
-            summaryHost.innerHTML = '<article class="vs-edgeone-kpi vs-edgeone-kpi--loading"><span class="vs-edgeone-kpi__label">加载中</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
-        }
-        chartsHost.innerHTML = '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading"><p class="vs-form-tip">统计图加载中…</p></div>';
+        dashboardHost.classList.add('vs-edgeone-overview--loading');
+        dashboardHost.innerHTML = '<aside class="vs-edgeone-overview__sidebar"><article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar vs-edgeone-kpi--loading"><span class="vs-edgeone-kpi__label">加载中</span><strong class="vs-edgeone-kpi__value">—</strong></article></aside><div class="vs-edgeone-overview__main"><div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading"><p class="vs-form-tip">数据加载中…</p></div></div>';
 
         var body = new FormData(form);
         body.set('action', 'overview_data');
 
         postFormData(body).then(function (data) {
             if (data.code !== 1 || !data.data) {
-                if (summaryHost) {
-                    summaryHost.innerHTML = '<article class="vs-edgeone-kpi"><span class="vs-edgeone-kpi__label">加载失败</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
-                }
-                chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">加载失败：' + (data.msg || '未知错误') + '</p></div>';
+                dashboardHost.classList.remove('vs-edgeone-overview--loading');
+                dashboardHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">加载失败：' + (data.msg || '未知错误') + '</p></div>';
                 return;
             }
-            if (summaryHost && data.data.summary_html) {
-                summaryHost.outerHTML = data.data.summary_html;
-            }
-            if (data.data.charts_html) {
-                chartsHost.outerHTML = data.data.charts_html;
+            if (data.data.dashboard_html) {
+                dashboardHost.outerHTML = data.data.dashboard_html;
             }
             bindCharts(document);
             keepCleanUrl();
         }).catch(function () {
-            if (summaryHost) {
-                summaryHost.innerHTML = '<article class="vs-edgeone-kpi"><span class="vs-edgeone-kpi__label">加载失败</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
-            }
-            chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">统计图加载失败，请稍后重试</p></div>';
+            dashboardHost.classList.remove('vs-edgeone-overview--loading');
+            dashboardHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">数据加载失败，请稍后重试</p></div>';
         });
     }
 

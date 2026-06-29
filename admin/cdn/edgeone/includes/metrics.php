@@ -407,20 +407,21 @@ function vs_edgeone_append_total_bandwidth_chart(array $charts)
 }
 
 /**
- * @return array{range: string, filter_zone: string, filter_domain: string}
+ * @return array{range: string, filter_zone: string, filter_domain: string, custom_filters: array<int, array{key: string, operator: string, values: array<int, string>}>}
  */
 function vs_edgeone_overview_filters_default()
 {
     return array(
-        'range'         => '7d',
-        'filter_zone'   => '*',
-        'filter_domain' => '',
+        'range'          => 'today',
+        'filter_zone'    => '*',
+        'filter_domain'  => '',
+        'custom_filters' => array(),
     );
 }
 
 /**
  * @param array<string, mixed> $src
- * @return array{range: string, filter_zone: string, filter_domain: string}
+ * @return array{range: string, filter_zone: string, filter_domain: string, custom_filters: array<int, array{key: string, operator: string, values: array<int, string>}>}
  */
 function vs_edgeone_overview_filters_normalize(array $src)
 {
@@ -437,15 +438,23 @@ function vs_edgeone_overview_filters_normalize(array $src)
         $filterZone = '*';
     }
 
+    $customRaw = array();
+    if (isset($src['custom_filters_json'])) {
+        $customRaw = $src['custom_filters_json'];
+    } elseif (isset($src['custom_filters'])) {
+        $customRaw = $src['custom_filters'];
+    }
+
     return array(
-        'range'         => $rangeKey,
-        'filter_zone'   => $filterZone,
-        'filter_domain' => isset($src['filter_domain']) ? trim((string) $src['filter_domain']) : '',
+        'range'          => $rangeKey,
+        'filter_zone'    => $filterZone,
+        'filter_domain'  => isset($src['filter_domain']) ? trim((string) $src['filter_domain']) : '',
+        'custom_filters' => vs_edgeone_custom_filters_normalize($customRaw),
     );
 }
 
 /**
- * @param array{range: string, filter_zone: string, filter_domain: string} $filters
+ * @param array{range: string, filter_zone: string, filter_domain: string, custom_filters: array} $filters
  * @return void
  */
 function vs_edgeone_overview_filters_save(array $filters)
@@ -667,31 +676,269 @@ function vs_edgeone_l7_metric_query_spec($metric)
 }
 
 /**
+ * @param string $metric
+ * @param string $domain
+ * @param array<int, array{key: string, operator: string, values: array<int, string>}> $customFilters
+ * @return array<int, array{Key: string, Operator: string, Value: array<int, string>}>
+ */
+function vs_edgeone_build_l7_query_filters($metric, $domain, array $customFilters)
+{
+    $spec = vs_edgeone_l7_metric_query_spec($metric);
+    $filters = $spec['filters'];
+
+    if ($domain !== '') {
+        $filters[] = vs_edgeone_analytics_filter('domain', $domain, 'equals');
+    }
+
+    $filters = array_merge(
+        $filters,
+        vs_edgeone_custom_filters_to_api($customFilters, array('domain'))
+    );
+
+    return $filters;
+}
+
+/**
+ * @param array<int, array<string, mixed>> $zones
+ * @param string $filterZone
+ * @return array<int, string>
+ */
+function vs_edgeone_overview_zone_ids(array $zones, $filterZone)
+{
+    if ($filterZone !== '' && $filterZone !== '*') {
+        return array($filterZone);
+    }
+
+    $ids = array();
+    foreach ($zones as $zone) {
+        if (!empty($zone['ZoneId'])) {
+            $ids[] = (string) $zone['ZoneId'];
+        }
+    }
+
+    return count($ids) > 0 ? $ids : array('*');
+}
+
+/**
  * @param EdgeOne $eo
- * @param string  $zoneId
  * @param string  $metric   展示用指标 key
  * @param string  $rangeKey
  * @param string  $domain
+ * @param array<int, array{key: string, operator: string, values: array<int, string>}> $customFilters
+ * @param array<int, string> $zoneIds
  * @return array
  */
-function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $rangeKey, $domain = '')
+function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $rangeKey, $domain = '', array $customFilters = array())
+{
+    return vs_edgeone_query_l7_metric_zones($eo, array($zoneId), $metric, $rangeKey, $domain, $customFilters);
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param array<int, string> $zoneIds
+ * @param string $metric
+ * @param string $rangeKey
+ * @param string $domain
+ * @param array<int, array{key: string, operator: string, values: array<int, string>}> $customFilters
+ * @return array
+ */
+function vs_edgeone_query_l7_metric_zones(EdgeOne $eo, array $zoneIds, $metric, $rangeKey, $domain = '', array $customFilters = array())
 {
     $spec = vs_edgeone_l7_metric_query_spec($metric);
     $range = vs_edgeone_analytics_range_preset($rangeKey);
     $params = array_merge($range['times'], array(
-        'ZoneIds'     => array($zoneId),
+        'ZoneIds'     => $zoneIds,
         'MetricNames' => array($spec['api_metric']),
     ));
 
-    $filters = $spec['filters'];
-    if ($domain !== '') {
-        $filters[] = vs_edgeone_analytics_filter('domain', $domain, 'equals');
-    }
+    $filters = vs_edgeone_build_l7_query_filters($metric, $domain, $customFilters);
     if (count($filters) > 0) {
         $params['Filters'] = $filters;
     }
 
     return $eo->analytics->describeTimingL7AnalysisData($params);
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param array<int, string> $zoneIds
+ * @param string $metricName
+ * @param string $rangeKey
+ * @param string $domain
+ * @param array<int, array{key: string, operator: string, values: array<int, string>}> $customFilters
+ * @param int $limit
+ * @return array
+ */
+function vs_edgeone_query_l7_top(EdgeOne $eo, array $zoneIds, $metricName, $rangeKey, $domain = '', array $customFilters = array(), $limit = 10)
+{
+    $range = vs_edgeone_analytics_range_preset($rangeKey);
+    $params = array_merge($range['times'], array(
+        'ZoneIds'    => $zoneIds,
+        'MetricName' => (string) $metricName,
+        'Limit'      => max(1, min(100, (int) $limit)),
+    ));
+
+    $filters = vs_edgeone_build_l7_query_filters('', $domain, $customFilters);
+    if (count($filters) > 0) {
+        $params['Filters'] = $filters;
+    }
+
+    return $eo->analytics->describeTopL7AnalysisData($params);
+}
+
+/**
+ * @param array<string, mixed> $response
+ * @return array<int, array{key: string, value: float}>
+ */
+function vs_edgeone_extract_top_data(array $response)
+{
+    $rows = array();
+    $data = isset($response['Data']) && is_array($response['Data']) ? $response['Data'] : array();
+
+    foreach ($data as $block) {
+        if (!is_array($block)) {
+            continue;
+        }
+        $details = isset($block['DetailData']) && is_array($block['DetailData']) ? $block['DetailData'] : array();
+        foreach ($details as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $rows[] = array(
+                'key'   => isset($row['Key']) ? (string) $row['Key'] : '',
+                'value' => (float) (isset($row['Value']) ? $row['Value'] : 0),
+            );
+        }
+    }
+
+    usort($rows, function ($a, $b) {
+        return $b['value'] <=> $a['value'];
+    });
+
+    return $rows;
+}
+
+/**
+ * @return array<int, array{metric: string, title: string, unit: string}>
+ */
+function vs_edgeone_overview_top_panels()
+{
+    return array(
+        array('metric' => 'l7Flow_flux_domain', 'title' => 'Host 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_clientIp', 'title' => '客户端 IP 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_referer', 'title' => 'Referer 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_url', 'title' => 'URL Path 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_resourceType', 'title' => '资源类型排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_statusCode', 'title' => '状态码排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_browserType', 'title' => '客户端浏览器排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_deviceType', 'title' => '客户端设备类型排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_flux_operatingSystemType', 'title' => '客户端操作系统排行', 'unit' => 'bytes'),
+    );
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param array<int, array<string, mixed>> $zones
+ * @param array $filters
+ * @return array
+ */
+function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $filters)
+{
+    $zoneIds = vs_edgeone_overview_zone_ids($zones, $filters['filter_zone']);
+    $domain = isset($filters['filter_domain']) ? (string) $filters['filter_domain'] : '';
+    $custom = isset($filters['custom_filters']) && is_array($filters['custom_filters']) ? $filters['custom_filters'] : array();
+    $rangeKey = isset($filters['range']) ? (string) $filters['range'] : 'today';
+
+    $kpiMetrics = array('l7Flow_flux', 'l7Flow_outFlux', 'l7Flow_inFlux', 'l7Flow_hitRequest', 'l7Flow_request');
+    $charts = array();
+    foreach ($kpiMetrics as $metric) {
+        $charts[$metric] = array(
+            'meta'   => vs_edgeone_metric_meta($metric, 'l7'),
+            'series' => array(),
+            'sum'    => null,
+            'error'  => '',
+        );
+    }
+
+    $fluxChart = array(
+        'meta'   => vs_edgeone_metric_meta('l7Flow_flux', 'l7'),
+        'series' => array(),
+        'sum'    => null,
+        'error'  => '',
+    );
+
+    $result = vs_edgeone_try_call(function () use ($eo, $zoneIds, $kpiMetrics, $rangeKey, $domain, $custom) {
+        return vs_edgeone_query_l7_metric_zones($eo, $zoneIds, 'l7Flow_flux', $rangeKey, $domain, $custom);
+    });
+    if ($result['ok']) {
+        $extracted = vs_edgeone_extract_timing_series($result['data']);
+        $spec = vs_edgeone_l7_metric_query_spec('l7Flow_flux');
+        $fluxChart['series'][] = array(
+            'label'  => '总流量',
+            'points' => vs_edgeone_series_points_for_metric($extracted, $spec['api_metric']),
+        );
+        foreach ($extracted as $block) {
+            if (isset($block['metric']) && (string) $block['metric'] === (string) $spec['api_metric'] && isset($block['sum'])) {
+                $fluxChart['sum'] = (float) $block['sum'];
+                $charts['l7Flow_flux']['sum'] = (float) $block['sum'];
+            }
+        }
+    } else {
+        $fluxChart['error'] = $result['error'];
+    }
+
+    foreach (array('l7Flow_outFlux', 'l7Flow_inFlux', 'l7Flow_hitRequest', 'l7Flow_request') as $metric) {
+        $call = vs_edgeone_try_call(function () use ($eo, $zoneIds, $metric, $rangeKey, $domain, $custom) {
+            return vs_edgeone_query_l7_metric_zones($eo, $zoneIds, $metric, $rangeKey, $domain, $custom);
+        });
+        if (!$call['ok']) {
+            $charts[$metric]['error'] = $call['error'];
+            continue;
+        }
+        $extracted = vs_edgeone_extract_timing_series($call['data']);
+        $spec = vs_edgeone_l7_metric_query_spec($metric);
+        foreach ($extracted as $block) {
+            if (isset($block['metric']) && (string) $block['metric'] === (string) $spec['api_metric'] && isset($block['sum'])) {
+                $charts[$metric]['sum'] = (float) $block['sum'];
+            }
+        }
+    }
+
+    $countryTop = array('title' => '访问区域分布', 'rows' => array(), 'error' => '');
+    $countryCall = vs_edgeone_try_call(function () use ($eo, $zoneIds, $rangeKey, $domain, $custom) {
+        return vs_edgeone_query_l7_top($eo, $zoneIds, 'l7Flow_flux_country', $rangeKey, $domain, $custom, 10);
+    });
+    if ($countryCall['ok']) {
+        $countryTop['rows'] = vs_edgeone_extract_top_data($countryCall['data']);
+    } else {
+        $countryTop['error'] = $countryCall['error'];
+    }
+
+    $tops = array();
+    foreach (vs_edgeone_overview_top_panels() as $panel) {
+        $item = array(
+            'title' => $panel['title'],
+            'unit'  => $panel['unit'],
+            'rows'  => array(),
+            'error' => '',
+        );
+        $topCall = vs_edgeone_try_call(function () use ($eo, $zoneIds, $panel, $rangeKey, $domain, $custom) {
+            return vs_edgeone_query_l7_top($eo, $zoneIds, $panel['metric'], $rangeKey, $domain, $custom, 8);
+        });
+        if ($topCall['ok']) {
+            $item['rows'] = vs_edgeone_extract_top_data($topCall['data']);
+        } else {
+            $item['error'] = $topCall['error'];
+        }
+        $tops[] = $item;
+    }
+
+    return array(
+        'summary'     => vs_edgeone_overview_summary_from_charts($charts),
+        'flux_chart'  => $fluxChart,
+        'country_top' => $countryTop,
+        'top_panels'  => $tops,
+    );
 }
 
 /**
@@ -820,13 +1067,15 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
             }
 
             $spec = vs_edgeone_l7_metric_query_spec($metric);
-            $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters) {
+            $custom = isset($filters['custom_filters']) && is_array($filters['custom_filters']) ? $filters['custom_filters'] : array();
+            $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters, $custom) {
                 return vs_edgeone_query_l7_metric(
                     $eo,
                     $zid,
                     $metric,
                     $filters['range'],
-                    $filters['filter_domain']
+                    $filters['filter_domain'],
+                    $custom
                 );
             });
 

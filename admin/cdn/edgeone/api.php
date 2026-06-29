@@ -114,14 +114,13 @@ try {
             AjaxResponse::success('加速域名已创建', array('data' => $resp));
 
         case 'overview_data':
-            @set_time_limit(180);
+            @set_time_limit(300);
             $filters = vs_edgeone_overview_filters_from_request($_POST);
             $zones = vs_edgeone_fetch_zones($eo);
-            $charts = vs_edgeone_fetch_overview_charts($eo, $zones, $filters);
+            $dashboard = vs_edgeone_fetch_overview_dashboard($eo, $zones, $filters);
             AjaxResponse::success('ok', array(
                 'data' => array(
-                    'summary_html' => vs_edgeone_render_overview_summary_grid($charts),
-                    'charts_html'    => vs_edgeone_render_overview_charts_grid($charts),
+                    'dashboard_html' => vs_edgeone_render_overview_dashboard($dashboard),
                 ),
             ));
 

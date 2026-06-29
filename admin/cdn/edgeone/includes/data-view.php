@@ -399,6 +399,161 @@ function vs_edgeone_render_line_chart(array $cfg)
 }
 
 /**
+ * @param array<int, array{label: string, value: string}> $items
+ * @return string
+ */
+function vs_edgeone_render_overview_summary_sidebar(array $items)
+{
+    ob_start();
+    echo '<aside class="vs-edgeone-overview__sidebar" id="edgeoneSummaryHost">';
+    foreach ($items as $item) {
+        echo '<article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar">';
+        echo '<span class="vs-edgeone-kpi__label">' . vs_e($item['label']) . '</span>';
+        echo '<strong class="vs-edgeone-kpi__value">' . vs_e($item['value']) . '</strong>';
+        echo '</article>';
+    }
+    echo '</aside>';
+
+    return ob_get_clean();
+}
+
+/**
+ * @param array $panel
+ * @return void
+ */
+function vs_edgeone_render_top_rank_panel(array $panel)
+{
+    echo '<div class="vs-panel vs-edgeone-top-panel">';
+    echo '<h3 class="vs-panel__title vs-edgeone-top-panel__title">' . vs_e($panel['title']) . '</h3>';
+    if (!empty($panel['error'])) {
+        echo '<p class="vs-form-tip">查询失败：' . vs_e($panel['error']) . '</p>';
+        echo '</div>';
+        return;
+    }
+    if (empty($panel['rows'])) {
+        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
+        echo '</div>';
+        return;
+    }
+
+    $unit = isset($panel['unit']) ? (string) $panel['unit'] : 'bytes';
+    $max = 0.0;
+    foreach ($panel['rows'] as $row) {
+        $max = max($max, (float) $row['value']);
+    }
+
+    echo '<ul class="vs-edgeone-rank-list">';
+    foreach ($panel['rows'] as $row) {
+        $pct = $max > 0 ? round(((float) $row['value'] / $max) * 100, 1) : 0;
+        $label = vs_edgeone_format_top_label($row['key']);
+        $val = vs_edgeone_format_metric_value($row['value'], $unit);
+        echo '<li class="vs-edgeone-rank-list__item">';
+        echo '<div class="vs-edgeone-rank-list__meta">';
+        echo '<span class="vs-edgeone-rank-list__name" title="' . vs_e($label) . '">' . vs_e($label) . '</span>';
+        echo '<span class="vs-edgeone-rank-list__value">' . vs_e($val) . '</span>';
+        echo '</div>';
+        echo '<div class="vs-edgeone-rank-list__bar"><span style="width:' . (float) $pct . '%"></span></div>';
+        echo '</li>';
+    }
+    echo '</ul>';
+    echo '</div>';
+}
+
+/**
+ * @param string $key
+ * @return string
+ */
+function vs_edgeone_format_top_label($key)
+{
+    $key = trim((string) $key);
+    if ($key === '') {
+        return '-';
+    }
+
+    static $countries = array(
+        'CN' => '中国大陆', 'US' => '美国', 'HK' => '中国香港', 'TW' => '中国台湾',
+        'JP' => '日本', 'SG' => '新加坡', 'KR' => '韩国', 'DE' => '德国', 'GB' => '英国',
+    );
+
+    if (isset($countries[$key])) {
+        return $countries[$key] . ' (' . $key . ')';
+    }
+
+    return $key;
+}
+
+/**
+ * @param array $dashboard
+ * @return string
+ */
+function vs_edgeone_render_overview_dashboard(array $dashboard)
+{
+    ob_start();
+    echo '<div class="vs-edgeone-overview" id="edgeoneDashboardHost">';
+    echo vs_edgeone_render_overview_summary_sidebar(isset($dashboard['summary']) ? $dashboard['summary'] : array());
+
+    echo '<div class="vs-edgeone-overview__main">';
+
+    $flux = isset($dashboard['flux_chart']) ? $dashboard['flux_chart'] : array();
+    echo '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-overview-chart">';
+    echo '<h3 class="vs-panel__title">L7 访问流量</h3>';
+    if (!empty($flux['error'])) {
+        echo '<p class="vs-form-tip">查询失败：' . vs_e($flux['error']) . '</p>';
+    } elseif (empty($flux['series'])) {
+        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
+    } else {
+        if (isset($flux['sum']) && $flux['sum'] !== null) {
+            echo '<p class="vs-edgeone-metric-avg">区间合计：<strong>' . vs_e(vs_edgeone_format_metric_value($flux['sum'], 'bytes')) . '</strong></p>';
+        }
+        vs_edgeone_render_multi_line_chart(array(
+            'unit'   => 'bytes',
+            'series' => $flux['series'],
+        ));
+    }
+    echo '</div>';
+
+    $country = isset($dashboard['country_top']) ? $dashboard['country_top'] : array();
+    echo '<div class="vs-panel vs-edgeone-country-panel">';
+    echo '<h3 class="vs-panel__title">' . vs_e(isset($country['title']) ? $country['title'] : '访问区域分布') . '</h3>';
+    if (!empty($country['error'])) {
+        echo '<p class="vs-form-tip">查询失败：' . vs_e($country['error']) . '</p>';
+    } elseif (empty($country['rows'])) {
+        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
+    } else {
+        $total = 0.0;
+        foreach ($country['rows'] as $row) {
+            $total += (float) $row['value'];
+        }
+        echo '<div class="vs-edgeone-country-layout">';
+        echo '<div class="vs-edgeone-country-map" aria-hidden="true"><div class="vs-edgeone-country-map__placeholder">区域分布</div></div>';
+        echo '<div class="vs-edgeone-country-list">';
+        foreach ($country['rows'] as $row) {
+            $pct = $total > 0 ? round(((float) $row['value'] / $total) * 100, 2) : 0;
+            $label = vs_edgeone_format_top_label($row['key']);
+            echo '<div class="vs-edgeone-country-list__item">';
+            echo '<span class="vs-edgeone-country-list__name">' . vs_e($label) . '</span>';
+            echo '<span class="vs-edgeone-country-list__value">' . vs_e(vs_edgeone_format_metric_value($row['value'], 'bytes')) . ' (' . vs_e(number_format($pct, 2)) . '%)</span>';
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
+    echo '</div>';
+
+    echo '<div class="vs-edgeone-top-grid">';
+    $panels = isset($dashboard['top_panels']) && is_array($dashboard['top_panels']) ? $dashboard['top_panels'] : array();
+    foreach ($panels as $panel) {
+        vs_edgeone_render_top_rank_panel($panel);
+    }
+    echo '</div>';
+
+    echo '</div>';
+    echo '</div>';
+
+    return ob_get_clean();
+}
+
+/**
  * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
  * @return string
  */

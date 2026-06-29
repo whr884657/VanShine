@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.1.0",
+            "date": "2026-06-29",
+            "title": "EdgeOne 概览改版：自定义筛选与腾讯云式布局",
+            "db_changes": false,
+            "changes": [
+                "Filters.N 自定义筛选",
+                "侧栏 KPI + Top 排行布局",
+                "时间范围 Tab 选择"
+            ]
+        },
+        {
             "version": "1.0.87",
             "date": "2026-06-29",
             "title": "EdgeOne 概览基础数据与时间范围优化",

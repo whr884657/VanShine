@@ -850,3 +850,209 @@
         width: 100%;
     }
 }
+
+/* 时间范围 Tab */
+.vs-edgeone-range-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.vs-edgeone-range-tabs__item {
+    position: relative;
+    cursor: pointer;
+}
+
+.vs-edgeone-range-tabs__item input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vs-edgeone-range-tabs__item span {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.vs-edgeone-range-tabs__item.is-active span,
+.vs-edgeone-range-tabs__item input:checked + span {
+    color: var(--primary, #1677ff);
+    border-color: rgba(22, 119, 255, 0.55);
+    background: rgba(22, 119, 255, 0.06);
+}
+
+/* 自定义筛选 Filters.N */
+.vs-edgeone-custom-filters {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color, #e8e8e8);
+}
+
+.vs-edgeone-custom-filters__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.vs-edgeone-custom-filters__title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.vs-edgeone-custom-filter-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.2fr) minmax(110px, 0.9fr) minmax(180px, 2fr) auto;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.vs-edgeone-custom-filter-row__value-wrap,
+.vs-edgeone-custom-filter-row__value {
+    width: 100%;
+}
+
+@media (max-width: 991px) {
+    .vs-edgeone-custom-filter-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 概览主布局：侧栏 KPI + 主内容 */
+.vs-edgeone-overview {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.vs-edgeone-overview__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vs-edgeone-kpi--sidebar {
+    margin: 0;
+}
+
+.vs-edgeone-overview__main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.vs-edgeone-country-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.vs-edgeone-country-map__placeholder {
+    min-height: 180px;
+    border: 1px dashed var(--border-color, #e8e8e8);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary, #888);
+    background: linear-gradient(135deg, rgba(22, 119, 255, 0.04), rgba(22, 119, 255, 0.12));
+}
+
+.vs-edgeone-country-list__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    font-size: 13px;
+}
+
+.vs-edgeone-country-list__item:last-child {
+    border-bottom: none;
+}
+
+.vs-edgeone-top-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.vs-edgeone-rank-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.vs-edgeone-rank-list__item {
+    margin-bottom: 10px;
+}
+
+.vs-edgeone-rank-list__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.vs-edgeone-rank-list__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary, #222);
+}
+
+.vs-edgeone-rank-list__value {
+    flex-shrink: 0;
+    color: var(--text-secondary, #666);
+}
+
+.vs-edgeone-rank-list__bar {
+    height: 6px;
+    border-radius: 999px;
+    background: #f0f0f0;
+    overflow: hidden;
+}
+
+.vs-edgeone-rank-list__bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #69b1ff, #1677ff);
+}
+
+@media (max-width: 1199px) {
+    .vs-edgeone-top-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991px) {
+    .vs-edgeone-overview {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-edgeone-overview__sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vs-edgeone-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-edgeone-country-layout {
+        grid-template-columns: 1fr;
+    }
+}

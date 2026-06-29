@@ -1740,13 +1740,35 @@
 }
 
 @media (min-width: 768px) {
+    .vs-edgeone-filter-drawer {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .vs-edgeone-filter-drawer.is-open {
+        display: flex;
+    }
+
     .vs-edgeone-filter-drawer__panel {
-        top: 50%;
-        left: 50%;
-        width: min(720px, calc(100vw - 48px));
-        max-height: min(560px, calc(100vh - 48px));
-        border-radius: 12px;
-        transform: translate(-50%, -50%);
+        position: relative;
+        top: auto;
+        left: auto;
+        width: var(--vs-desktop-modal-width, min(96vw, 1120px));
+        max-width: var(--vs-desktop-modal-max-width, 1120px);
+        min-width: var(--vs-desktop-modal-min-width, min(96vw, 720px));
+        height: var(--vs-desktop-modal-height, min(92vh, 860px));
+        max-height: var(--vs-desktop-modal-height, min(92vh, 860px));
+        border-radius: 14px;
+        transform: scale(0.96);
+        opacity: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .vs-edgeone-filter-drawer.is-open .vs-edgeone-filter-drawer__panel {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
@@ -2117,10 +2139,12 @@
 
     .vs-edgeone-zone-create-drawer__panel {
         position: relative;
-        width: min(520px, calc(100vw - 48px));
-        height: auto;
-        max-height: min(560px, calc(100vh - 48px));
-        border-radius: 12px;
+        width: var(--vs-desktop-modal-width, min(96vw, 1120px));
+        max-width: var(--vs-desktop-modal-max-width, 1120px);
+        min-width: var(--vs-desktop-modal-min-width, min(96vw, 720px));
+        height: var(--vs-desktop-modal-height, min(92vh, 860px));
+        max-height: var(--vs-desktop-modal-height, min(92vh, 860px));
+        border-radius: 14px;
         transform: scale(0.96);
         opacity: 0;
         transition: transform 0.25s ease, opacity 0.25s ease;
@@ -2249,6 +2273,19 @@
 }
 
 /* 域名管理页 */
+.vs-edgeone-page-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    padding: 48px 24px;
+}
+
+.vs-edgeone-main.is-loading {
+    opacity: 0.72;
+    pointer-events: none;
+}
+
 #edgeoneDomainsPage {
     display: flex;
     flex-direction: column;

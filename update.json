@@ -1,12 +1,12 @@
 {
-    "version": "1.4.2",
+    "version": "1.4.3",
     "release_date": "2026-06-30",
-    "title": "EdgeOne 域名弹窗修复与抽屉 UI 规范统一",
+    "title": "EdgeOne 弹窗尺寸与导航体验修复",
     "db_changes": false,
     "changes": [
-        "修复 OriginType 须为 IP_DOMAIN 的添加域名报错",
-        "电脑端弹窗居中固定头尾，手机端抽屉统一 80vh",
-        "站点标签上移、IPv6 选中态、按钮圆角矩形化"
+        "电脑端 EdgeOne 弹窗尺寸对齐文件预览（1120×860）",
+        "修复页内导航先闪上一页、fragment 双层容器问题",
+        "新增 --vs-desktop-modal-* 全局尺寸变量"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

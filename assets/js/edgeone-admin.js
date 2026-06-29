@@ -51,6 +51,7 @@
         }
 
         var path = url.split('?')[0];
+        main.innerHTML = '<div class="vs-edgeone-page-loading"><p class="vs-form-tip">页面加载中…</p></div>';
         main.classList.add('is-loading');
         return fetch(path + '?fragment=1', { credentials: 'same-origin' })
             .then(function (res) {
@@ -65,9 +66,9 @@
                 bindOverviewPage(main);
                 bindZonesPage(main);
                 bindDomainsPage(main);
+                bindZoneForm(main);
                 bindCharts(main);
                 updateNavActive(path);
-                keepCleanUrl();
                 if (pushState !== false && window.history.pushState) {
                     window.history.pushState({ edgeone: true }, '', path);
                 }
@@ -101,6 +102,7 @@
             bindOverviewPage(main);
             bindZonesPage(main);
             bindDomainsPage(main);
+            bindZoneForm(main);
             bindCharts(main);
             keepCleanUrl();
         }).catch(function () {
@@ -1126,8 +1128,9 @@
         });
     }
 
-    function bindZoneForm() {
-        var form = document.getElementById('edgeoneZoneForm');
+    function bindZoneForm(root) {
+        var scope = root || document;
+        var form = scope.querySelector('#edgeoneZoneForm');
         if (!form || form.dataset.bound === '1') return;
         form.dataset.bound = '1';
         form.addEventListener('submit', function (e) {

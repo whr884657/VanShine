@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.3",
+            "date": "2026-06-30",
+            "title": "EdgeOne 弹窗尺寸与导航体验修复",
+            "db_changes": false,
+            "changes": [
+                "电脑端弹窗对齐文件预览尺寸",
+                "修复 SPA 导航闪屏与 fragment 嵌套",
+                "桌面弹窗 CSS 变量统一"
+            ]
+        },
+        {
             "version": "1.4.2",
             "date": "2026-06-30",
             "title": "EdgeOne 域名弹窗修复与抽屉 UI 规范统一",

@@ -10,16 +10,15 @@
 function vs_edgeone_analytics_ranges()
 {
     return array(
-        '1min'  => array('label' => '近 1 分钟', 'seconds' => 60),
-        '5min'  => array('label' => '近 5 分钟', 'seconds' => 300),
-        '1h'    => array('label' => '近 1 小时', 'seconds' => 3600),
-        '2h'    => array('label' => '近 2 小时', 'seconds' => 7200),
-        '1d'    => array('label' => '近 1 天', 'seconds' => 86400),
-        '24h'   => array('label' => '近 24 小时', 'seconds' => 86400),
-        '7d'    => array('label' => '近 7 天', 'seconds' => 604800),
-        '15d'   => array('label' => '近 15 天', 'seconds' => 1296000),
-        '31d'   => array('label' => '近 31 天', 'seconds' => 2678400),
-        '30d'   => array('label' => '近 30 天', 'seconds' => 2592000),
+        '30min'     => array('label' => '近 30 分钟', 'seconds' => 1800),
+        '1h'        => array('label' => '近 1 小时', 'seconds' => 3600),
+        '6h'        => array('label' => '近 6 小时', 'seconds' => 21600),
+        'today'     => array('label' => '今天', 'kind' => 'today'),
+        'yesterday' => array('label' => '昨天', 'kind' => 'yesterday'),
+        '3d'        => array('label' => '近 3 天', 'seconds' => 259200),
+        '7d'        => array('label' => '近 7 天', 'seconds' => 604800),
+        '14d'       => array('label' => '近 14 天', 'seconds' => 1209600),
+        '30d'       => array('label' => '近 30 天', 'seconds' => 2592000),
     );
 }
 
@@ -140,6 +139,29 @@ function vs_edgeone_analytics_range_preset($rangeKey)
     }
     $cfg = $ranges[$rangeKey];
     $end = strtotime('-10 minutes');
+
+    if (isset($cfg['kind']) && $cfg['kind'] === 'today') {
+        return array(
+            'label' => $cfg['label'],
+            'times' => array(
+                'StartTime' => date('Y-m-d\T00:00:00+08:00', $end),
+                'EndTime'   => date('Y-m-d\TH:i:s+08:00', $end),
+            ),
+        );
+    }
+
+    if (isset($cfg['kind']) && $cfg['kind'] === 'yesterday') {
+        $day = strtotime('-1 day', $end);
+
+        return array(
+            'label' => $cfg['label'],
+            'times' => array(
+                'StartTime' => date('Y-m-d\T00:00:00+08:00', $day),
+                'EndTime'   => date('Y-m-d\T23:59:59+08:00', $day),
+            ),
+        );
+    }
+
     $start = $end - (int) $cfg['seconds'];
 
     return array(
@@ -860,6 +882,43 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
     }
 
     return vs_edgeone_append_total_bandwidth_chart($charts);
+}
+
+/**
+ * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
+ * @return array<int, array{label: string, value: string}>
+ */
+function vs_edgeone_overview_summary_from_charts(array $charts)
+{
+    $flux = isset($charts['l7Flow_flux']['sum']) ? $charts['l7Flow_flux']['sum'] : null;
+    $outFlux = isset($charts['l7Flow_outFlux']['sum']) ? $charts['l7Flow_outFlux']['sum'] : null;
+    $inFlux = isset($charts['l7Flow_inFlux']['sum']) ? $charts['l7Flow_inFlux']['sum'] : null;
+    $hit = isset($charts['l7Flow_hitRequest']['sum']) ? $charts['l7Flow_hitRequest']['sum'] : null;
+    $request = isset($charts['l7Flow_request']['sum']) ? $charts['l7Flow_request']['sum'] : null;
+
+    $hitRate = null;
+    if ($request !== null && (float) $request > 0 && $hit !== null) {
+        $hitRate = ((float) $hit / (float) $request) * 100;
+    }
+
+    return array(
+        array(
+            'label' => '总流量',
+            'value' => vs_edgeone_format_metric_value($flux, 'bytes'),
+        ),
+        array(
+            'label' => 'EdgeOne 响应流量',
+            'value' => vs_edgeone_format_metric_value($outFlux, 'bytes'),
+        ),
+        array(
+            'label' => '客户端请求流量',
+            'value' => vs_edgeone_format_metric_value($inFlux, 'bytes'),
+        ),
+        array(
+            'label' => '缓存命中率',
+            'value' => $hitRate !== null ? number_format($hitRate, 2) . '%' : '-',
+        ),
+    );
 }
 
 /**

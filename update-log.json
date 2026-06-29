@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.87",
+            "date": "2026-06-29",
+            "title": "EdgeOne 概览基础数据与时间范围优化",
+            "db_changes": false,
+            "changes": [
+                "时间范围精简为 9 档（30 分钟~30 天）",
+                "概览新增基础数据 KPI 四卡片",
+                "查询按钮与筛选同行"
+            ]
+        },
+        {
             "version": "1.0.86",
             "date": "2026-06-29",
             "title": "EdgeOne 移除时间颗粒度与概览查询布局优化",

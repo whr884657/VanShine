@@ -673,6 +673,16 @@
     margin: 12px 0 16px;
 }
 
+.vs-edgeone-kpi-grid--overview {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 991px) {
+    .vs-edgeone-kpi-grid--overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .vs-edgeone-kpi {
     padding: 14px 16px;
     border: 1px solid var(--border-color, #e8e8e8);
@@ -783,15 +793,11 @@
     margin-top: 8px;
 }
 
-.vs-edgeone-query-form .vs-form-actions {
-    margin-top: 4px;
-}
-
 .vs-edgeone-filter-tip {
     margin: 4px 0 0;
 }
 
-/* 概览查询条件：电脑端单行横排 */
+/* 概览查询条件：电脑端单行横排（含查询按钮） */
 .vs-edgeone-filter-grid {
     display: flex;
     flex-wrap: nowrap;
@@ -803,6 +809,15 @@
     flex: 1;
     min-width: 0;
     margin-bottom: 0;
+}
+
+.vs-edgeone-filter-grid .vs-form-col--actions {
+    flex: 0 0 auto;
+}
+
+.vs-edgeone-filter-grid .vs-form-col--actions .vs-btn {
+    min-width: 88px;
+    white-space: nowrap;
 }
 
 .vs-edgeone-filter-grid .vs-input {
@@ -822,8 +837,13 @@
         min-width: 0;
     }
 
-    .vs-edgeone-filter-grid .vs-form-col:last-child {
+    .vs-edgeone-filter-grid .vs-form-col--domain,
+    .vs-edgeone-filter-grid .vs-form-col--actions {
         grid-column: 1 / -1;
+    }
+
+    .vs-edgeone-filter-grid .vs-form-col--actions .vs-btn {
+        width: 100%;
     }
 
     .vs-edgeone-filter-grid .vs-input {

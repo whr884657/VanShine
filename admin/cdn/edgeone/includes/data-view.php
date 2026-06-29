@@ -402,6 +402,27 @@ function vs_edgeone_render_line_chart(array $cfg)
  * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
  * @return string
  */
+function vs_edgeone_render_overview_summary_grid(array $charts)
+{
+    $items = vs_edgeone_overview_summary_from_charts($charts);
+
+    ob_start();
+    echo '<div class="vs-edgeone-kpi-grid vs-edgeone-kpi-grid--overview" id="edgeoneSummaryHost">';
+    foreach ($items as $item) {
+        echo '<article class="vs-edgeone-kpi">';
+        echo '<span class="vs-edgeone-kpi__label">' . vs_e($item['label']) . '</span>';
+        echo '<strong class="vs-edgeone-kpi__value">' . vs_e($item['value']) . '</strong>';
+        echo '</article>';
+    }
+    echo '</div>';
+
+    return ob_get_clean();
+}
+
+/**
+ * @param array<string, array{meta: array, series: array, sum: float|null, error: string}> $charts
+ * @return string
+ */
 function vs_edgeone_render_overview_charts_grid(array $charts)
 {
     ob_start();

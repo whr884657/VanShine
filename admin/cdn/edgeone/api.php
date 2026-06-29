@@ -120,7 +120,8 @@ try {
             $charts = vs_edgeone_fetch_overview_charts($eo, $zones, $filters);
             AjaxResponse::success('ok', array(
                 'data' => array(
-                    'charts_html' => vs_edgeone_render_overview_charts_grid($charts),
+                    'summary_html' => vs_edgeone_render_overview_summary_grid($charts),
+                    'charts_html'    => vs_edgeone_render_overview_charts_grid($charts),
                 ),
             ));
 

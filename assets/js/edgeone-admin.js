@@ -271,8 +271,12 @@
 
     function loadOverviewData(form) {
         var chartsHost = document.getElementById('edgeoneChartsHost');
+        var summaryHost = document.getElementById('edgeoneSummaryHost');
         if (!chartsHost) return;
 
+        if (summaryHost) {
+            summaryHost.innerHTML = '<article class="vs-edgeone-kpi vs-edgeone-kpi--loading"><span class="vs-edgeone-kpi__label">加载中</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
+        }
         chartsHost.innerHTML = '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading"><p class="vs-form-tip">统计图加载中…</p></div>';
 
         var body = new FormData(form);
@@ -280,8 +284,14 @@
 
         postFormData(body).then(function (data) {
             if (data.code !== 1 || !data.data) {
+                if (summaryHost) {
+                    summaryHost.innerHTML = '<article class="vs-edgeone-kpi"><span class="vs-edgeone-kpi__label">加载失败</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
+                }
                 chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">加载失败：' + (data.msg || '未知错误') + '</p></div>';
                 return;
+            }
+            if (summaryHost && data.data.summary_html) {
+                summaryHost.outerHTML = data.data.summary_html;
             }
             if (data.data.charts_html) {
                 chartsHost.outerHTML = data.data.charts_html;
@@ -289,6 +299,9 @@
             bindCharts(document);
             keepCleanUrl();
         }).catch(function () {
+            if (summaryHost) {
+                summaryHost.innerHTML = '<article class="vs-edgeone-kpi"><span class="vs-edgeone-kpi__label">加载失败</span><strong class="vs-edgeone-kpi__value">—</strong></article>';
+            }
             chartsHost.innerHTML = '<div class="vs-panel"><p class="vs-form-tip">统计图加载失败，请稍后重试</p></div>';
         });
     }

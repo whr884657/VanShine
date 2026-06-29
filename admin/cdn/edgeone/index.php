@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/index.php
  * 作用：EdgeOne 概览仪表盘
- * @version 1.0.6
+ * @version 1.0.7
  */
 
 require_once __DIR__ . '/init.php';
@@ -31,9 +31,22 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
 }
 ?>
 
+<?php if (vs_edgeone_is_ready() && count($zones) > 0): ?>
+<div class="vs-panel">
+    <h3 class="vs-panel__title">基础数据</h3>
+    <p class="vs-form-tip">当前筛选条件下的汇总数值，随下方查询条件同步更新。数据约有 10 分钟延迟。</p>
+    <div class="vs-edgeone-kpi-grid vs-edgeone-kpi-grid--overview" id="edgeoneSummaryHost">
+        <article class="vs-edgeone-kpi vs-edgeone-kpi--loading">
+            <span class="vs-edgeone-kpi__label">加载中</span>
+            <strong class="vs-edgeone-kpi__value">—</strong>
+        </article>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="vs-panel">
     <h3 class="vs-panel__title">查询条件</h3>
-    <p class="vs-form-tip">设置时间范围、站点与域名后，下方统计图同步更新。时间颗粒度由腾讯云 API 根据起止时间自动推算。数据约有 10 分钟延迟，时间范围最长 31 天。</p>
+    <p class="vs-form-tip">设置时间范围、站点与域名后，基础数据与统计图同步更新。时间颗粒度由腾讯云 API 根据起止时间自动推算。</p>
 
     <?php if (!vs_edgeone_is_ready()): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先完成 EdgeOne 配置。</p>
@@ -65,7 +78,7 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="vs-form-col">
+                <div class="vs-form-col vs-form-col--domain">
                     <label class="vs-label">域名</label>
                     <select name="filter_domain" class="vs-input" id="edgeoneFilterDomain"<?php echo $filters['filter_zone'] === '*' ? ' disabled' : ''; ?>>
                         <option value="">全部域名</option>
@@ -76,12 +89,9 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
                         <?php endforeach; ?>
                     </select>
                 </div>
-            </div>
-            <?php if ($filters['filter_zone'] === '*'): ?>
-                <p class="vs-form-tip vs-edgeone-filter-tip">筛选单个站点后可选择域名</p>
-            <?php endif; ?>
-            <div class="vs-form-actions">
-                <button type="submit" class="vs-btn vs-btn--primary">查询</button>
+                <div class="vs-form-col vs-form-col--actions">
+                    <button type="submit" class="vs-btn vs-btn--primary">查询</button>
+                </div>
             </div>
         </form>
     <?php endif; ?>

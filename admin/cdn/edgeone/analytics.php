@@ -60,7 +60,7 @@ if ($eo !== null && $zoneId !== '') {
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">七层 / 回源 / 四层数据分析</h3>
-    <p class="vs-form-tip">数据约有 10 分钟延迟，建议查询当前时间 10 分钟以前的数据。时间范围不超过 31 天；折线时间颗粒度由 API 根据起止时间自动推算。</p>
+    <p class="vs-form-tip">数据约有 10 分钟延迟，建议查询当前时间 10 分钟以前的数据。时间范围不超过 30 天；折线时间颗粒度由 API 根据起止时间自动推算。</p>
 
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先在上方选择站点后再查询。</p>

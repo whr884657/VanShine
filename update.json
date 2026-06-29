@@ -1,11 +1,12 @@
 {
-    "version": "1.0.86",
+    "version": "1.0.87",
     "release_date": "2026-06-29",
-    "title": "EdgeOne 移除时间颗粒度与概览查询条件布局优化",
+    "title": "EdgeOne 概览基础数据与时间范围优化",
     "db_changes": false,
     "changes": [
-        "查询不再传 Interval，由腾讯云 API 自动推算颗粒度",
-        "概览查询条件：电脑端单行横排，手机端 2 列网格"
+        "时间范围精简为 30 分钟~30 天共 9 档",
+        "概览新增基础数据 KPI（总流量/响应/请求/缓存命中率）",
+        "查询按钮与筛选条件同行，移除多余提示"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

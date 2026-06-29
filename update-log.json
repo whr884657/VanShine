@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.5",
+            "date": "2026-06-30",
+            "title": "修复 EdgeOne HTTPS 证书状态误判为申请中",
+            "db_changes": false,
+            "changes": [
+                "按 CertificateInfo.Status 与默认证书域名匹配解析状态",
+                "已生效 eofreecert 域名不再全部显示申请中",
+                "DescribeDefaultCertificates 补全 ZoneId 与分页"
+            ]
+        },
+        {
             "version": "1.4.4",
             "date": "2026-06-29",
             "title": "EdgeOne 域名管理交互与证书状态优化",

@@ -151,28 +151,40 @@ function vs_edgeone_fetch_single_acceleration_domain(EdgeOne $eo, $zoneId, $doma
 /**
  * @param EdgeOne $eo
  * @param string  $zoneId
- * @return array<string, array<string, mixed>>
+ * @return array{by_id: array<string, array<string, mixed>>, by_domain: array<string, array<string, mixed>>, all: array<int, array<string, mixed>>}
  */
 function vs_edgeone_fetch_zone_cert_index(EdgeOne $eo, $zoneId)
 {
     static $cache = array();
     if ($zoneId === '') {
-        return array();
+        return array('by_id' => array(), 'by_domain' => array(), 'all' => array());
     }
     if (isset($cache[$zoneId])) {
         return $cache[$zoneId];
     }
 
-    $index = array();
-    $result = vs_edgeone_try_call(function () use ($eo, $zoneId) {
-        return $eo->certificate->describeDefaultCertificates(array(
-            'Filters' => array(
-                array('Name' => 'zone-id', 'Values' => array($zoneId)),
-            ),
-            'Limit' => 200,
-        ));
-    }, array());
-    if ($result['ok'] && is_array($result['data'])) {
+    $maps = array('by_id' => array(), 'by_domain' => array(), 'all' => array());
+    $offset = 0;
+    $limit = 200;
+    $total = null;
+
+    do {
+        $result = vs_edgeone_try_call(function () use ($eo, $zoneId, $offset, $limit) {
+            return $eo->certificate->describeDefaultCertificates(array(
+                'ZoneId'  => $zoneId,
+                'Filters' => array(
+                    array('Name' => 'zone-id', 'Values' => array($zoneId)),
+                ),
+                'Offset' => $offset,
+                'Limit'  => $limit,
+            ));
+        }, array());
+        if (!$result['ok'] || !is_array($result['data'])) {
+            break;
+        }
+        if ($total === null && isset($result['data']['TotalCount'])) {
+            $total = (int) $result['data']['TotalCount'];
+        }
         $items = isset($result['data']['DefaultServerCertInfo']) && is_array($result['data']['DefaultServerCertInfo'])
             ? $result['data']['DefaultServerCertInfo']
             : array();
@@ -180,15 +192,156 @@ function vs_edgeone_fetch_zone_cert_index(EdgeOne $eo, $zoneId)
             if (!is_array($cert)) {
                 continue;
             }
+            $maps['all'][] = $cert;
             $cid = isset($cert['CertId']) ? (string) $cert['CertId'] : '';
             if ($cid !== '') {
-                $index[$cid] = $cert;
+                $maps['by_id'][$cid] = $cert;
+            }
+            $names = array();
+            if (isset($cert['CommonName']) && trim((string) $cert['CommonName']) !== '') {
+                $names[] = strtolower(trim((string) $cert['CommonName']));
+            }
+            if (isset($cert['SubjectAltName']) && is_array($cert['SubjectAltName'])) {
+                foreach ($cert['SubjectAltName'] as $san) {
+                    $san = strtolower(trim((string) $san));
+                    if ($san !== '') {
+                        $names[] = $san;
+                    }
+                }
+            }
+            foreach ($names as $name) {
+                if (!isset($maps['by_domain'][$name])) {
+                    $maps['by_domain'][$name] = $cert;
+                }
+            }
+        }
+        $offset += count($items);
+    } while ($total !== null && $offset < $total && count($items) > 0);
+
+    $cache[$zoneId] = $maps;
+
+    return $maps;
+}
+
+/**
+ * @param array<string, mixed> $cert
+ * @param string               $domainName
+ * @return bool
+ */
+function vs_edgeone_cert_covers_domain(array $cert, $domainName)
+{
+    $domainName = strtolower(trim($domainName));
+    if ($domainName === '') {
+        return false;
+    }
+
+    $matchName = function ($pattern) use ($domainName) {
+        $pattern = strtolower(trim((string) $pattern));
+        if ($pattern === '') {
+            return false;
+        }
+        if ($pattern === $domainName) {
+            return true;
+        }
+        if (strpos($pattern, '*.') === 0) {
+            $suffix = substr($pattern, 1);
+            if ($suffix !== '' && strlen($domainName) > strlen($suffix)) {
+                return substr($domainName, -strlen($suffix)) === $suffix;
+            }
+        }
+
+        return false;
+    };
+
+    if ($matchName(isset($cert['CommonName']) ? $cert['CommonName'] : '')) {
+        return true;
+    }
+    if (isset($cert['SubjectAltName']) && is_array($cert['SubjectAltName'])) {
+        foreach ($cert['SubjectAltName'] as $san) {
+            if ($matchName($san)) {
+                return true;
             }
         }
     }
-    $cache[$zoneId] = $index;
 
-    return $index;
+    return false;
+}
+
+/**
+ * @param array{by_id: array<string, array<string, mixed>>, by_domain: array<string, array<string, mixed>>, all: array<int, array<string, mixed>>} $certMaps
+ * @param string $domainName
+ * @return array<string, mixed>|null
+ */
+function vs_edgeone_find_default_cert_for_domain(array $certMaps, $domainName)
+{
+    $domainName = strtolower(trim($domainName));
+    if ($domainName === '') {
+        return null;
+    }
+    if (isset($certMaps['by_domain'][$domainName])) {
+        return $certMaps['by_domain'][$domainName];
+    }
+    if (!isset($certMaps['all']) || !is_array($certMaps['all'])) {
+        return null;
+    }
+    foreach ($certMaps['all'] as $cert) {
+        if (is_array($cert) && vs_edgeone_cert_covers_domain($cert, $domainName)) {
+            return $cert;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * @param string $status
+ * @param string $mode
+ * @param string $expire
+ * @return array{label: string, class: string, mode: string, expire: string, state: string}|null
+ */
+function vs_edgeone_map_cert_status_to_info($status, $mode, $expire = '')
+{
+    $status = strtolower(trim((string) $status));
+    if ($status === 'deployed' || $status === '') {
+        return vs_edgeone_https_info_with_expire('已部署', 'is-ok', 'deployed', $mode, $expire);
+    }
+    if ($status === 'processing') {
+        return array('label' => '部署中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'processing');
+    }
+    if ($status === 'applying') {
+        return array('label' => '申请中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'applying');
+    }
+    if ($status === 'failed') {
+        return array('label' => '部署失败', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'failed');
+    }
+    if ($status === 'issued') {
+        return array('label' => '绑定失败', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'failed');
+    }
+
+    return null;
+}
+
+/**
+ * @param string $label
+ * @param string $class
+ * @param string $state
+ * @param string $mode
+ * @param string $expire
+ * @return array{label: string, class: string, mode: string, expire: string, state: string}
+ */
+function vs_edgeone_https_info_with_expire($label, $class, $state, $mode, $expire)
+{
+    if ($expire !== '') {
+        $expTs = strtotime($expire);
+        if ($expTs !== false && $expTs < time()) {
+            return array('label' => '已过期', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'expired');
+        }
+        if ($expTs !== false && $expTs < time() + 30 * 86400) {
+            return array('label' => '即将过期', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'expiring');
+        }
+    }
+
+    return array('label' => $label, 'class' => $class, 'mode' => $mode, 'expire' => $expire, 'state' => $state);
 }
 
 /**
@@ -407,56 +560,67 @@ function vs_edgeone_render_domain_cname_cell($cname)
 }
 
 /**
- * @param array<string, mixed>             $row
- * @param array<string, array<string, mixed>> $certIndex
+ * @param array<string, mixed> $row
+ * @param array{by_id?: array<string, array<string, mixed>>, by_domain?: array<string, array<string, mixed>>, all?: array<int, array<string, mixed>>} $certMaps
  * @return array{label: string, class: string, mode: string, expire: string, state: string}
  */
-function vs_edgeone_domain_https_info(array $row, array $certIndex = array())
+function vs_edgeone_domain_https_info(array $row, array $certMaps = array())
 {
+    $domainName = isset($row['DomainName']) ? (string) $row['DomainName'] : '';
     $cert = isset($row['Certificate']) && is_array($row['Certificate']) ? $row['Certificate'] : array();
     $mode = strtolower((string) (isset($cert['Mode']) ? $cert['Mode'] : ''));
     $list = isset($cert['List']) && is_array($cert['List']) ? $cert['List'] : array();
+    $domainStatus = strtolower((string) (isset($row['DomainStatus']) ? $row['DomainStatus'] : ''));
 
     if ($mode === '' || $mode === 'disable' || $mode === 'off') {
         return array('label' => '未部署', 'class' => 'is-muted', 'mode' => $mode, 'expire' => '', 'state' => 'off');
     }
 
-    $certDetail = null;
+    $byId = isset($certMaps['by_id']) && is_array($certMaps['by_id']) ? $certMaps['by_id'] : array();
+
     foreach ($list as $item) {
         if (!is_array($item)) {
             continue;
         }
+        $expire = isset($item['ExpireTime']) ? (string) $item['ExpireTime'] : '';
+        if (isset($item['Status']) && trim((string) $item['Status']) !== '') {
+            $info = vs_edgeone_map_cert_status_to_info((string) $item['Status'], $mode, $expire);
+            if ($info !== null) {
+                return $info;
+            }
+        }
         $cid = isset($item['CertId']) ? (string) $item['CertId'] : '';
-        if ($cid !== '' && isset($certIndex[$cid])) {
-            $certDetail = $certIndex[$cid];
-            break;
+        if ($cid !== '' && isset($byId[$cid])) {
+            $detail = $byId[$cid];
+            $detailExpire = isset($detail['ExpireTime']) ? (string) $detail['ExpireTime'] : $expire;
+            $detailStatus = isset($detail['Status']) ? (string) $detail['Status'] : 'deployed';
+            $info = vs_edgeone_map_cert_status_to_info($detailStatus, $mode, $detailExpire);
+            if ($info !== null) {
+                return $info;
+            }
         }
     }
 
-    if ($certDetail !== null) {
-        $st = strtolower((string) (isset($certDetail['Status']) ? $certDetail['Status'] : ''));
-        $expire = isset($certDetail['ExpireTime']) ? (string) $certDetail['ExpireTime'] : '';
-        if ($st === 'processing') {
-            return array('label' => '部署中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'processing');
-        }
-        if ($st === 'failed') {
-            return array('label' => '部署失败', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'failed');
-        }
-        if ($expire !== '') {
-            $expTs = strtotime($expire);
-            if ($expTs !== false && $expTs < time()) {
-                return array('label' => '已过期', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'expired');
+    if ($domainName !== '') {
+        $defaultCert = vs_edgeone_find_default_cert_for_domain($certMaps, $domainName);
+        if ($defaultCert !== null) {
+            $expire = isset($defaultCert['ExpireTime']) ? (string) $defaultCert['ExpireTime'] : '';
+            $st = isset($defaultCert['Status']) ? (string) $defaultCert['Status'] : 'deployed';
+            $info = vs_edgeone_map_cert_status_to_info($st, $mode, $expire);
+            if ($info !== null) {
+                return $info;
             }
-            if ($expTs !== false && $expTs < time() + 30 * 86400) {
-                return array('label' => '即将过期', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'expiring');
-            }
-        }
-        if ($st === 'deployed' || $st === '') {
-            return array('label' => '已部署', 'class' => 'is-ok', 'mode' => $mode, 'expire' => $expire, 'state' => 'deployed');
         }
     }
 
     if (in_array($mode, array('eofreecert', 'eofreecert_manual', 'sslcert'), true)) {
+        if ($domainStatus === 'process') {
+            return array('label' => '部署中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => '', 'state' => 'processing');
+        }
+        if ($domainStatus === 'online') {
+            return array('label' => '已部署', 'class' => 'is-ok', 'mode' => $mode, 'expire' => '', 'state' => 'deployed');
+        }
+
         return array('label' => '申请中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => '', 'state' => 'applying');
     }
 

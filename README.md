@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.4.4**
+**当前版本：1.4.5**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -206,6 +206,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.4.5（2026-06-30）
+
+**类型：** 修复 EdgeOne HTTPS 证书状态误判（小版本）
+
+**变更说明：**
+- 优先使用 `Certificate.List[].Status`（deployed/applying/processing 等）判断证书状态
+- 通过 `DescribeDefaultCertificates` 的 `SubjectAltName`/`CommonName` 匹配域名
+- 修复 v1.4.4 中已部署证书全部误显示「申请中」的问题
+
+**数据库：** 无变更
+
+---
 
 ### v1.4.4（2026-06-29）
 

@@ -1,12 +1,12 @@
 {
-    "version": "1.4.4",
-    "release_date": "2026-06-29",
-    "title": "EdgeOne 域名管理交互与证书状态优化",
+    "version": "1.4.5",
+    "release_date": "2026-06-30",
+    "title": "修复 EdgeOne HTTPS 证书状态误判为申请中",
     "db_changes": false,
     "changes": [
-        "添加域名后局部刷新列表，修复关闭弹窗后页面卡顿",
-        "域名前缀输入、列表/单行刷新按钮，部署中状态可手动更新",
-        "HTTPS 证书状态区分申请中/部署中/已部署/即将过期，部署无整页跳转"
+        "优先读取 Certificate.List[].Status 与默认证书 SubjectAltName 匹配",
+        "DescribeDefaultCertificates 增加 ZoneId 与分页拉取",
+        "已生效域名 eofreecert 模式不再误显示申请中"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

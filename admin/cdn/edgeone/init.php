@@ -16,6 +16,7 @@ require_once __DIR__ . '/includes/filter-builder.php';
 require_once __DIR__ . '/includes/kpi-icons.php';
 require_once __DIR__ . '/includes/flux-dimension.php';
 require_once __DIR__ . '/includes/overview-kpi.php';
+require_once __DIR__ . '/includes/zones-page.php';
 require_once __DIR__ . '/includes/metrics.php';
 
 /** @var string */

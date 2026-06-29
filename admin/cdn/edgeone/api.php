@@ -113,6 +113,20 @@ try {
             ));
             AjaxResponse::success('加速域名已创建', array('data' => $resp));
 
+        case 'zones_overview_data':
+            @set_time_limit(300);
+            $rangeKey = trim(isset($_POST['range']) ? $_POST['range'] : 'today');
+            $chartTab = trim(isset($_POST['chart_tab']) ? $_POST['chart_tab'] : 'flux');
+            $zones = vs_edgeone_fetch_zones($eo);
+            $metrics = vs_edgeone_fetch_zones_page_metrics($eo, $zones, $rangeKey);
+            AjaxResponse::success('ok', array(
+                'data' => array(
+                    'overview_html' => vs_edgeone_render_zones_overview_panel($metrics, $chartTab),
+                    'range'         => $rangeKey,
+                    'chart_tab'     => $chartTab,
+                ),
+            ));
+
         case 'overview_data':
             @set_time_limit(300);
             $filters = vs_edgeone_overview_filters_from_request($_POST);

@@ -345,6 +345,7 @@ function vs_edgeone_plan_type_label($planType)
         'plan-enterprise-v2' => '企业版 V2',
         'plan-basic'         => '基础版',
         'plan-personal'      => '个人版',
+        'plan-free'          => '免费版',
     );
 
     $planType = (string) $planType;

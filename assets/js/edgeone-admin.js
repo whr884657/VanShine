@@ -63,6 +63,7 @@
                 bindApiForms(main);
                 bindFragmentForms(main);
                 bindOverviewPage(main);
+                bindZonesPage(main);
                 bindCharts(main);
                 updateNavActive(path);
                 keepCleanUrl();
@@ -97,6 +98,7 @@
             bindApiForms(main);
             bindFragmentForms(main);
             bindOverviewPage(main);
+            bindZonesPage(main);
             bindCharts(main);
             keepCleanUrl();
         }).catch(function () {
@@ -270,6 +272,160 @@
 
         bindCustomFilters(form);
         bindFluxPanel(scope);
+    }
+
+    function loadZonesOverview(rangeKey, chartTab) {
+        var host = document.getElementById('edgeoneZonesOverviewHost');
+        if (!host) return Promise.resolve();
+
+        host.classList.add('is-loading');
+        var body = new FormData();
+        body.set('action', 'zones_overview_data');
+        body.set('range', rangeKey || 'today');
+        body.set('chart_tab', chartTab || 'flux');
+
+        return postFormData(body)
+            .then(function (data) {
+                if (data.code !== 1 || !data.data || !data.data.overview_html) {
+                    host.innerHTML = '<p class="vs-form-tip">加载失败</p>';
+                    return;
+                }
+                host.innerHTML = data.data.overview_html;
+                host.classList.remove('is-loading');
+                bindZonesOverviewControls(host, rangeKey || 'today', chartTab || 'flux');
+                bindCharts(host);
+            })
+            .catch(function () {
+                host.classList.remove('is-loading');
+                host.innerHTML = '<p class="vs-form-tip">加载失败，请稍后重试</p>';
+            });
+    }
+
+    function bindZonesOverviewControls(scope, currentRange, currentTab) {
+        var panel = scope.querySelector('#edgeoneZonesOverview') || scope;
+        var rangeSelect = panel.querySelector('#edgeoneZonesRange');
+        if (rangeSelect && rangeSelect.dataset.bound !== '1') {
+            rangeSelect.dataset.bound = '1';
+            if (currentRange) {
+                rangeSelect.value = currentRange;
+            }
+            rangeSelect.addEventListener('change', function () {
+                var activeBtn = panel.querySelector('.vs-edgeone-zones-chart-tabs__btn.is-active');
+                var tab = activeBtn ? activeBtn.getAttribute('data-zones-chart') : 'flux';
+                loadZonesOverview(rangeSelect.value, tab);
+            });
+        }
+
+        panel.querySelectorAll('.vs-edgeone-zones-chart-tabs__btn').forEach(function (btn) {
+            if (btn.dataset.bound === '1') return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', function () {
+                var tab = btn.getAttribute('data-zones-chart') || 'flux';
+                var range = rangeSelect ? rangeSelect.value : currentRange;
+                loadZonesOverview(range, tab);
+            });
+        });
+
+        var collapseBtn = panel.querySelector('[data-zones-overview-collapse]');
+        if (collapseBtn && collapseBtn.dataset.bound !== '1') {
+            collapseBtn.dataset.bound = '1';
+            collapseBtn.addEventListener('click', function () {
+                panel.classList.toggle('is-collapsed');
+                collapseBtn.textContent = panel.classList.contains('is-collapsed') ? '展开数据概览' : '收起数据概览';
+            });
+        }
+    }
+
+    function openZoneCreateDrawer() {
+        var drawer = document.getElementById('edgeoneZoneCreateDrawer');
+        if (!drawer) return;
+        drawer.hidden = false;
+        drawer.setAttribute('aria-hidden', 'false');
+        drawer.classList.add('is-open');
+    }
+
+    function closeZoneCreateDrawer() {
+        var drawer = document.getElementById('edgeoneZoneCreateDrawer');
+        if (!drawer) return;
+        drawer.hidden = true;
+        drawer.setAttribute('aria-hidden', 'true');
+        drawer.classList.remove('is-open');
+    }
+
+    function navigateWithZone(zoneId, gotoPath) {
+        if (!zoneId || !gotoPath) return;
+        var body = new FormData();
+        body.set('action', 'set_zone');
+        body.set('zone_id', zoneId);
+        postFormData(body)
+            .then(function (data) {
+                if (data.code !== 1) {
+                    toast(data.msg || '切换站点失败', 'error');
+                    return;
+                }
+                var base = pagePath().replace(/\/[^/]+$/, '');
+                loadMainContent(base + '/' + gotoPath, true);
+            })
+            .catch(function () {
+                toast('网络异常', 'error');
+            });
+    }
+
+    function bindZonesPage(root) {
+        var scope = root || document;
+        var page = scope.querySelector('#edgeoneZonesPage') || (scope.id === 'edgeoneZonesPage' ? scope : null);
+        if (!page) return;
+
+        if (scope === document || scope.id === 'edgeoneMainContent') {
+            var defaultRange = page.getAttribute('data-default-range') || 'today';
+            loadZonesOverview(defaultRange, 'flux');
+        }
+
+        if (page.dataset.zonesBound === '1') return;
+        page.dataset.zonesBound = '1';
+
+        var createBtn = page.querySelector('#edgeoneZoneCreateBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', function () {
+                openZoneCreateDrawer();
+            });
+        }
+
+        page.querySelectorAll('[data-zone-create-close]').forEach(function (node) {
+            node.addEventListener('click', function () {
+                closeZoneCreateDrawer();
+            });
+        });
+
+        var searchInput = page.querySelector('#edgeoneZonesSearch');
+        var table = page.querySelector('#edgeoneZonesTable');
+        var countNode = page.querySelector('#edgeoneZonesCount');
+        if (searchInput && table) {
+            searchInput.addEventListener('input', function () {
+                var q = searchInput.value.trim().toLowerCase();
+                var visible = 0;
+                table.querySelectorAll('tbody tr').forEach(function (row) {
+                    var text = row.getAttribute('data-zone-search') || '';
+                    var show = !q || text.indexOf(q) !== -1;
+                    row.hidden = !show;
+                    if (show) visible++;
+                });
+                if (countNode) {
+                    countNode.textContent = '共 ' + visible + ' 条';
+                }
+            });
+        }
+
+        page.querySelectorAll('[data-set-zone]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var zid = link.getAttribute('data-set-zone');
+                var goto = link.getAttribute('data-goto');
+                if (goto) {
+                    navigateWithZone(zid, goto);
+                }
+            });
+        });
     }
 
     function openFilterDrawer(drawer) {
@@ -729,6 +885,7 @@
         bindApiForms(document);
         bindFragmentForms(document);
         bindOverviewPage(document);
+        bindZonesPage(document);
         bindZoneForm();
         bindMobileDrawer();
         bindDesktopDropdowns();

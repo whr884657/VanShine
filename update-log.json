@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.3.0",
+            "date": "2026-06-30",
+            "title": "EdgeOne 站点管理页改版：对标官方列表与数据概览",
+            "db_changes": false,
+            "changes": [
+                "站点数据概览：4 项 KPI + 指标折线图 Tab",
+                "官方式站点列表与搜索、套餐映射",
+                "新增站点抽屉（仅未绑定套餐可用）",
+                "移除站点选择器、验证信息与 CNAME 状态"
+            ]
+        },
+        {
             "version": "1.2.0",
             "date": "2026-06-30",
             "title": "EdgeOne 概览 1.2：多维流量图、KPI 卡片与筛选抽屉",

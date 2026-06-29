@@ -115,12 +115,9 @@ try {
             if ($origin === '') {
                 throw new Exception('请填写源站地址');
             }
-            $originType = strtolower(trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'ip_domain'));
-            if ($originType === '' || $originType === 'ip/domain') {
-                $originType = 'ip_domain';
-            }
+            $originType = vs_edgeone_api_origin_type(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN');
             $originInfo = array(
-                'OriginType' => $originType !== '' ? $originType : 'ip_domain',
+                'OriginType' => $originType,
                 'Origin'     => $origin,
             );
             $hostMode = trim(isset($_POST['host_header_mode']) ? $_POST['host_header_mode'] : '');
@@ -162,12 +159,8 @@ try {
             );
             $origin = trim(isset($_POST['origin']) ? $_POST['origin'] : '');
             if ($origin !== '') {
-                $originType = strtolower(trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'ip_domain'));
-                if (strtoupper($originType) === 'IP_DOMAIN') {
-                    $originType = 'ip_domain';
-                }
                 $params['OriginInfo'] = array(
-                    'OriginType' => $originType !== '' ? $originType : 'ip_domain',
+                    'OriginType' => vs_edgeone_api_origin_type(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN'),
                     'Origin'     => $origin,
                 );
             }

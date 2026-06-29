@@ -1714,8 +1714,8 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 82vh;
-        max-height: 82vh;
+        height: var(--vs-mobile-drawer-height, 80vh);
+        max-height: var(--vs-mobile-drawer-height, 80vh);
         border-radius: 16px 16px 0 0;
         transform: translateY(100%);
         transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
@@ -1965,10 +1965,14 @@
 .vs-edgeone-zone-create-drawer {
     position: fixed;
     inset: 0;
-    z-index: 1200;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
+    z-index: 5000;
+    display: none;
+    pointer-events: none;
+}
+
+.vs-edgeone-zone-create-drawer.is-open {
+    display: block;
+    pointer-events: auto;
 }
 
 .vs-edgeone-zone-create-drawer[hidden] {
@@ -1978,48 +1982,154 @@
 .vs-edgeone-zone-create-drawer__overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__overlay {
+    opacity: 1;
 }
 
 .vs-edgeone-zone-create-drawer__panel {
-    position: relative;
-    width: 100%;
-    max-width: 480px;
+    position: absolute;
     background: #fff;
-    border-radius: 12px 12px 0 0;
-    max-height: 90vh;
-    overflow: auto;
-    transform: translateY(100%);
-    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__panel {
-    transform: translateY(0);
+.vs-edgeone-zone-create-drawer__panel > .vs-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.vs-edgeone-zone-create-drawer__handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    margin: 10px auto 0;
+    flex-shrink: 0;
 }
 
 .vs-edgeone-zone-create-drawer__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 16px 8px;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e8e8e8;
+    flex-shrink: 0;
+    background: #fff;
 }
 
 .vs-edgeone-zone-create-drawer__head h4 {
     margin: 0;
     font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.vs-edgeone-zone-create-drawer__close {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vs-edgeone-zone-create-drawer__close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
 }
 
 .vs-edgeone-zone-create-drawer__body {
-    padding: 16px;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 18px;
 }
 
 .vs-edgeone-zone-create-drawer__foot {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    padding: 12px 16px 16px;
-    border-top: 1px solid #f0f0f0;
+    gap: 10px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid #e8e8e8;
+    flex-shrink: 0;
+    background: #fff;
+}
+
+.vs-edgeone-zone-create-drawer__foot .vs-btn {
+    min-width: 88px;
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-zone-create-drawer__panel {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: var(--vs-mobile-drawer-height, 80vh);
+        max-height: var(--vs-mobile-drawer-height, 80vh);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+    }
+
+    .vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__panel {
+        transform: translateY(0);
+    }
+
+    .vs-edgeone-zone-create-drawer__handle {
+        display: block;
+    }
+}
+
+@media (min-width: 768px) {
+    .vs-edgeone-zone-create-drawer {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .vs-edgeone-zone-create-drawer.is-open {
+        display: flex;
+    }
+
+    .vs-edgeone-zone-create-drawer__panel {
+        position: relative;
+        width: min(520px, calc(100vw - 48px));
+        height: auto;
+        max-height: min(560px, calc(100vh - 48px));
+        border-radius: 12px;
+        transform: scale(0.96);
+        opacity: 0;
+        transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__panel {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .vs-edgeone-nav__drawer-sublink--flat {
@@ -2138,25 +2248,6 @@
     }
 }
 
-@media (min-width: 768px) {
-    .vs-edgeone-zone-create-drawer {
-        align-items: center;
-    }
-
-    .vs-edgeone-zone-create-drawer__panel {
-        border-radius: 12px;
-        max-height: min(520px, calc(100vh - 48px));
-        transform: translateY(16px);
-        opacity: 0;
-        transition: transform 0.25s ease, opacity 0.25s ease;
-    }
-
-    .vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__panel {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
 /* 域名管理页 */
 #edgeoneDomainsPage {
     display: flex;
@@ -2187,20 +2278,22 @@
 }
 
 .vs-edgeone-domain-toolbar__row--select {
-    flex-wrap: nowrap;
+    align-items: stretch;
 }
 
-.vs-edgeone-domain-toolbar__row--actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.vs-edgeone-domain-toolbar__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
 }
 
 .vs-edgeone-domain-toolbar__label {
-    flex-shrink: 0;
+    display: block;
     font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary, #666);
+    font-weight: 600;
+    color: var(--text-primary, #333);
 }
 
 .vs-edgeone-domain-toolbar .vs-edgeone-zone-select {
@@ -2209,10 +2302,17 @@
     max-width: none;
 }
 
+.vs-edgeone-domain-toolbar__row--actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
 .vs-edgeone-domain-toolbar__switch,
 .vs-edgeone-domain-toolbar__add {
     width: 100%;
     justify-content: center;
+    border-radius: 8px;
 }
 
 .vs-edgeone-domain-site-meta {
@@ -2275,12 +2375,29 @@
     display: none;
 }
 
+.vs-edgeone-domain-site-panel,
+.vs-edgeone-domains-list {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
 .vs-edgeone-domain-card {
     border: 1px solid var(--border-color, #e8e8e8);
     border-radius: 10px;
     padding: 14px 16px;
     margin-bottom: 12px;
     background: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.vs-edgeone-domain-card:active {
+    transform: scale(0.995);
+}
+
+@media (hover: hover) {
+    .vs-edgeone-domain-card:hover {
+        border-color: #91caff;
+        box-shadow: 0 6px 16px rgba(22, 119, 255, 0.1);
+    }
 }
 
 .vs-edgeone-domain-card__head {
@@ -2368,12 +2485,19 @@
 }
 
 .vs-edgeone-domain-cert-config {
-    padding: 0;
-    border: 0;
-    background: transparent;
+    padding: 2px 8px;
+    border: 1px solid #91caff;
+    border-radius: 6px;
+    background: #f0f5ff;
     color: #1677ff;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.vs-edgeone-domain-cert-config:hover {
+    background: #e6f4ff;
+    border-color: #1677ff;
 }
 
 .vs-edgeone-domain-status {
@@ -2422,16 +2546,19 @@
 
 .vs-edgeone-segment {
     display: inline-flex;
-    border: 1px solid var(--border-color, #d9d9d9);
+    width: 100%;
+    max-width: 100%;
+    border: 1px solid #1677ff;
     border-radius: 8px;
     overflow: hidden;
-    background: #fafafa;
+    background: #f0f5ff;
 }
 
 .vs-edgeone-segment__item {
     position: relative;
     margin: 0;
     cursor: pointer;
+    flex: 1 1 0;
 }
 
 .vs-edgeone-segment__item input {
@@ -2442,17 +2569,24 @@
 
 .vs-edgeone-segment__item span {
     display: block;
-    padding: 8px 14px;
+    padding: 10px 12px;
     font-size: 13px;
-    color: var(--text-secondary, #666);
+    font-weight: 500;
+    color: #1677ff;
+    text-align: center;
     white-space: nowrap;
+    border-right: 1px solid rgba(22, 119, 255, 0.25);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.vs-edgeone-segment__item:last-child span {
+    border-right: none;
 }
 
 .vs-edgeone-segment__item input:checked + span {
-    background: #fff;
-    color: var(--text-primary, #333);
-    font-weight: 500;
-    box-shadow: inset 0 0 0 1px #d9d9d9;
+    background: #1677ff;
+    color: #fff;
+    box-shadow: none;
 }
 
 .vs-edgeone-field-static {
@@ -2495,8 +2629,8 @@
     border-radius: 6px;
 }
 
-.vs-edgeone-domain-cert-drawer .vs-edgeone-zone-create-drawer__panel {
-    max-width: 520px;
+body.vs-drawer-open {
+    overflow: hidden;
 }
 
 @media (min-width: 768px) {
@@ -2530,10 +2664,6 @@
 
     .vs-edgeone-domain-site-meta {
         flex-basis: 100%;
-    }
-
-    .vs-edgeone-zone-create-drawer:not(.vs-edgeone-domain-cert-drawer) .vs-edgeone-zone-create-drawer__panel {
-        max-width: 560px;
     }
 }
 

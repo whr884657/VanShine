@@ -1,13 +1,12 @@
 {
-    "version": "1.4.1",
+    "version": "1.4.2",
     "release_date": "2026-06-30",
-    "title": "EdgeOne 域名管理页 UI 与 HTTPS 配置优化",
+    "title": "EdgeOne 域名弹窗修复与抽屉 UI 规范统一",
     "db_changes": false,
     "changes": [
-        "站点信息与站点选择合并为同一板块，手机端两行布局",
-        "CNAME 一键复制；HTTPS 列增加配置抽屉（免费证书申请/部署）",
-        "DDoS 防护中文映射；IPv6 分段选择；源站类型改为静态展示",
-        "板块间距与弹窗样式统一优化"
+        "修复 OriginType 须为 IP_DOMAIN 的添加域名报错",
+        "电脑端弹窗居中固定头尾，手机端抽屉统一 80vh",
+        "站点标签上移、IPv6 选中态、按钮圆角矩形化"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

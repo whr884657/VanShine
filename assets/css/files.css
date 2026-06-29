@@ -1228,8 +1228,8 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 88vh;
-        max-height: 88vh;
+        height: var(--vs-mobile-drawer-height, 80vh);
+        max-height: var(--vs-mobile-drawer-height, 80vh);
         border-radius: 16px 16px 0 0;
         transform: translateY(100%);
     }

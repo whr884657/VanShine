@@ -11,6 +11,7 @@
 }
 
 :root {
+    --vs-mobile-drawer-height: 80vh;
     --vs-primary: #111111;
     --vs-primary-hover: #2d2d2d;
     --vs-danger: #dc2626;

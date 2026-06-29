@@ -435,6 +435,7 @@
         drawer.hidden = false;
         drawer.setAttribute('aria-hidden', 'false');
         drawer.classList.add('is-open');
+        document.body.classList.add('vs-drawer-open');
     }
 
     function closeDomainDrawers() {
@@ -443,6 +444,7 @@
             drawer.setAttribute('aria-hidden', 'true');
             drawer.classList.remove('is-open');
         });
+        document.body.classList.remove('vs-drawer-open');
     }
 
     function copyTextToClipboard(text) {

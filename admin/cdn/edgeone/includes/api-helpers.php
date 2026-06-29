@@ -242,3 +242,23 @@ function vs_edgeone_pick_config_group_id(array $envResp)
 
     return '';
 }
+
+/**
+ * EdgeOne API OriginInfo.OriginType 枚举（须大写）
+ *
+ * @param mixed $type
+ * @return string
+ */
+function vs_edgeone_api_origin_type($type)
+{
+    $type = strtoupper(str_replace(array('-', ' '), '_', trim((string) $type)));
+    if ($type === 'IPDOMAIN') {
+        $type = 'IP_DOMAIN';
+    }
+    $allowed = array('IP_DOMAIN', 'COS', 'ORIGIN_GROUP', 'AWS_S3', 'LB', 'SPACE', 'VOD');
+    if (in_array($type, $allowed, true)) {
+        return $type;
+    }
+
+    return 'IP_DOMAIN';
+}

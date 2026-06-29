@@ -136,6 +136,7 @@ function vs_edgeone_render_domain_site_panel(array $zones, $zoneId, $zone, array
     echo '<form method="post" class="vs-edgeone-domain-toolbar" id="edgeoneZoneForm">';
     echo '<input type="hidden" name="action" value="set_zone">';
     echo '<div class="vs-edgeone-domain-toolbar__row vs-edgeone-domain-toolbar__row--select">';
+    echo '<div class="vs-edgeone-domain-toolbar__field">';
     echo '<label class="vs-edgeone-domain-toolbar__label" for="edgeoneDomainZoneSelect">站点</label>';
     echo '<select id="edgeoneDomainZoneSelect" name="zone_id" class="vs-input vs-edgeone-zone-select" aria-label="选择站点">';
     echo '<option value="">— 请选择站点 —</option>';
@@ -151,13 +152,13 @@ function vs_edgeone_render_domain_site_panel(array $zones, $zoneId, $zone, array
         $sel = $id === $selected ? ' selected' : '';
         echo '<option value="' . vs_e($id) . '"' . $sel . '>' . vs_e($label) . '</option>';
     }
-    echo '</select></div>';
+    echo '</select></div></div>';
     echo '<div class="vs-edgeone-domain-toolbar__row vs-edgeone-domain-toolbar__row--actions">';
-    echo '<button type="submit" class="vs-btn vs-btn--default vs-edgeone-domain-toolbar__switch">切换站点</button>';
+    echo '<button type="submit" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-domain-toolbar__switch">切换站点</button>';
     if ($canManage) {
-        echo '<button type="button" class="vs-btn vs-btn--primary vs-edgeone-domain-toolbar__add" id="edgeoneDomainAddBtn">添加域名</button>';
+        echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-domain-toolbar__add" id="edgeoneDomainAddBtn">添加域名</button>';
     } else {
-        echo '<button type="button" class="vs-btn vs-btn--primary vs-edgeone-domain-toolbar__add" disabled title="Pages 云端部署站点不支持在此管理">添加域名</button>';
+        echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-domain-toolbar__add" disabled title="Pages 云端部署站点不支持在此管理">添加域名</button>';
     }
     echo '</div>';
     if ($zoneId !== '' && $zone !== null) {
@@ -549,7 +550,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<div class="vs-edgeone-zone-create-drawer__handle" aria-hidden="true"></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__head">';
     echo '<h4>添加域名</h4>';
-    echo '<button type="button" class="vs-edgeone-filter-drawer__close" data-domain-drawer-close aria-label="关闭">';
+    echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-domain-drawer-close aria-label="关闭">';
     echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     echo '</button></div>';
     echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainCreateForm" data-action="domain_create">';
@@ -561,7 +562,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo vs_edgeone_render_ipv6_segment('ipv6_status', 'follow');
     echo '</div>';
     echo '<h5 class="vs-edgeone-subtitle">回源配置</h5>';
-    echo '<input type="hidden" name="origin_type" value="ip_domain">';
+    echo '<input type="hidden" name="origin_type" value="IP_DOMAIN">';
     echo '<div class="vs-form-row"><label class="vs-label">源站类型</label>';
     echo '<p class="vs-edgeone-field-static">IP / 域名</p></div>';
     echo '<div class="vs-form-row"><label class="vs-label">源站地址</label>';
@@ -579,15 +580,16 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<input type="text" name="host_header" class="vs-input" placeholder="留空则使用加速域名" style="margin-top:8px"></div>';
     echo '</div>';
     echo '<div class="vs-edgeone-zone-create-drawer__foot">';
-    echo '<button type="button" class="vs-btn vs-btn--ghost" data-domain-drawer-close>取消</button>';
-    echo '<button type="submit" class="vs-btn vs-btn--primary">创建</button>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-domain-drawer-close>取消</button>';
+    echo '<button type="submit" class="vs-btn vs-btn--rect vs-btn--primary">创建</button>';
     echo '</div></form></div></div>';
 
     echo '<div class="vs-edgeone-zone-create-drawer vs-edgeone-domain-form-drawer" id="edgeoneDomainEditDrawer" hidden aria-hidden="true">';
     echo '<div class="vs-edgeone-zone-create-drawer__overlay" data-domain-drawer-close></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__panel" role="dialog" aria-modal="true">';
+    echo '<div class="vs-edgeone-zone-create-drawer__handle" aria-hidden="true"></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__head"><h4>编辑域名</h4>';
-    echo '<button type="button" class="vs-edgeone-filter-drawer__close" data-domain-drawer-close aria-label="关闭">';
+    echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-domain-drawer-close aria-label="关闭">';
     echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     echo '</button></div>';
     echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainEditForm" data-action="domain_modify">';
@@ -596,7 +598,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<p class="vs-form-tip" id="edgeoneDomainEditTitle"></p>';
     echo '<div class="vs-form-row"><label class="vs-label">IPv6 访问</label>';
     echo '<div id="edgeoneDomainEditIpv6Wrap">' . vs_edgeone_render_ipv6_segment('ipv6_status', 'follow') . '</div></div>';
-    echo '<input type="hidden" name="origin_type" value="ip_domain">';
+    echo '<input type="hidden" name="origin_type" value="IP_DOMAIN">';
     echo '<div class="vs-form-row"><label class="vs-label">源站类型</label>';
     echo '<p class="vs-edgeone-field-static" id="edgeoneDomainEditOriginTypeLabel">IP / 域名</p></div>';
     echo '<div class="vs-form-row"><label class="vs-label">源站地址</label>';
@@ -608,8 +610,8 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<div class="vs-form-col"><label class="vs-label">HTTPS 端口</label><input type="number" name="https_port" class="vs-input" id="edgeoneDomainEditHttpsPort" min="1" max="65535"></div>';
     echo '</div></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__foot">';
-    echo '<button type="button" class="vs-btn vs-btn--ghost" data-domain-drawer-close>取消</button>';
-    echo '<button type="submit" class="vs-btn vs-btn--primary">保存</button>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-domain-drawer-close>取消</button>';
+    echo '<button type="submit" class="vs-btn vs-btn--rect vs-btn--primary">保存</button>';
     echo '</div></form></div></div>';
 
     $zoneType = $zone !== null && isset($zone['Type']) ? strtolower((string) $zone['Type']) : '';
@@ -620,7 +622,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<div class="vs-edgeone-zone-create-drawer__panel" role="dialog" aria-modal="true">';
     echo '<div class="vs-edgeone-zone-create-drawer__handle" aria-hidden="true"></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__head"><h4>HTTPS 配置</h4>';
-    echo '<button type="button" class="vs-edgeone-filter-drawer__close" data-domain-drawer-close aria-label="关闭">';
+    echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-domain-drawer-close aria-label="关闭">';
     echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     echo '</button></div>';
     echo '<div class="vs-edgeone-zone-create-drawer__body">';
@@ -628,18 +630,18 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<div class="vs-edgeone-cert-status" id="edgeoneDomainCertStatus"></div>';
     echo '<div class="vs-edgeone-cert-actions">';
     if ($autoFreeCert) {
-        echo '<button type="button" class="vs-btn vs-btn--primary vs-edgeone-cert-deploy" data-mode="eofreecert">部署 EdgeOne 免费证书</button>';
+        echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-cert-deploy" data-mode="eofreecert">部署 EdgeOne 免费证书</button>';
     } else {
-        echo '<button type="button" class="vs-btn vs-btn--primary vs-edgeone-cert-apply" data-method="http_challenge">申请免费证书（HTTP 验证）</button>';
-        echo '<button type="button" class="vs-btn vs-btn--default vs-edgeone-cert-apply" data-method="dns_challenge">申请免费证书（DNS 验证）</button>';
+        echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-cert-apply" data-method="http_challenge">申请免费证书（HTTP 验证）</button>';
+        echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-cert-apply" data-method="dns_challenge">申请免费证书（DNS 验证）</button>';
     }
-    echo '<button type="button" class="vs-btn vs-btn--default vs-edgeone-cert-check" id="edgeoneDomainCertCheckBtn" hidden>验证并部署</button>';
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-edgeone-cert-deploy" data-mode="disable">关闭 HTTPS</button>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-cert-check" id="edgeoneDomainCertCheckBtn" hidden>验证并部署</button>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-cert-deploy" data-mode="disable">关闭 HTTPS</button>';
     echo '</div>';
     echo '<div class="vs-edgeone-cert-verify" id="edgeoneDomainCertVerify" hidden></div>';
     echo '</div>';
     echo '<div class="vs-edgeone-zone-create-drawer__foot">';
-    echo '<button type="button" class="vs-btn vs-btn--ghost" data-domain-drawer-close>关闭</button>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-domain-drawer-close>关闭</button>';
     echo '</div></div></div>';
 
     return ob_get_clean();

@@ -345,7 +345,7 @@ body.vs-modal-open {
         max-width: none;
         width: 100%;
         height: auto;
-        max-height: 85vh;
+        max-height: var(--vs-mobile-drawer-height, 80vh);
         border-radius: 16px 16px 0 0;
     }
 }

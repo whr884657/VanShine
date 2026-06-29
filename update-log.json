@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.2",
+            "date": "2026-06-30",
+            "title": "EdgeOne 域名弹窗修复与抽屉 UI 规范统一",
+            "db_changes": false,
+            "changes": [
+                "修复 OriginType=IP_DOMAIN 添加域名报错",
+                "弹窗/抽屉对齐文件预览，手机端 80vh",
+                "站点标签、IPv6 分段、按钮样式优化"
+            ]
+        },
+        {
             "version": "1.4.1",
             "date": "2026-06-30",
             "title": "EdgeOne 域名管理页 UI 与 HTTPS 配置优化",

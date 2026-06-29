@@ -1,11 +1,12 @@
 {
-    "version": "1.0.82",
+    "version": "1.0.83",
     "release_date": "2026-06-29",
-    "title": "EdgeOne 手机端导航总折叠优化",
+    "title": "修复手机端导航大类显示与统计图悬停提示",
     "db_changes": false,
     "changes": [
-        "手机端改为总折叠抽屉，默认仅显示当前页一条",
-        "大类内嵌套子项折叠；点击跳转后自动收起"
+        "修复 legacy CSS 隐藏手机端大类导致仅显示总览",
+        "全部大类统一为中折叠+小折叠结构",
+        "统计图支持鼠标/触摸悬停显示数据点"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

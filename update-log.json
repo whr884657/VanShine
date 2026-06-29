@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.83",
+            "date": "2026-06-29",
+            "title": "修复手机端导航大类显示与统计图悬停提示",
+            "db_changes": false,
+            "changes": [
+                "修复 legacy CSS 隐藏手机端大类",
+                "全部大类中折叠+小折叠；统计图悬停数据提示"
+            ]
+        },
+        {
             "version": "1.0.82",
             "date": "2026-06-29",
             "title": "EdgeOne 手机端导航总折叠优化",

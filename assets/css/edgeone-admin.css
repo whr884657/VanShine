@@ -183,33 +183,27 @@
     text-decoration: none;
 }
 
-.vs-edgeone-nav__drawer-link {
-    font-weight: 500;
-    color: var(--text-primary, #333);
-}
-
-.vs-edgeone-nav__drawer-link:hover,
 .vs-edgeone-nav__drawer-sublink:hover {
     color: var(--primary, #1677ff);
     background: rgba(22, 119, 255, 0.06);
 }
 
-.vs-edgeone-nav__drawer-link.is-active,
 .vs-edgeone-nav__drawer-sublink.is-active {
     color: var(--primary, #1677ff);
     background: rgba(22, 119, 255, 0.1);
     font-weight: 600;
 }
 
-.vs-edgeone-nav__group {
+/* 手机端中折叠（大类） */
+.vs-edgeone-nav__section {
     border-top: 1px solid var(--border-color, #eee);
 }
 
-.vs-edgeone-nav__group:first-child {
+.vs-edgeone-nav__section:first-child {
     border-top: none;
 }
 
-.vs-edgeone-nav__group-btn {
+.vs-edgeone-nav__section-btn {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -225,24 +219,24 @@
     text-align: left;
 }
 
-.vs-edgeone-nav__group-btn:hover {
+.vs-edgeone-nav__section-btn:hover {
     background: rgba(22, 119, 255, 0.04);
 }
 
-.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-btn {
+.vs-edgeone-nav__section.is-open .vs-edgeone-nav__section-btn {
     color: var(--primary, #1677ff);
 }
 
-.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-btn .vs-edgeone-nav__caret {
+.vs-edgeone-nav__section.is-open .vs-edgeone-nav__section-btn .vs-edgeone-nav__caret {
     transform: rotate(180deg);
 }
 
-.vs-edgeone-nav__group-panel {
+.vs-edgeone-nav__section-panel {
     display: none;
     padding: 0 4px 4px 8px;
 }
 
-.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-panel {
+.vs-edgeone-nav__section.is-open .vs-edgeone-nav__section-panel {
     display: block;
 }
 
@@ -702,7 +696,43 @@
 .vs-edgeone-chart {
     display: block;
     width: 100%;
-    max-width: 100%;
+    cursor: crosshair;
+}
+
+.vs-edgeone-chart-tooltip {
+    position: absolute;
+    z-index: 6;
+    pointer-events: none;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--text-primary, #333);
+    max-width: 240px;
+    white-space: nowrap;
+}
+
+.vs-edgeone-chart-tooltip__time {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-secondary, #666);
+}
+
+.vs-edgeone-chart-tooltip__row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vs-edgeone-chart-tooltip__dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .vs-edgeone-plan-grid {

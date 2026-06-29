@@ -115,9 +115,9 @@
         drawer.classList.remove('is-open');
         var toggle = drawer.querySelector('.vs-edgeone-nav__drawer-toggle');
         if (toggle) toggle.setAttribute('aria-expanded', 'false');
-        drawer.querySelectorAll('.vs-edgeone-nav__group.is-open').forEach(function (group) {
-            group.classList.remove('is-open');
-            var btn = group.querySelector('.vs-edgeone-nav__group-btn');
+        drawer.querySelectorAll('.vs-edgeone-nav__section.is-open').forEach(function (section) {
+            section.classList.remove('is-open');
+            var btn = section.querySelector('.vs-edgeone-nav__section-btn');
             if (btn) btn.setAttribute('aria-expanded', 'false');
         });
     }
@@ -130,12 +130,12 @@
             drawerCurrent.textContent = 'EdgeOne 功能导航';
             return;
         }
-        var group = activeLink.closest('.vs-edgeone-nav__group');
-        if (group) {
-            var groupBtn = group.querySelector('.vs-edgeone-nav__group-btn');
-            var groupLabel = groupBtn ? groupBtn.childNodes[0].textContent.trim() : '';
+        var section = activeLink.closest('.vs-edgeone-nav__section');
+        if (section) {
+            var sectionBtn = section.querySelector('.vs-edgeone-nav__section-btn');
+            var sectionLabel = sectionBtn ? sectionBtn.childNodes[0].textContent.trim() : '';
             var itemLabel = activeLink.textContent.trim();
-            drawerCurrent.textContent = groupLabel ? groupLabel + ' · ' + itemLabel : itemLabel;
+            drawerCurrent.textContent = sectionLabel ? sectionLabel + ' · ' + itemLabel : itemLabel;
             return;
         }
         drawerCurrent.textContent = activeLink.textContent.trim() || 'EdgeOne 功能导航';
@@ -149,7 +149,7 @@
             link.classList.toggle('is-active', linkPath === path);
         });
 
-        document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__group').forEach(function (node) {
+        document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__section').forEach(function (node) {
             node.classList.remove('is-active', 'is-open');
         });
 
@@ -341,19 +341,19 @@
             });
         }
 
-        drawer.querySelectorAll('.vs-edgeone-nav__group-btn').forEach(function (btn) {
+        drawer.querySelectorAll('.vs-edgeone-nav__section-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var group = btn.closest('.vs-edgeone-nav__group');
-                if (!group) return;
-                var open = group.classList.contains('is-open');
-                drawer.querySelectorAll('.vs-edgeone-nav__group.is-open').forEach(function (other) {
-                    if (other !== group) {
+                var section = btn.closest('.vs-edgeone-nav__section');
+                if (!section) return;
+                var open = section.classList.contains('is-open');
+                drawer.querySelectorAll('.vs-edgeone-nav__section.is-open').forEach(function (other) {
+                    if (other !== section) {
                         other.classList.remove('is-open');
-                        var ob = other.querySelector('.vs-edgeone-nav__group-btn');
+                        var ob = other.querySelector('.vs-edgeone-nav__section-btn');
                         if (ob) ob.setAttribute('aria-expanded', 'false');
                     }
                 });
-                group.classList.toggle('is-open', !open);
+                section.classList.toggle('is-open', !open);
                 btn.setAttribute('aria-expanded', open ? 'false' : 'true');
             });
         });
@@ -473,8 +473,93 @@
         });
     }
 
-    function drawLineChart(canvas, series, unit) {
+    function seriesColor(s, colorIdx) {
+        if (s.is_total) return TOTAL_COLOR;
+        return COLORS[colorIdx % COLORS.length];
+    }
+
+    function bindChartInteraction(canvas, wrap) {
+        if (canvas.dataset.eoChartBound === '1') return;
+        canvas.dataset.eoChartBound = '1';
+
+        var tip = wrap.querySelector('.vs-edgeone-chart-tooltip');
+        if (!tip) {
+            tip = document.createElement('div');
+            tip.className = 'vs-edgeone-chart-tooltip';
+            tip.style.display = 'none';
+            wrap.appendChild(tip);
+        }
+
+        function hideTip() {
+            tip.style.display = 'none';
+            var st = canvas._eoChartState;
+            if (st) drawLineChart(canvas, st.series, st.unit, -1);
+        }
+
+        function showAt(clientX) {
+            var st = canvas._eoChartState;
+            if (!st || !st.tsList || st.tsList.length === 0) return;
+
+            var rect = canvas.getBoundingClientRect();
+            var x = clientX - rect.left;
+            if (x < st.padL || x > st.width - st.padR) {
+                hideTip();
+                return;
+            }
+
+            var ratio = (x - st.padL) / st.plotW;
+            var idx = Math.round(ratio * (st.tsList.length - 1));
+            idx = Math.max(0, Math.min(st.tsList.length - 1, idx));
+
+            drawLineChart(canvas, st.series, st.unit, idx);
+
+            var ts = st.tsList[idx];
+            var timeStr = formatTs(new Date(ts * 1000));
+            var html = '<div class="vs-edgeone-chart-tooltip__time">' + timeStr + '</div>';
+            var colorIdx = 0;
+            st.series.forEach(function (s) {
+                var points = s.points || [];
+                var val = null;
+                for (var i = 0; i < points.length; i++) {
+                    if (Number(points[i].ts) === ts) {
+                        val = Number(points[i].value) || 0;
+                        break;
+                    }
+                }
+                if (val === null) return;
+                var color = seriesColor(s, colorIdx++);
+                var label = s.label || '数值';
+                html += '<div class="vs-edgeone-chart-tooltip__row">';
+                html += '<i class="vs-edgeone-chart-tooltip__dot" style="background:' + color + '"></i>';
+                html += '<span>' + label + '：' + formatChartValue(val, st.unit) + '</span></div>';
+            });
+            tip.innerHTML = html;
+            tip.style.display = 'block';
+
+            var tipX = x + 12;
+            if (tipX + 180 > st.width) {
+                tipX = x - 192;
+            }
+            tip.style.left = Math.max(4, tipX) + 'px';
+            tip.style.top = '24px';
+        }
+
+        canvas.addEventListener('mousemove', function (e) {
+            showAt(e.clientX);
+        });
+        canvas.addEventListener('mouseleave', hideTip);
+        canvas.addEventListener('touchstart', function (e) {
+            if (e.touches[0]) showAt(e.touches[0].clientX);
+        }, { passive: true });
+        canvas.addEventListener('touchmove', function (e) {
+            if (e.touches[0]) showAt(e.touches[0].clientX);
+        }, { passive: true });
+        canvas.addEventListener('touchend', hideTip);
+    }
+
+    function drawLineChart(canvas, series, unit, highlightIdx) {
         if (!series || series.length === 0) return;
+        if (typeof highlightIdx !== 'number') highlightIdx = -1;
 
         var wrap = canvas.parentElement;
         if (!wrap) return;
@@ -531,11 +616,28 @@
         var tsList = Object.keys(allTs).map(Number).sort(function (a, b) { return a - b; });
         if (tsList.length === 0) return;
 
+        canvas._eoChartState = {
+            series: series,
+            unit: unit,
+            tsList: tsList,
+            max: max,
+            padL: padL,
+            padR: padR,
+            padT: padT,
+            padB: padB,
+            width: width,
+            height: height,
+            plotW: plotW,
+            plotH: plotH
+        };
+
+        bindChartInteraction(canvas, wrap);
+
         var colorIdx = 0;
         series.forEach(function (s) {
             var points = s.points || [];
             if (points.length === 0) return;
-            var color = s.is_total ? TOTAL_COLOR : COLORS[colorIdx++ % COLORS.length];
+            var color = seriesColor(s, colorIdx++);
             ctx.strokeStyle = color;
             ctx.lineWidth = s.is_total ? 2.5 : 2;
             ctx.beginPath();
@@ -548,6 +650,44 @@
             });
             ctx.stroke();
         });
+
+        if (highlightIdx >= 0 && highlightIdx < tsList.length) {
+            var hiTs = tsList[highlightIdx];
+            var hx = padL + (plotW * highlightIdx) / Math.max(tsList.length - 1, 1);
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(22, 119, 255, 0.35)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.moveTo(hx, padT);
+            ctx.lineTo(hx, padT + plotH);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            var dotIdx = 0;
+            series.forEach(function (s) {
+                var points = s.points || [];
+                var val = null;
+                for (var j = 0; j < points.length; j++) {
+                    if (Number(points[j].ts) === hiTs) {
+                        val = Number(points[j].value) || 0;
+                        break;
+                    }
+                }
+                if (val === null) return;
+                var hy = padT + plotH - (plotH * val) / max;
+                var dotColor = seriesColor(s, dotIdx++);
+                ctx.fillStyle = dotColor;
+                ctx.beginPath();
+                ctx.arc(hx, hy, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            });
+        }
 
         var firstTs = tsList[0] ? new Date(tsList[0] * 1000) : null;
         var lastTs = tsList[tsList.length - 1] ? new Date(tsList[tsList.length - 1] * 1000) : null;

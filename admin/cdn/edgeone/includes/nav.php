@@ -100,22 +100,12 @@ function vs_edgeone_nav($active)
     echo '<div class="vs-edgeone-nav__drawer-body" id="edgeoneMobileNavPanel">';
 
     foreach ($groups as $label => $items) {
-        $itemCount = count($items);
-
-        if ($itemCount === 1) {
-            $id = key($items);
-            $item = reset($items);
-            $linkClass = 'vs-edgeone-nav__drawer-link' . ($id === $active ? ' is-active' : '');
-            echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '">' . vs_e($label) . ' · ' . vs_e($item[0]) . '</a>';
-            continue;
-        }
-
-        echo '<div class="vs-edgeone-nav__group">';
-        echo '<button type="button" class="vs-edgeone-nav__group-btn" aria-expanded="false">';
+        echo '<div class="vs-edgeone-nav__section">';
+        echo '<button type="button" class="vs-edgeone-nav__section-btn" aria-expanded="false">';
         echo vs_e($label);
         echo '<span class="vs-edgeone-nav__caret" aria-hidden="true"></span>';
         echo '</button>';
-        echo '<div class="vs-edgeone-nav__group-panel">';
+        echo '<div class="vs-edgeone-nav__section-panel">';
         foreach ($items as $id => $item) {
             $linkClass = 'vs-edgeone-nav__drawer-sublink' . ($id === $active ? ' is-active' : '');
             echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '">' . vs_e($item[0]) . '</a>';

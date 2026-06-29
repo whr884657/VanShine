@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.82**
+**当前版本：1.0.83**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

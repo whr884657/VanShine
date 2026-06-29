@@ -258,6 +258,58 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
     if (count($zones) === 0) {
         echo '<p class="vs-form-tip">暂无站点，请先购买套餐并新增站点</p>';
     } else {
+        echo '<div class="vs-edgeone-zones-cards" id="edgeoneZonesCards">';
+        foreach ($zones as $zone) {
+            if (!is_array($zone)) {
+                continue;
+            }
+            $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
+            $name = isset($zone['ZoneName']) ? (string) $zone['ZoneName'] : '';
+            $alias = isset($zone['AliasZoneName']) ? trim((string) $zone['AliasZoneName']) : '';
+            $displayName = $alias !== '' ? $alias : $name;
+            $area = vs_edgeone_translate('Area', isset($zone['Area']) ? $zone['Area'] : '');
+            $type = vs_edgeone_translate('Type', isset($zone['Type']) ? $zone['Type'] : '');
+            $active = isset($zone['ActiveStatus']) ? (string) $zone['ActiveStatus'] : '';
+            $plan = isset($planMap[$zid]) ? $planMap[$zid] : null;
+            $planLabel = $plan ? vs_edgeone_plan_type_label(isset($plan['PlanType']) ? $plan['PlanType'] : '') : '—';
+            $tags = isset($zone['Tags']) && is_array($zone['Tags']) ? $zone['Tags'] : array();
+            $searchText = strtolower($displayName . ' ' . $name . ' ' . $zid);
+            $statusHtml = $active === 'active'
+                ? '<span class="vs-edgeone-zones-status is-ok"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>已启用</span>'
+                : '<span class="vs-edgeone-zones-status">' . vs_e(vs_edgeone_translate('ActiveStatus', $active)) . '</span>';
+
+            echo '<article class="vs-edgeone-zones-card" data-zone-search="' . vs_e($searchText) . '">';
+            echo '<div class="vs-edgeone-zones-card__head">';
+            echo '<span class="vs-edgeone-zones-card__title">' . vs_e($displayName) . '</span>';
+            echo $statusHtml;
+            echo '</div>';
+            if ($name !== '' && $displayName !== $name) {
+                echo '<p class="vs-edgeone-zones-card__sub">' . vs_e($name) . '</p>';
+            }
+            echo '<code class="vs-edgeone-zones-table__id">' . vs_e($zid) . '</code>';
+            echo '<dl class="vs-edgeone-zones-card__meta">';
+            echo '<div><dt>服务区域</dt><dd>' . vs_e($area) . '</dd></div>';
+            echo '<div><dt>接入方式</dt><dd>' . vs_e($type) . '</dd></div>';
+            echo '<div><dt>套餐</dt><dd>' . vs_e($planLabel) . '</dd></div>';
+            echo '<div><dt>标签</dt><dd>';
+            if (count($tags) > 0) {
+                foreach ($tags as $tag) {
+                    if (is_array($tag) && isset($tag['TagValue'])) {
+                        echo '<span class="vs-edgeone-filter-chip">' . vs_e($tag['TagValue']) . '</span> ';
+                    }
+                }
+            } else {
+                echo '—';
+            }
+            echo '</dd></div></dl>';
+            echo '<div class="vs-edgeone-zones-card__actions">';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">域名加速</a>';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="l7.php">七层加速</a>';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="security.php">安全策略</a>';
+            echo '</div></article>';
+        }
+        echo '</div>';
+
         echo '<div class="vs-table-wrap vs-edgeone-zones-table-wrap">';
         echo '<table class="vs-table vs-edgeone-zones-table" id="edgeoneZonesTable">';
         echo '<thead><tr>';
@@ -309,9 +361,9 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
             }
             echo '</td>';
             echo '<td class="vs-edgeone-zones-table__actions">';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">域名管理</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="l7.php">站点加速</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="security.php">安全防护</a>';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">域名加速</a>';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="l7.php">七层加速</a>';
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="security.php">安全策略</a>';
             echo '</td>';
             echo '</tr>';
         }

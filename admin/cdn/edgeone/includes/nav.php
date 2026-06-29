@@ -87,9 +87,13 @@ function vs_edgeone_nav($active)
     if ($activeGroup !== '' && isset($groups[$activeGroup][$active])) {
         $activeItemLabel = $groups[$activeGroup][$active][0];
     }
-    $drawerTitle = ($activeGroup !== '' && $activeItemLabel !== '')
-        ? $activeGroup . ' · ' . $activeItemLabel
-        : 'EdgeOne 功能导航';
+    if ($activeGroup !== '' && $activeItemLabel !== '' && count($groups[$activeGroup]) === 1) {
+        $drawerTitle = $activeItemLabel;
+    } elseif ($activeGroup !== '' && $activeItemLabel !== '') {
+        $drawerTitle = $activeGroup . ' · ' . $activeItemLabel;
+    } else {
+        $drawerTitle = 'EdgeOne 功能导航';
+    }
 
     echo '<div class="vs-edgeone-nav__mobile">';
     echo '<div class="vs-edgeone-nav__drawer" id="edgeoneMobileNav">';
@@ -100,6 +104,15 @@ function vs_edgeone_nav($active)
     echo '<div class="vs-edgeone-nav__drawer-body" id="edgeoneMobileNavPanel">';
 
     foreach ($groups as $label => $items) {
+        $itemCount = count($items);
+        if ($itemCount === 1) {
+            $id = key($items);
+            $item = reset($items);
+            $linkClass = 'vs-edgeone-nav__drawer-sublink vs-edgeone-nav__drawer-sublink--flat' . ($id === $active ? ' is-active' : '');
+            echo '<a class="' . vs_e($linkClass) . '" href="' . vs_e($item[1]) . '">' . vs_e($item[0]) . '</a>';
+            continue;
+        }
+
         echo '<div class="vs-edgeone-nav__section">';
         echo '<button type="button" class="vs-edgeone-nav__section-btn" aria-expanded="false">';
         echo vs_e($label);

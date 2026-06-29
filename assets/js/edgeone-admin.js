@@ -364,7 +364,7 @@
                     return;
                 }
                 var base = pagePath().replace(/\/[^/]+$/, '');
-                loadMainContent(base + '/' + gotoPath, true);
+                window.location.href = base + '/' + gotoPath;
             })
             .catch(function () {
                 toast('网络异常', 'error');
@@ -398,16 +398,15 @@
         });
 
         var searchInput = page.querySelector('#edgeoneZonesSearch');
-        var table = page.querySelector('#edgeoneZonesTable');
         var countNode = page.querySelector('#edgeoneZonesCount');
-        if (searchInput && table) {
+        if (searchInput) {
             searchInput.addEventListener('input', function () {
                 var q = searchInput.value.trim().toLowerCase();
                 var visible = 0;
-                table.querySelectorAll('tbody tr').forEach(function (row) {
-                    var text = row.getAttribute('data-zone-search') || '';
+                page.querySelectorAll('[data-zone-search]').forEach(function (node) {
+                    var text = node.getAttribute('data-zone-search') || '';
                     var show = !q || text.indexOf(q) !== -1;
-                    row.hidden = !show;
+                    node.hidden = !show;
                     if (show) visible++;
                 });
                 if (countNode) {

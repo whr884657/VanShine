@@ -1999,6 +1999,102 @@
     border-top: 1px solid #f0f0f0;
 }
 
+.vs-edgeone-nav__drawer-sublink--flat {
+    padding-left: 12px;
+    font-weight: 500;
+}
+
+/* 站点管理 · 手机端卡片列表 */
+.vs-edgeone-zones-cards {
+    display: none;
+}
+
+.vs-edgeone-zones-card {
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    background: #fff;
+}
+
+.vs-edgeone-zones-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.vs-edgeone-zones-card__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+.vs-edgeone-zones-card__sub {
+    font-size: 12px;
+    color: var(--text-secondary, #999);
+    margin: 0 0 4px;
+}
+
+.vs-edgeone-zones-card__meta {
+    margin: 10px 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+}
+
+.vs-edgeone-zones-card__meta div {
+    min-width: 0;
+}
+
+.vs-edgeone-zones-card__meta dt {
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+    margin-bottom: 2px;
+}
+
+.vs-edgeone-zones-card__meta dd {
+    font-size: 13px;
+    margin: 0;
+    color: var(--text-primary, #333);
+}
+
+.vs-edgeone-zones-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.vs-edgeone-zones-card__actions a {
+    color: #1677ff;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid rgba(22, 119, 255, 0.35);
+    border-radius: 6px;
+    background: rgba(22, 119, 255, 0.04);
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-zones-table-wrap {
+        display: none;
+    }
+
+    .vs-edgeone-zones-cards {
+        display: block;
+    }
+}
+
+@media (min-width: 768px) {
+    .vs-edgeone-zones-cards {
+        display: none !important;
+    }
+}
+
 @media (max-width: 767px) {
     .vs-edgeone-zones-overview__body {
         grid-template-columns: 1fr;

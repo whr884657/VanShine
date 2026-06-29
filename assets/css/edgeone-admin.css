@@ -2389,13 +2389,90 @@
 
 .vs-edgeone-domains-toolbar-inner {
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
 .vs-edgeone-domains-search {
+    flex: 1 1 200px;
     width: 100%;
     max-width: 360px;
+}
+
+.vs-edgeone-domains-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.vs-edgeone-domains-list-body.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.vs-edgeone-domain-prefix-field {
+    display: flex;
+    align-items: stretch;
+}
+
+.vs-edgeone-domain-prefix-field .vs-input {
+    flex: 1 1 auto;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.vs-edgeone-domain-prefix-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: #f5f5f5;
+    border: 1px solid var(--border-color, #d9d9d9);
+    border-left: 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    white-space: nowrap;
+}
+
+.vs-edgeone-domain-prefix-tip {
+    margin-bottom: 8px;
+}
+
+.vs-edgeone-domain-status-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vs-edgeone-domain-row-refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #1677ff;
+    cursor: pointer;
+}
+
+.vs-edgeone-domain-row-refresh:hover {
+    background: #f0f5ff;
+}
+
+.vs-edgeone-domain-status.is-danger {
+    color: #ff4d4f;
+}
+
+.vs-edgeone-cert-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .vs-edgeone-domain-table-wrap .vs-table {

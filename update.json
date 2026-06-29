@@ -1,12 +1,12 @@
 {
-    "version": "1.4.3",
-    "release_date": "2026-06-30",
-    "title": "EdgeOne 弹窗尺寸与导航体验修复",
+    "version": "1.4.4",
+    "release_date": "2026-06-29",
+    "title": "EdgeOne 域名管理交互与证书状态优化",
     "db_changes": false,
     "changes": [
-        "电脑端 EdgeOne 弹窗尺寸对齐文件预览（1120×860）",
-        "修复页内导航先闪上一页、fragment 双层容器问题",
-        "新增 --vs-desktop-modal-* 全局尺寸变量"
+        "添加域名后局部刷新列表，修复关闭弹窗后页面卡顿",
+        "域名前缀输入、列表/单行刷新按钮，部署中状态可手动更新",
+        "HTTPS 证书状态区分申请中/部署中/已部署/即将过期，部署无整页跳转"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

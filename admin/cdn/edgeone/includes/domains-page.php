@@ -24,6 +24,174 @@ function vs_edgeone_find_zone_by_id(array $zones, $zoneId)
 }
 
 /**
+ * @param array<string, mixed>|null $zone
+ * @return string
+ */
+function vs_edgeone_zone_root_domain($zone)
+{
+    if ($zone === null || !is_array($zone)) {
+        return '';
+    }
+
+    return strtolower(trim((string) (isset($zone['ZoneName']) ? $zone['ZoneName'] : '')));
+}
+
+/**
+ * @param string                    $input
+ * @param array<string, mixed>|null $zone
+ * @return string
+ */
+function vs_edgeone_normalize_acceleration_domain($input, $zone)
+{
+    $input = strtolower(trim((string) $input));
+    if ($input === '') {
+        throw new Exception('请填写域名前缀');
+    }
+    $root = vs_edgeone_zone_root_domain($zone);
+    if ($root === '') {
+        throw new Exception('无法获取站点主域名');
+    }
+    if ($input === '@') {
+        return $root;
+    }
+    $input = rtrim($input, '.');
+    if (strpos($input, '.') !== false) {
+        if ($input === $root || preg_match('/\.' . preg_quote($root, '/') . '$/i', $input)) {
+            return $input;
+        }
+        throw new Exception('加速域名须属于站点 ' . $root);
+    }
+
+    return $input . '.' . $root;
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param string  $zoneId
+ * @return array{domains: array<int, array<string, mixed>>, error: string, ddos: array<string, mixed>}
+ */
+function vs_edgeone_fetch_domains_page_data(EdgeOne $eo, $zoneId)
+{
+    $out = array(
+        'domains' => array(),
+        'error'   => '',
+        'ddos'    => array(),
+    );
+    if ($zoneId === '') {
+        return $out;
+    }
+
+    $dResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+        return $eo->accelerationDomain->describeAccelerationDomains(array(
+            'ZoneId' => $zoneId,
+            'Offset' => 0,
+            'Limit'  => 100,
+        ));
+    }, array());
+    if ($dResult['ok']) {
+        $out['domains'] = isset($dResult['data']['AccelerationDomains']) && is_array($dResult['data']['AccelerationDomains'])
+            ? $dResult['data']['AccelerationDomains']
+            : array();
+    } else {
+        $out['error'] = $dResult['error'];
+    }
+
+    $ddosResult = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+        return $eo->security->describeDDoSProtection(array('ZoneId' => $zoneId));
+    });
+    if ($ddosResult['ok'] && is_array($ddosResult['data'])) {
+        $out['ddos'] = $ddosResult['data'];
+    }
+
+    return $out;
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param string  $zoneId
+ * @param string  $domainName
+ * @return array<string, mixed>|null
+ */
+function vs_edgeone_fetch_single_acceleration_domain(EdgeOne $eo, $zoneId, $domainName)
+{
+    $domainName = trim((string) $domainName);
+    if ($domainName === '') {
+        return null;
+    }
+
+    $result = vs_edgeone_try_call(function () use ($eo, $zoneId, $domainName) {
+        return $eo->accelerationDomain->describeAccelerationDomains(array(
+            'ZoneId'  => $zoneId,
+            'Offset'  => 0,
+            'Limit'   => 20,
+            'Filters' => array(
+                array(
+                    'Name'   => 'domain-name',
+                    'Values' => array($domainName),
+                ),
+            ),
+        ));
+    }, array());
+    if (!$result['ok'] || !is_array($result['data'])) {
+        return null;
+    }
+
+    $list = isset($result['data']['AccelerationDomains']) && is_array($result['data']['AccelerationDomains'])
+        ? $result['data']['AccelerationDomains']
+        : array();
+    foreach ($list as $row) {
+        if (is_array($row) && isset($row['DomainName']) && (string) $row['DomainName'] === $domainName) {
+            return $row;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param string  $zoneId
+ * @return array<string, array<string, mixed>>
+ */
+function vs_edgeone_fetch_zone_cert_index(EdgeOne $eo, $zoneId)
+{
+    static $cache = array();
+    if ($zoneId === '') {
+        return array();
+    }
+    if (isset($cache[$zoneId])) {
+        return $cache[$zoneId];
+    }
+
+    $index = array();
+    $result = vs_edgeone_try_call(function () use ($eo, $zoneId) {
+        return $eo->certificate->describeDefaultCertificates(array(
+            'Filters' => array(
+                array('Name' => 'zone-id', 'Values' => array($zoneId)),
+            ),
+            'Limit' => 200,
+        ));
+    }, array());
+    if ($result['ok'] && is_array($result['data'])) {
+        $items = isset($result['data']['DefaultServerCertInfo']) && is_array($result['data']['DefaultServerCertInfo'])
+            ? $result['data']['DefaultServerCertInfo']
+            : array();
+        foreach ($items as $cert) {
+            if (!is_array($cert)) {
+                continue;
+            }
+            $cid = isset($cert['CertId']) ? (string) $cert['CertId'] : '';
+            if ($cid !== '') {
+                $index[$cid] = $cert;
+            }
+        }
+    }
+    $cache[$zoneId] = $index;
+
+    return $index;
+}
+
+/**
  * @param EdgeOne|null $eo
  * @param string       $zoneId
  * @return array{label: string, raw: string}
@@ -239,20 +407,77 @@ function vs_edgeone_render_domain_cname_cell($cname)
 }
 
 /**
+ * @param array<string, mixed>             $row
+ * @param array<string, array<string, mixed>> $certIndex
+ * @return array{label: string, class: string, mode: string, expire: string, state: string}
+ */
+function vs_edgeone_domain_https_info(array $row, array $certIndex = array())
+{
+    $cert = isset($row['Certificate']) && is_array($row['Certificate']) ? $row['Certificate'] : array();
+    $mode = strtolower((string) (isset($cert['Mode']) ? $cert['Mode'] : ''));
+    $list = isset($cert['List']) && is_array($cert['List']) ? $cert['List'] : array();
+
+    if ($mode === '' || $mode === 'disable' || $mode === 'off') {
+        return array('label' => '未部署', 'class' => 'is-muted', 'mode' => $mode, 'expire' => '', 'state' => 'off');
+    }
+
+    $certDetail = null;
+    foreach ($list as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $cid = isset($item['CertId']) ? (string) $item['CertId'] : '';
+        if ($cid !== '' && isset($certIndex[$cid])) {
+            $certDetail = $certIndex[$cid];
+            break;
+        }
+    }
+
+    if ($certDetail !== null) {
+        $st = strtolower((string) (isset($certDetail['Status']) ? $certDetail['Status'] : ''));
+        $expire = isset($certDetail['ExpireTime']) ? (string) $certDetail['ExpireTime'] : '';
+        if ($st === 'processing') {
+            return array('label' => '部署中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'processing');
+        }
+        if ($st === 'failed') {
+            return array('label' => '部署失败', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'failed');
+        }
+        if ($expire !== '') {
+            $expTs = strtotime($expire);
+            if ($expTs !== false && $expTs < time()) {
+                return array('label' => '已过期', 'class' => 'is-danger', 'mode' => $mode, 'expire' => $expire, 'state' => 'expired');
+            }
+            if ($expTs !== false && $expTs < time() + 30 * 86400) {
+                return array('label' => '即将过期', 'class' => 'is-warning', 'mode' => $mode, 'expire' => $expire, 'state' => 'expiring');
+            }
+        }
+        if ($st === 'deployed' || $st === '') {
+            return array('label' => '已部署', 'class' => 'is-ok', 'mode' => $mode, 'expire' => $expire, 'state' => 'deployed');
+        }
+    }
+
+    if (in_array($mode, array('eofreecert', 'eofreecert_manual', 'sslcert'), true)) {
+        return array('label' => '申请中', 'class' => 'is-warning', 'mode' => $mode, 'expire' => '', 'state' => 'applying');
+    }
+
+    return array('label' => '未部署', 'class' => 'is-muted', 'mode' => $mode, 'expire' => '', 'state' => 'off');
+}
+
+/**
  * @param array<string, mixed> $row
+ * @param array<string, array<string, mixed>> $certIndex
  * @return string
  */
-function vs_edgeone_render_domain_https_cell(array $row)
+function vs_edgeone_render_domain_https_cell(array $row, array $certIndex = array())
 {
     $name = isset($row['DomainName']) ? (string) $row['DomainName'] : '';
-    $label = vs_edgeone_domain_https_label($row);
-    $deployed = $label === '已部署';
+    $info = vs_edgeone_domain_https_info($row, $certIndex);
     $cert = isset($row['Certificate']) && is_array($row['Certificate']) ? $row['Certificate'] : array();
     $mode = isset($cert['Mode']) ? (string) $cert['Mode'] : '';
 
     ob_start();
     echo '<div class="vs-edgeone-https-cell">';
-    echo '<span class="vs-edgeone-domain-status ' . ($deployed ? 'is-ok' : 'is-muted') . '">' . vs_e($label) . '</span>';
+    echo '<span class="vs-edgeone-domain-status ' . vs_e($info['class']) . '">' . vs_e($info['label']) . '</span>';
     if ($name !== '') {
         echo '<button type="button" class="vs-edgeone-domain-cert-config" data-domain="' . vs_e($name) . '" data-cert-mode="' . vs_e($mode) . '">配置</button>';
     }
@@ -292,20 +517,35 @@ function vs_edgeone_render_ipv6_segment($name, $selected = 'follow')
  * @param array<string, mixed> $row
  * @return string
  */
-function vs_edgeone_domain_https_label(array $row)
+function vs_edgeone_domain_https_label(array $row, array $certIndex = array())
 {
-    $cert = isset($row['Certificate']) && is_array($row['Certificate']) ? $row['Certificate'] : array();
-    $mode = isset($cert['Mode']) ? strtolower((string) $cert['Mode']) : '';
-    $list = isset($cert['List']) && is_array($cert['List']) ? $cert['List'] : array();
+    $info = vs_edgeone_domain_https_info($row, $certIndex);
 
-    if ($mode === 'disable' || $mode === 'off') {
-        return '未部署';
-    }
-    if (count($list) > 0 || in_array($mode, array('sslcert', 'eofreecert', 'eofreecert_manual'), true)) {
-        return '已部署';
-    }
+    return $info['label'];
+}
 
-    return '未部署';
+/**
+ * @param array<string, mixed> $row
+ * @return string
+ */
+function vs_edgeone_render_domain_status_cell(array $row)
+{
+    $name = isset($row['DomainName']) ? (string) $row['DomainName'] : '';
+    $status = isset($row['DomainStatus']) ? (string) $row['DomainStatus'] : '';
+    $badge = vs_edgeone_domain_status_badge($status);
+    $showRefresh = strtolower($status) === 'process';
+
+    ob_start();
+    echo '<span class="vs-edgeone-domain-status-cell">';
+    echo '<span class="vs-edgeone-domain-status ' . vs_e($badge['class']) . '">' . vs_e($badge['label']) . '</span>';
+    if ($showRefresh && $name !== '') {
+        echo '<button type="button" class="vs-edgeone-domain-row-refresh" data-domain="' . vs_e($name) . '" title="刷新状态" aria-label="刷新状态">';
+        echo '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 1v3.5H11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        echo '</button>';
+    }
+    echo '</span>';
+
+    return ob_get_clean();
 }
 
 /**
@@ -366,12 +606,53 @@ function vs_edgeone_domain_status_badge($status)
 /**
  * @param array<int, array<string, mixed>> $domains
  * @param array<string, mixed>             $ddosData
+ * @param array<string, array<string, mixed>> $certIndex
+ * @return string
+ */
+function vs_edgeone_render_domain_list_body(array $domains, array $ddosData, array $certIndex = array())
+{
+    ob_start();
+    if (count($domains) === 0) {
+        echo '<p class="vs-form-tip">暂无加速域名，点击「添加域名」创建</p>';
+    } else {
+        echo '<div class="vs-edgeone-domain-cards" id="edgeoneDomainCards">';
+        foreach ($domains as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            echo vs_edgeone_render_domain_card($row, $ddosData, $certIndex);
+        }
+        echo '</div>';
+
+        echo '<div class="vs-table-wrap vs-edgeone-domain-table-wrap">';
+        echo '<table class="vs-table vs-edgeone-domain-table" id="edgeoneDomainTable">';
+        echo '<thead><tr>';
+        echo '<th>加速域名</th><th>状态</th><th>CNAME</th><th>源站类型</th><th>源站配置</th><th>拓展服务</th><th>HTTPS 配置</th><th>操作</th>';
+        echo '</tr></thead><tbody>';
+        foreach ($domains as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            echo vs_edgeone_render_domain_table_row($row, $ddosData, $certIndex);
+        }
+        echo '</tbody></table>';
+        echo '<p class="vs-edgeone-domains-table__foot" id="edgeoneDomainsCount">共 ' . count($domains) . ' 条</p>';
+        echo '</div>';
+    }
+
+    return ob_get_clean();
+}
+
+/**
+ * @param array<int, array<string, mixed>> $domains
+ * @param array<string, mixed>             $ddosData
  * @param string                           $error
  * @param string                           $zoneId
  * @param bool                             $canManage
+ * @param array<string, array<string, mixed>> $certIndex
  * @return string
  */
-function vs_edgeone_render_domain_list_panel(array $domains, array $ddosData, $error, $zoneId, $canManage = true)
+function vs_edgeone_render_domain_list_panel(array $domains, array $ddosData, $error, $zoneId, $canManage = true, array $certIndex = array())
 {
     ob_start();
     echo '<div class="vs-panel vs-edgeone-domains-list" id="edgeoneDomainsListPanel">';
@@ -395,35 +676,15 @@ function vs_edgeone_render_domain_list_panel(array $domains, array $ddosData, $e
     echo '<div class="vs-edgeone-domains-toolbar-inner">';
     echo '<div class="vs-edgeone-domains-search">';
     echo '<input type="search" class="vs-input" id="edgeoneDomainsSearch" placeholder="搜索加速域名 / CNAME / 源站" aria-label="搜索域名">';
-    echo '</div></div>';
+    echo '</div>';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-domains-refresh" id="edgeoneDomainsRefreshBtn" title="刷新域名列表">';
+    echo '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 1v3.5H11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    echo '<span>刷新列表</span></button>';
+    echo '</div>';
 
-    if (count($domains) === 0) {
-        echo '<p class="vs-form-tip">暂无加速域名，点击「添加域名」创建</p>';
-    } else {
-        echo '<div class="vs-edgeone-domain-cards" id="edgeoneDomainCards">';
-        foreach ($domains as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            echo vs_edgeone_render_domain_card($row, $ddosData);
-        }
-        echo '</div>';
-
-        echo '<div class="vs-table-wrap vs-edgeone-domain-table-wrap">';
-        echo '<table class="vs-table vs-edgeone-domain-table" id="edgeoneDomainTable">';
-        echo '<thead><tr>';
-        echo '<th>加速域名</th><th>状态</th><th>CNAME</th><th>源站类型</th><th>源站配置</th><th>拓展服务</th><th>HTTPS 配置</th><th>操作</th>';
-        echo '</tr></thead><tbody>';
-        foreach ($domains as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            echo vs_edgeone_render_domain_table_row($row, $ddosData);
-        }
-        echo '</tbody></table>';
-        echo '<p class="vs-edgeone-domains-table__foot" id="edgeoneDomainsCount">共 ' . count($domains) . ' 条</p>';
-        echo '</div>';
-    }
+    echo '<div id="edgeoneDomainsListBody" class="vs-edgeone-domains-list-body">';
+    echo vs_edgeone_render_domain_list_body($domains, $ddosData, $certIndex);
+    echo '</div>';
 
     echo '</div>';
     return ob_get_clean();
@@ -432,9 +693,10 @@ function vs_edgeone_render_domain_list_panel(array $domains, array $ddosData, $e
 /**
  * @param array<string, mixed> $row
  * @param array<string, mixed> $ddosData
+ * @param array<string, array<string, mixed>> $certIndex
  * @return string
  */
-function vs_edgeone_render_domain_table_row(array $row, array $ddosData)
+function vs_edgeone_render_domain_table_row(array $row, array $ddosData, array $certIndex = array())
 {
     $name = isset($row['DomainName']) ? (string) $row['DomainName'] : '';
     $status = isset($row['DomainStatus']) ? (string) $row['DomainStatus'] : '';
@@ -451,7 +713,7 @@ function vs_edgeone_render_domain_table_row(array $row, array $ddosData)
     ob_start();
     echo '<tr data-domain-search="' . vs_e($searchText) . '" data-domain-name="' . vs_e($name) . '" data-domain-status="' . vs_e($status) . '">';
     echo '<td class="vs-edgeone-domain-table__name">' . vs_e($name) . '</td>';
-    echo '<td><span class="vs-edgeone-domain-status ' . vs_e($badge['class']) . '">' . vs_e($badge['label']) . '</span></td>';
+    echo '<td>' . vs_edgeone_render_domain_status_cell($row) . '</td>';
     echo '<td>' . vs_edgeone_render_domain_cname_cell($cname) . '</td>';
     echo '<td>' . vs_e(vs_edgeone_domain_origin_type_label($originType)) . '</td>';
     echo '<td>' . vs_e($originVal) . '</td>';
@@ -466,7 +728,7 @@ function vs_edgeone_render_domain_table_row(array $row, array $ddosData)
         echo '—';
     }
     echo '</td>';
-    echo '<td>' . vs_edgeone_render_domain_https_cell($row) . '</td>';
+    echo '<td>' . vs_edgeone_render_domain_https_cell($row, $certIndex) . '</td>';
     echo '<td class="vs-edgeone-domain-table__actions">';
     echo '<a href="#" class="vs-edgeone-domain-edit" data-domain="' . vs_e($name) . '">编辑</a>';
     if ($isOnline) {
@@ -484,9 +746,10 @@ function vs_edgeone_render_domain_table_row(array $row, array $ddosData)
 /**
  * @param array<string, mixed> $row
  * @param array<string, mixed> $ddosData
+ * @param array<string, array<string, mixed>> $certIndex
  * @return string
  */
-function vs_edgeone_render_domain_card(array $row, array $ddosData)
+function vs_edgeone_render_domain_card(array $row, array $ddosData, array $certIndex = array())
 {
     $name = isset($row['DomainName']) ? (string) $row['DomainName'] : '';
     $status = isset($row['DomainStatus']) ? (string) $row['DomainStatus'] : '';
@@ -504,13 +767,13 @@ function vs_edgeone_render_domain_card(array $row, array $ddosData)
     echo '<article class="vs-edgeone-domain-card" data-domain-search="' . vs_e($searchText) . '" data-domain-name="' . vs_e($name) . '">';
     echo '<div class="vs-edgeone-domain-card__head">';
     echo '<span class="vs-edgeone-domain-card__title">' . vs_e($name) . '</span>';
-    echo '<span class="vs-edgeone-domain-status ' . vs_e($badge['class']) . '">' . vs_e($badge['label']) . '</span>';
+    echo vs_edgeone_render_domain_status_cell($row);
     echo '</div>';
     echo '<div class="vs-edgeone-domain-card__cname">' . vs_edgeone_render_domain_cname_cell($cname) . '</div>';
     echo '<dl class="vs-edgeone-domain-card__meta">';
     echo '<div><dt>源站类型</dt><dd>' . vs_e($originType) . '</dd></div>';
     echo '<div><dt>源站配置</dt><dd>' . vs_e($originVal) . '</dd></div>';
-    echo '<div><dt>HTTPS</dt><dd>' . vs_edgeone_render_domain_https_cell($row) . '</dd></div>';
+    echo '<div><dt>HTTPS</dt><dd>' . vs_edgeone_render_domain_https_cell($row, $certIndex) . '</dd></div>';
     echo '<div><dt>拓展</dt><dd>';
     if ($ddosOn) {
         echo '<span class="vs-edgeone-domain-ext__tag">DDoS</span> ';
@@ -553,11 +816,21 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-domain-drawer-close aria-label="关闭">';
     echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     echo '</button></div>';
-    echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainCreateForm" data-action="domain_create">';
+    echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainCreateForm" data-action="domain_create" data-reload="none">';
     echo '<div class="vs-edgeone-zone-create-drawer__body">';
     echo '<p class="vs-form-tip">请添加域名，以开启安全加速服务</p>';
+    $rootDomain = vs_edgeone_zone_root_domain($zone);
     echo '<div class="vs-form-row"><label class="vs-label">加速域名</label>';
-    echo '<input type="text" name="domain_name" class="vs-input" placeholder="www.example.com" required></div>';
+    if ($rootDomain !== '') {
+        echo '<p class="vs-form-tip vs-edgeone-domain-prefix-tip">仅需填写子域名前缀，主域名 <strong>' . vs_e($rootDomain) . '</strong> 已与站点绑定</p>';
+        echo '<div class="vs-edgeone-domain-prefix-field">';
+        echo '<input type="text" name="domain_prefix" class="vs-input" placeholder="www 或 api" required autocomplete="off">';
+        echo '<span class="vs-edgeone-domain-prefix-suffix">.' . vs_e($rootDomain) . '</span>';
+        echo '</div>';
+    } else {
+        echo '<input type="text" name="domain_prefix" class="vs-input" placeholder="www" required>';
+    }
+    echo '</div>';
     echo '<div class="vs-form-row"><label class="vs-label">IPv6 访问</label>';
     echo vs_edgeone_render_ipv6_segment('ipv6_status', 'follow');
     echo '</div>';
@@ -592,7 +865,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-domain-drawer-close aria-label="关闭">';
     echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
     echo '</button></div>';
-    echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainEditForm" data-action="domain_modify">';
+    echo '<form class="vs-form vs-edgeone-api-form" id="edgeoneDomainEditForm" data-action="domain_modify" data-reload="none">';
     echo '<div class="vs-edgeone-zone-create-drawer__body">';
     echo '<input type="hidden" name="domain_name" id="edgeoneDomainEditName" value="">';
     echo '<p class="vs-form-tip" id="edgeoneDomainEditTitle"></p>';
@@ -629,6 +902,7 @@ function vs_edgeone_render_domain_drawers($zone, array $domains = array())
     echo '<p class="vs-form-tip" id="edgeoneDomainCertDomain"></p>';
     echo '<div class="vs-edgeone-cert-status" id="edgeoneDomainCertStatus"></div>';
     echo '<div class="vs-edgeone-cert-actions">';
+    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-cert-status-refresh" id="edgeoneDomainCertRefreshBtn">刷新证书状态</button>';
     if ($autoFreeCert) {
         echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-cert-deploy" data-mode="eofreecert">部署 EdgeOne 免费证书</button>';
     } else {

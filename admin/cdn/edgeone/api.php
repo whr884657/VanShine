@@ -103,10 +103,14 @@ try {
             if ($zoneId === '') {
                 throw new Exception('请先选择站点');
             }
-            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
-            if ($domain === '') {
-                throw new Exception('请填写加速域名');
+            $zones = vs_edgeone_fetch_zones($eo);
+            $currentZone = vs_edgeone_find_zone_by_id($zones, $zoneId);
+            if ($currentZone === null) {
+                throw new Exception('站点不存在');
             }
+            $prefix = trim(isset($_POST['domain_prefix']) ? $_POST['domain_prefix'] : '');
+            $domainInput = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            $domain = vs_edgeone_normalize_acceleration_domain($prefix !== '' ? $prefix : $domainInput, $currentZone);
             $params = array(
                 'ZoneId'     => $zoneId,
                 'DomainName' => $domain,
@@ -249,7 +253,7 @@ try {
                 'Hosts'  => array($domain),
                 'Mode'   => 'eofreecert_manual',
             ));
-            AjaxResponse::success('免费证书已验证并部署', array(
+            AjaxResponse::success('验证已提交，证书正在部署中', array(
                 'data' => array(
                     'check'  => $check,
                     'deploy' => $deploy,
@@ -273,8 +277,72 @@ try {
                 'Hosts'  => array($domain),
                 'Mode'   => $mode,
             ));
-            $msg = $mode === 'disable' ? 'HTTPS 已关闭' : 'HTTPS 证书配置已更新';
+            if ($mode === 'disable') {
+                $msg = 'HTTPS 已关闭';
+            } else {
+                $msg = '证书申请已提交，正在部署中，请稍后刷新状态';
+            }
             AjaxResponse::success($msg, array('data' => $resp));
+
+        case 'domain_list_refresh':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $pageData = vs_edgeone_fetch_domains_page_data($eo, $zoneId);
+            if ($pageData['error'] !== '') {
+                throw new Exception($pageData['error']);
+            }
+            $certIndex = vs_edgeone_fetch_zone_cert_index($eo, $zoneId);
+            AjaxResponse::success('列表已刷新', array(
+                'data' => array(
+                    'list_html' => vs_edgeone_render_domain_list_body($pageData['domains'], $pageData['ddos'], $certIndex),
+                    'domains'     => $pageData['domains'],
+                ),
+            ));
+
+        case 'domain_row_refresh':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            $row = vs_edgeone_fetch_single_acceleration_domain($eo, $zoneId, $domain);
+            if ($row === null) {
+                throw new Exception('域名不存在或尚未同步');
+            }
+            $pageData = vs_edgeone_fetch_domains_page_data($eo, $zoneId);
+            $certIndex = vs_edgeone_fetch_zone_cert_index($eo, $zoneId);
+            AjaxResponse::success('状态已更新', array(
+                'data' => array(
+                    'domain'    => $row,
+                    'row_html'  => vs_edgeone_render_domain_table_row($row, $pageData['ddos'], $certIndex),
+                    'card_html' => vs_edgeone_render_domain_card($row, $pageData['ddos'], $certIndex),
+                ),
+            ));
+
+        case 'domain_cert_status':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            $row = vs_edgeone_fetch_single_acceleration_domain($eo, $zoneId, $domain);
+            if ($row === null) {
+                throw new Exception('域名不存在');
+            }
+            $certIndex = vs_edgeone_fetch_zone_cert_index($eo, $zoneId);
+            $https = vs_edgeone_domain_https_info($row, $certIndex);
+            AjaxResponse::success('ok', array(
+                'data' => array(
+                    'domain'     => $row,
+                    'https'      => $https,
+                    'https_html' => vs_edgeone_render_domain_https_cell($row, $certIndex),
+                ),
+            ));
 
         case 'zones_overview_data':
             @set_time_limit(300);

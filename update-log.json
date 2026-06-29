@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.4",
+            "date": "2026-06-29",
+            "title": "EdgeOne 域名管理交互与证书状态优化",
+            "db_changes": false,
+            "changes": [
+                "添加域名后局部刷新，修复弹窗关闭卡顿",
+                "子域名前缀输入与列表/单行刷新",
+                "HTTPS 状态准确展示与无跳转部署流程"
+            ]
+        },
+        {
             "version": "1.4.3",
             "date": "2026-06-30",
             "title": "EdgeOne 弹窗尺寸与导航体验修复",

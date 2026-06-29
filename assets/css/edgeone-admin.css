@@ -786,3 +786,23 @@
 .vs-edgeone-query-form .vs-form-actions {
     margin-top: 4px;
 }
+
+.vs-edgeone-filter-tip {
+    margin: 4px 0 0;
+}
+
+@media (max-width: 991px) {
+    .vs-edgeone-filter-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 10px;
+    }
+
+    .vs-edgeone-filter-grid .vs-form-col {
+        min-width: 0;
+    }
+
+    .vs-edgeone-filter-grid .vs-input {
+        width: 100%;
+    }
+}

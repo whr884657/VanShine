@@ -343,7 +343,7 @@ function vs_edgeone_query_analytics(EdgeOne $eo, $zoneId, $source, $metric, $int
         return $eo->analytics->describeTimingL4Data($params);
     }
 
-    return $eo->analytics->describeTimingL7AnalysisData($params);
+    return vs_edgeone_query_l7_metric($eo, $zoneId, $metric, $interval, $rangeKey);
 }
 
 /**
@@ -702,6 +702,60 @@ function vs_edgeone_billing_filters_from_request($src = null)
 }
 
 /**
+ * 指标 API 查询规格（display key => 实际 MetricName + 附加 Filters）
+ *
+ * @param string $metric
+ * @return array{api_metric: string, filters: array<int, array{Key: string, Operator: string, Value: array<int, string>}>}
+ */
+function vs_edgeone_l7_metric_query_spec($metric)
+{
+    if ((string) $metric === 'l7Flow_hitRequest') {
+        return array(
+            'api_metric' => 'l7Flow_request',
+            'filters'    => array(
+                vs_edgeone_analytics_filter('cacheType', 'hit', 'equals'),
+            ),
+        );
+    }
+
+    return array(
+        'api_metric' => (string) $metric,
+        'filters'    => array(),
+    );
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param string  $zoneId
+ * @param string  $metric   展示用指标 key
+ * @param string  $interval
+ * @param string  $rangeKey
+ * @param string  $domain
+ * @return array
+ */
+function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $interval, $rangeKey, $domain = '')
+{
+    $spec = vs_edgeone_l7_metric_query_spec($metric);
+    $range = vs_edgeone_analytics_range_preset($rangeKey);
+    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
+    $params = array_merge($range['times'], array(
+        'ZoneIds'     => array($zoneId),
+        'MetricNames' => array($spec['api_metric']),
+        'Interval'    => $interval,
+    ));
+
+    $filters = $spec['filters'];
+    if ($domain !== '') {
+        $filters[] = vs_edgeone_analytics_filter('domain', $domain, 'equals');
+    }
+    if (count($filters) > 0) {
+        $params['Filters'] = $filters;
+    }
+
+    return $eo->analytics->describeTimingL7AnalysisData($params);
+}
+
+/**
  * @param EdgeOne $eo
  * @param string  $zoneId
  * @param array<int, string> $metrics
@@ -712,6 +766,10 @@ function vs_edgeone_billing_filters_from_request($src = null)
  */
 function vs_edgeone_query_l7_metrics_batch(EdgeOne $eo, $zoneId, array $metrics, $interval, $rangeKey, $domain = '')
 {
+    if (count($metrics) === 1) {
+        return vs_edgeone_query_l7_metric($eo, $zoneId, $metrics[0], $interval, $rangeKey, $domain);
+    }
+
     $range = vs_edgeone_analytics_range_preset($rangeKey);
     $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
@@ -825,11 +883,12 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
                 $label .= ' · ' . $filters['filter_domain'];
             }
 
+            $spec = vs_edgeone_l7_metric_query_spec($metric);
             $result = vs_edgeone_try_call(function () use ($eo, $zid, $metric, $filters) {
-                return vs_edgeone_query_l7_metrics_batch(
+                return vs_edgeone_query_l7_metric(
                     $eo,
                     $zid,
-                    array($metric),
+                    $metric,
                     $filters['interval'],
                     $filters['range'],
                     $filters['filter_domain']
@@ -844,14 +903,14 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
             }
 
             $extracted = vs_edgeone_extract_timing_series($result['data']);
-            $points = vs_edgeone_series_points_for_metric($extracted, $metric);
+            $points = vs_edgeone_series_points_for_metric($extracted, $spec['api_metric']);
             $metricPoints[$metric][] = array(
                 'label'  => $label,
                 'points' => $points,
             );
 
             foreach ($extracted as $block) {
-                if (isset($block['metric']) && (string) $block['metric'] === (string) $metric && isset($block['sum'])) {
+                if (isset($block['metric']) && (string) $block['metric'] === (string) $spec['api_metric'] && isset($block['sum'])) {
                     $prev = $charts[$metric]['sum'] !== null ? (float) $charts[$metric]['sum'] : 0.0;
                     $charts[$metric]['sum'] = $prev + (float) $block['sum'];
                 }

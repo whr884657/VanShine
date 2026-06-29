@@ -1,12 +1,12 @@
 {
-    "version": "1.0.83",
+    "version": "1.0.84",
     "release_date": "2026-06-29",
-    "title": "修复手机端导航大类显示与统计图悬停提示",
+    "title": "修复缓存命中指标与概览页布局调整",
     "db_changes": false,
     "changes": [
-        "修复 legacy CSS 隐藏手机端大类导致仅显示总览",
-        "全部大类统一为中折叠+小折叠结构",
-        "统计图支持鼠标/触摸悬停显示数据点"
+        "缓存命中改用 l7Flow_request + cacheType=hit 筛选",
+        "概览页查询条件独立板块，移除站点概览",
+        "手机端筛选四字段 2×2 网格布局"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

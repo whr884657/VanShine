@@ -286,14 +286,6 @@
             if (data.data.charts_html) {
                 chartsHost.outerHTML = data.data.charts_html;
             }
-            if (data.data.range_label) {
-                var labelNode = document.getElementById('edgeoneRangeLabel');
-                if (labelNode) {
-                    var countMatch = labelNode.textContent.match(/共\s*\d+\s*个站点/);
-                    var prefix = countMatch ? countMatch[0] : labelNode.textContent.split('·')[0].trim();
-                    labelNode.textContent = prefix + ' · ' + data.data.range_label;
-                }
-            }
             bindCharts(document);
             keepCleanUrl();
         }).catch(function () {

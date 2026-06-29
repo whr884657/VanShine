@@ -64,8 +64,11 @@ if ($eo !== null) {
                 $hitResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $todayWindow) {
                     $params = array_merge($todayWindow, array(
                         'ZoneIds'     => vs_edgeone_zone_ids($zoneId),
-                        'MetricNames' => array('l7Flow_hitRequest'),
+                        'MetricNames' => array('l7Flow_request'),
                         'Interval'    => 'hour',
+                        'Filters'     => array(
+                            vs_edgeone_analytics_filter('cacheType', 'hit', 'equals'),
+                        ),
                     ));
                     return $eo->analytics->describeTimingL7AnalysisData($params);
                 });

@@ -2,7 +2,7 @@
 /**
  * 文件：admin/cdn/edgeone/index.php
  * 作用：EdgeOne 概览仪表盘
- * @version 1.0.5
+ * @version 1.0.6
  */
 
 require_once __DIR__ . '/init.php';
@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     if (vs_edgeone_is_fragment_request()) {
-        // POST 局部刷新：筛选参数写入 session，不依赖 URL 查询串
         vs_edgeone_overview_filters_from_request($_POST);
     }
 }
@@ -24,7 +23,6 @@ $ctx = vs_edgeone_page_start('cdn_edgeone', 'EdgeOne');
 $zones = $ctx['zones'];
 $eo = $ctx['eo'];
 $filters = vs_edgeone_overview_filters_from_request();
-$rangePreset = vs_edgeone_analytics_range_preset($filters['range']);
 $intervals = vs_edgeone_analytics_intervals();
 $ranges = vs_edgeone_analytics_ranges();
 
@@ -35,8 +33,8 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
 ?>
 
 <div class="vs-panel">
-    <h3 class="vs-panel__title">数据概览</h3>
-    <p class="vs-form-tip">账号下全部站点的统计数据。统一筛选后，下方所有统计图同步更新。数据约有 10 分钟延迟，时间范围最长 31 天。</p>
+    <h3 class="vs-panel__title">查询条件</h3>
+    <p class="vs-form-tip">设置时间、站点与域名后，下方统计图同步更新。数据约有 10 分钟延迟，时间范围最长 31 天。</p>
 
     <?php if (!vs_edgeone_is_ready()): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先完成 EdgeOne 配置。</p>
@@ -44,7 +42,7 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
         <p class="vs-form-tip">暂无站点，请前往「站点管理」创建。</p>
     <?php else: ?>
         <form method="post" class="vs-form vs-edgeone-query-form vs-edgeone-fragment-form vs-edgeone-overview-form" id="edgeoneOverviewForm">
-            <div class="vs-form-row vs-form-row--inline">
+            <div class="vs-form-row vs-edgeone-filter-grid">
                 <div class="vs-form-col">
                     <label class="vs-label">时间范围</label>
                     <select name="range" class="vs-input">
@@ -88,11 +86,11 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <?php if ($filters['filter_zone'] === '*'): ?>
-                        <p class="vs-form-tip">筛选单个站点后可选择域名</p>
-                    <?php endif; ?>
                 </div>
             </div>
+            <?php if ($filters['filter_zone'] === '*'): ?>
+                <p class="vs-form-tip vs-edgeone-filter-tip">筛选单个站点后可选择域名</p>
+            <?php endif; ?>
             <div class="vs-form-actions">
                 <button type="submit" class="vs-btn vs-btn--primary">查询</button>
             </div>
@@ -101,25 +99,6 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
 </div>
 
 <?php if (vs_edgeone_is_ready() && count($zones) > 0): ?>
-<div class="vs-panel">
-    <h3 class="vs-panel__title">站点概览</h3>
-    <p class="vs-form-tip" id="edgeoneRangeLabel">共 <?php echo count($zones); ?> 个站点 · <?php echo vs_e($rangePreset['label']); ?></p>
-    <div class="vs-edgeone-stat-grid">
-        <?php foreach ($zones as $zone):
-            $zid = isset($zone['ZoneId']) ? (string) $zone['ZoneId'] : '';
-        ?>
-            <article class="vs-edgeone-stat-card">
-                <h4><?php echo vs_e(vs_edgeone_zone_display_name($zone)); ?></h4>
-                <p class="vs-form-tip">域名：<?php echo vs_e(isset($zone['ZoneName']) ? $zone['ZoneName'] : '-'); ?></p>
-                <p class="vs-form-tip">ZoneId：<code><?php echo vs_e($zid); ?></code></p>
-                <p>运行状态：<?php vs_edgeone_render_zone_runtime_badge($zone); ?></p>
-                <p>加速状态：<?php echo vs_e(vs_edgeone_translate('ActiveStatus', isset($zone['ActiveStatus']) ? $zone['ActiveStatus'] : '')); ?></p>
-                <p>接入方式：<?php echo vs_e(vs_edgeone_translate('Type', isset($zone['Type']) ? $zone['Type'] : '')); ?></p>
-            </article>
-        <?php endforeach; ?>
-    </div>
-</div>
-
 <div class="vs-edgeone-chart-grid" id="edgeoneChartsHost">
     <div class="vs-panel vs-edgeone-chart-panel vs-edgeone-chart-panel--loading">
         <p class="vs-form-tip">统计图加载中…</p>

@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.85",
+            "date": "2026-06-29",
+            "title": "修复腾讯云 COS 上传失败（密钥与 Region 分离）",
+            "db_changes": false,
+            "changes": [
+                "COS 与 EdgeOne 仅共用 SecretId/SecretKey，Region 独立",
+                "保存 CDN 不再覆盖 COS 桶地域",
+                "空密钥不覆盖已有配置"
+            ]
+        },
+        {
             "version": "1.0.84",
             "date": "2026-06-29",
             "title": "修复缓存命中指标与概览页布局调整",

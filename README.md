@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.0.84**
+**当前版本：1.0.85**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -31,6 +31,7 @@ VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用*
 | 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
 | 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.58.zip`** |
 | 发行说明 | 见仓库内 `发行说明/` 目录 |
+| **推送与发版流程** | 见 [`Gitee推送与发行流程.md`](Gitee推送与发行流程.md)、[`发布检查清单.md`](发布检查清单.md) |
 
 ---
 
@@ -192,13 +193,25 @@ location / {
 4. 若存在未执行的结构更新 SQL，则执行数据库迁移
 5. 完成后自动清理 `data/update/` 临时文件
 
-**若在线更新失败：** 请从 [发行页](https://gitee.com/xunjinlu/VanShine/releases) 手动下载最新 `VanShine{版本}.zip` 覆盖（保留 `config/database.php`）。
+**若在线更新失败：** 请从 [发行页](https://gitee.com/xunjinlu/VanShine/releases) 手动下载最新 `VanShine{版本}.zip` 覆盖（保留 `config/database.php`）。发版维护者请参阅 [`Gitee推送与发行流程.md`](Gitee推送与发行流程.md)。
 
 **服务器要求：** PHP `ZipArchive` 扩展、可写项目目录、可访问云端更新源。
 
 ---
 
 ## 版本记录
+
+### v1.0.85（2026-06-29）
+
+**类型：** 修复腾讯云 COS 上传失败
+
+**变更说明：**
+- COS 与 EdgeOne 仅共用 SecretId/SecretKey，Region 各自独立
+- 修复保存 CDN 设置覆盖 COS 桶地域导致上传失败
+
+**数据库：** 无变更
+
+---
 
 ### v1.0.84（2026-06-29）
 

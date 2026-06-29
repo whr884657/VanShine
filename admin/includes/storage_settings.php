@@ -77,7 +77,7 @@ function vs_settings_render_storage_section()
                     } elseif ($field['key'] === 'app_id') {
                         $value = TencentCloudConfig::getAppId() !== '' ? TencentCloudConfig::getAppId() : $value;
                     } elseif ($field['key'] === 'region') {
-                        $value = TencentCloudConfig::getRegion();
+                        $value = TencentCloudConfig::getCosRegion();
                     }
                 }
                 ?>

@@ -339,6 +339,8 @@ class StorageRegistry
      */
     public static function loadDriverConfigs($key)
     {
+        TencentCloudConfig::migrateLegacyIfNeeded();
+
         $type = self::type($key);
         if ($type === null) {
             return array();
@@ -362,18 +364,12 @@ class StorageRegistry
         }
 
         if ((int) $key === 4) {
-            if (trim((string) $configs['secret_id']) === '') {
-                $configs['secret_id'] = TencentCloudConfig::getSecretId();
-            }
-            if (trim((string) $configs['secret_key']) === '') {
-                $configs['secret_key'] = TencentCloudConfig::getSecretKey();
-            }
+            $configs['secret_id'] = TencentCloudConfig::getSecretId();
+            $configs['secret_key'] = TencentCloudConfig::getSecretKey();
             if (trim((string) $configs['app_id']) === '') {
                 $configs['app_id'] = TencentCloudConfig::getAppId();
             }
-            if (trim((string) $configs['region']) === '') {
-                $configs['region'] = TencentCloudConfig::getRegion();
-            }
+            $configs['region'] = TencentCloudConfig::getCosRegion();
         }
 
         return $configs;
@@ -472,6 +468,8 @@ class StorageRegistry
      */
     public static function resolveDriverConfigs($key, array $post = null)
     {
+        TencentCloudConfig::migrateLegacyIfNeeded();
+
         $type = self::type($key);
         if ($type === null) {
             return array();
@@ -496,15 +494,12 @@ class StorageRegistry
             if ((int) $key === 4) {
                 if ($field['key'] === 'secret_id' && $value === '') {
                     $value = TencentCloudConfig::getSecretId();
-                }
-                if ($field['key'] === 'secret_key' && $value === '') {
+                } elseif ($field['key'] === 'secret_key' && $value === '') {
                     $value = TencentCloudConfig::getSecretKey();
-                }
-                if ($field['key'] === 'app_id' && $value === '') {
+                } elseif ($field['key'] === 'app_id' && $value === '') {
                     $value = TencentCloudConfig::getAppId();
-                }
-                if ($field['key'] === 'region' && $value === '') {
-                    $value = TencentCloudConfig::getRegion();
+                } elseif ($field['key'] === 'region' && $value === '') {
+                    $value = TencentCloudConfig::getCosRegion();
                 }
             }
 
@@ -622,6 +617,11 @@ class StorageRegistry
 
                 $postKey = 'cfg_' . $type['slug'] . '_' . $field['key'];
                 $value = trim(isset($post[$postKey]) ? $post[$postKey] : '');
+
+                if ((int) $key === 4 && in_array($field['key'], array('secret_id', 'secret_key', 'app_id', 'region'), true) && $value === '') {
+                    continue;
+                }
+
                 $items[$dbKey] = $value;
             }
         }

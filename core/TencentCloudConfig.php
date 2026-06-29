@@ -1,8 +1,8 @@
 <?php
 /**
  * 文件：core/TencentCloudConfig.php
- * 作用：腾讯云通用 API 凭证（COS、EdgeOne CDN 等共用 SecretId/SecretKey/Region/AppId）
- * @version 1.0.0
+ * 作用：腾讯云通用 API 凭证（COS 与 EdgeOne 共用 SecretId/SecretKey；Region 各自独立）
+ * @version 1.0.1
  */
 
 class TencentCloudConfig
@@ -45,19 +45,47 @@ class TencentCloudConfig
     }
 
     /**
+     * COS 储存桶地域（不与 EdgeOne API 地域混用）
+     *
      * @return string
      */
-    public static function getRegion()
+    public static function getCosRegion()
     {
-        $value = self::resolve(self::REGION, array(
-            'storage_cos_region',
-            'cdn_edgeone_region',
-        ));
+        $value = trim(Config::get('storage_cos_region', ''));
+        if ($value !== '') {
+            return $value;
+        }
+
+        $value = trim(Config::get(self::REGION, ''));
         if ($value !== '') {
             return $value;
         }
 
         return 'ap-guangzhou';
+    }
+
+    /**
+     * EdgeOne CDN API 地域
+     *
+     * @return string
+     */
+    public static function getEdgeOneRegion()
+    {
+        $value = trim(Config::get('cdn_edgeone_region', ''));
+        if ($value !== '') {
+            return $value;
+        }
+
+        return 'ap-guangzhou';
+    }
+
+    /**
+     * @deprecated 请使用 getCosRegion() 或 getEdgeOneRegion()
+     * @return string
+     */
+    public static function getRegion()
+    {
+        return self::getCosRegion();
     }
 
     /**
@@ -102,31 +130,34 @@ class TencentCloudConfig
             $parts[] = 'EdgeOne CDN';
         }
 
+        $base = 'SecretId / SecretKey 与 COS、EdgeOne 共用；COS 与 EdgeOne 的 Region 各自独立填写。';
         if (count($parts) === 0) {
-            return '已配置腾讯云 API 密钥，COS 与 EdgeOne CDN 可共用。';
+            return $base;
         }
 
-        return '已配置腾讯云 API 密钥，与 ' . implode('、', $parts) . ' 共用 SecretId / SecretKey / Region。';
+        return $base . ' 当前已用于 ' . implode('、', $parts) . '。';
     }
 
     /**
+     * 仅同步非空的 SecretId / SecretKey
+     *
      * @param array<string, string> $items
      * @return void
      */
-    public static function persistShared(array $items)
+    public static function persistSharedSecrets(array $items)
     {
         $shared = array();
         if (isset($items[self::SECRET_ID])) {
-            $shared[self::SECRET_ID] = $items[self::SECRET_ID];
+            $value = trim($items[self::SECRET_ID]);
+            if ($value !== '') {
+                $shared[self::SECRET_ID] = $value;
+            }
         }
         if (isset($items[self::SECRET_KEY])) {
-            $shared[self::SECRET_KEY] = $items[self::SECRET_KEY];
-        }
-        if (isset($items[self::APP_ID])) {
-            $shared[self::APP_ID] = $items[self::APP_ID];
-        }
-        if (isset($items[self::REGION])) {
-            $shared[self::REGION] = $items[self::REGION];
+            $value = trim($items[self::SECRET_KEY]);
+            if ($value !== '') {
+                $shared[self::SECRET_KEY] = $value;
+            }
         }
 
         if (count($shared) === 0) {
@@ -134,38 +165,56 @@ class TencentCloudConfig
         }
 
         Config::setMany($shared);
-        self::mirrorToLegacy($shared);
+        self::mirrorSecretsToLegacy($shared);
     }
 
     /**
-     * COS 储存保存时同步通用密钥
+     * COS 储存保存时同步密钥与 COS 专属配置
      *
      * @param array<string, string> $post
      * @return void
      */
     public static function syncFromCosPost(array $post)
     {
-        self::persistShared(array(
-            self::SECRET_ID  => trim(isset($post['cfg_cos_secret_id']) ? $post['cfg_cos_secret_id'] : ''),
-            self::SECRET_KEY => trim(isset($post['cfg_cos_secret_key']) ? $post['cfg_cos_secret_key'] : ''),
-            self::APP_ID     => trim(isset($post['cfg_cos_app_id']) ? $post['cfg_cos_app_id'] : ''),
-            self::REGION     => trim(isset($post['cfg_cos_region']) ? $post['cfg_cos_region'] : ''),
+        self::persistSharedSecrets(array(
+            self::SECRET_ID  => isset($post['cfg_cos_secret_id']) ? $post['cfg_cos_secret_id'] : '',
+            self::SECRET_KEY => isset($post['cfg_cos_secret_key']) ? $post['cfg_cos_secret_key'] : '',
         ));
+
+        $appId = trim(isset($post['cfg_cos_app_id']) ? $post['cfg_cos_app_id'] : '');
+        if ($appId !== '') {
+            Config::setMany(array(
+                self::APP_ID         => $appId,
+                'storage_cos_app_id' => $appId,
+            ));
+        }
+
+        $region = trim(isset($post['cfg_cos_region']) ? $post['cfg_cos_region'] : '');
+        if ($region !== '') {
+            Config::setMany(array(
+                'storage_cos_region' => $region,
+                self::REGION         => $region,
+            ));
+        }
     }
 
     /**
-     * CDN EdgeOne 保存时同步通用密钥
+     * CDN EdgeOne 保存时同步密钥与 EdgeOne 专属 Region
      *
      * @param array<string, string> $post
      * @return void
      */
     public static function syncFromEdgeOnePost(array $post)
     {
-        self::persistShared(array(
-            self::SECRET_ID  => trim(isset($post['cdn_tencent_secret_id']) ? $post['cdn_tencent_secret_id'] : ''),
-            self::SECRET_KEY => trim(isset($post['cdn_tencent_secret_key']) ? $post['cdn_tencent_secret_key'] : ''),
-            self::REGION     => trim(isset($post['cdn_tencent_region']) ? $post['cdn_tencent_region'] : ''),
+        self::persistSharedSecrets(array(
+            self::SECRET_ID  => isset($post['cdn_tencent_secret_id']) ? $post['cdn_tencent_secret_id'] : '',
+            self::SECRET_KEY => isset($post['cdn_tencent_secret_key']) ? $post['cdn_tencent_secret_key'] : '',
         ));
+
+        $region = trim(isset($post['cdn_tencent_region']) ? $post['cdn_tencent_region'] : '');
+        if ($region !== '') {
+            Config::set('cdn_edgeone_region', $region);
+        }
     }
 
     /**
@@ -175,7 +224,7 @@ class TencentCloudConfig
      */
     public static function migrateLegacyIfNeeded()
     {
-        if (Config::get(self::SECRET_ID, '') !== '') {
+        if (trim(Config::get(self::SECRET_ID, '')) !== '') {
             return;
         }
 
@@ -195,11 +244,15 @@ class TencentCloudConfig
         $items = array(
             self::SECRET_ID  => $secretId,
             self::SECRET_KEY => $secretKey,
-            self::APP_ID     => Config::get('storage_cos_app_id', ''),
-            self::REGION     => self::getRegion(),
         );
+
+        $appId = trim(Config::get('storage_cos_app_id', ''));
+        if ($appId !== '') {
+            $items[self::APP_ID] = $appId;
+        }
+
         Config::setMany($items);
-        self::mirrorToLegacy($items);
+        self::mirrorSecretsToLegacy($items);
     }
 
     /**
@@ -225,10 +278,12 @@ class TencentCloudConfig
     }
 
     /**
+     * 仅镜像 SecretId / SecretKey 到 COS 与 EdgeOne 旧键名
+     *
      * @param array<string, string> $shared
      * @return void
      */
-    private static function mirrorToLegacy(array $shared)
+    private static function mirrorSecretsToLegacy(array $shared)
     {
         $mirror = array();
 
@@ -239,13 +294,6 @@ class TencentCloudConfig
         if (isset($shared[self::SECRET_KEY]) && $shared[self::SECRET_KEY] !== '') {
             $mirror['storage_cos_secret_key'] = $shared[self::SECRET_KEY];
             $mirror['cdn_edgeone_secret_key'] = $shared[self::SECRET_KEY];
-        }
-        if (isset($shared[self::APP_ID]) && $shared[self::APP_ID] !== '') {
-            $mirror['storage_cos_app_id'] = $shared[self::APP_ID];
-        }
-        if (isset($shared[self::REGION]) && $shared[self::REGION] !== '') {
-            $mirror['storage_cos_region'] = $shared[self::REGION];
-            $mirror['cdn_edgeone_region'] = $shared[self::REGION];
         }
 
         if (count($mirror) > 0) {

@@ -80,7 +80,7 @@ class EdgeOneOptions
         $configs = array(
             self::SECRET_ID  => TencentCloudConfig::getSecretId(),
             self::SECRET_KEY => TencentCloudConfig::getSecretKey(),
-            self::REGION     => TencentCloudConfig::getRegion(),
+            self::REGION     => TencentCloudConfig::getEdgeOneRegion(),
             self::TOKEN      => trim(Config::get(self::configKey(self::TOKEN), '')),
             self::LANGUAGE   => trim(Config::get(self::configKey(self::LANGUAGE), '')),
         );

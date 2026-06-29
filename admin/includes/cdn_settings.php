@@ -15,7 +15,7 @@ function vs_settings_render_cdn_section()
     $edgeEnabled = Config::get('cdn_edgeone_enabled', '0') === '1';
     $secretId = TencentCloudConfig::getSecretId();
     $secretKey = TencentCloudConfig::getSecretKey();
-    $region = TencentCloudConfig::getRegion();
+    $region = TencentCloudConfig::getEdgeOneRegion();
     $token = Config::get('cdn_edgeone_token', '');
     $language = Config::get('cdn_edgeone_language', 'zh-CN');
     $sharedHint = TencentCloudConfig::sharedStatusHint();
@@ -62,7 +62,7 @@ function vs_settings_render_cdn_section()
                    value="<?php echo vs_e($secretKey); ?>">
         </div>
         <div class="vs-form-row">
-            <label class="vs-label">地域 Region（与 COS 共用）</label>
+            <label class="vs-label">地域 Region（EdgeOne API，与 COS 桶地域独立）</label>
             <input type="text" name="cdn_tencent_region" class="vs-input"
                    value="<?php echo vs_e($region); ?>"
                    placeholder="ap-guangzhou">

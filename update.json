@@ -1,12 +1,12 @@
 {
-    "version": "1.0.84",
+    "version": "1.0.85",
     "release_date": "2026-06-29",
-    "title": "修复缓存命中指标与概览页布局调整",
+    "title": "修复腾讯云 COS 上传失败（密钥与 Region 分离）",
     "db_changes": false,
     "changes": [
-        "缓存命中改用 l7Flow_request + cacheType=hit 筛选",
-        "概览页查询条件独立板块，移除站点概览",
-        "手机端筛选四字段 2×2 网格布局"
+        "COS 与 EdgeOne 仅共用 SecretId/SecretKey，Region 各自独立",
+        "保存 CDN 设置不再覆盖 COS 桶地域",
+        "空密钥不再覆盖已有配置；COS 上传始终读取通用密钥"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

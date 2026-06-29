@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.82",
+            "date": "2026-06-29",
+            "title": "EdgeOne 手机端导航总折叠优化",
+            "db_changes": false,
+            "changes": [
+                "手机端总折叠抽屉，默认仅显示当前页一条",
+                "大类嵌套子项；跳转后自动收起"
+            ]
+        },
+        {
             "version": "1.0.81",
             "date": "2026-06-29",
             "title": "修复 EdgeOne 概览统计图查询与配额板块调整",

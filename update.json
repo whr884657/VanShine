@@ -1,12 +1,11 @@
 {
-    "version": "1.0.81",
+    "version": "1.0.82",
     "release_date": "2026-06-29",
-    "title": "修复 EdgeOne 概览统计图查询与配额板块调整",
+    "title": "EdgeOne 手机端导航总折叠优化",
     "db_changes": false,
     "changes": [
-        "概览改为按站点×指标逐条查询，修复批量 MetricNames 无效参数",
-        "按时间范围自动限制 Interval 粒度",
-        "套餐配额板块从概览移至套餐计费页底部"
+        "手机端改为总折叠抽屉，默认仅显示当前页一条",
+        "大类内嵌套子项折叠；点击跳转后自动收起"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

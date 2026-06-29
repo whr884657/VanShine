@@ -109,6 +109,38 @@
         return loadMainContent(pagePath(), false);
     }
 
+    function collapseMobileDrawer() {
+        var drawer = document.getElementById('edgeoneMobileNav');
+        if (!drawer) return;
+        drawer.classList.remove('is-open');
+        var toggle = drawer.querySelector('.vs-edgeone-nav__drawer-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        drawer.querySelectorAll('.vs-edgeone-nav__group.is-open').forEach(function (group) {
+            group.classList.remove('is-open');
+            var btn = group.querySelector('.vs-edgeone-nav__group-btn');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    function updateMobileDrawerLabel() {
+        var drawerCurrent = document.querySelector('.vs-edgeone-nav__drawer-current');
+        if (!drawerCurrent) return;
+        var activeLink = document.querySelector('.vs-edgeone-nav__mobile a.is-active');
+        if (!activeLink) {
+            drawerCurrent.textContent = 'EdgeOne 功能导航';
+            return;
+        }
+        var group = activeLink.closest('.vs-edgeone-nav__group');
+        if (group) {
+            var groupBtn = group.querySelector('.vs-edgeone-nav__group-btn');
+            var groupLabel = groupBtn ? groupBtn.childNodes[0].textContent.trim() : '';
+            var itemLabel = activeLink.textContent.trim();
+            drawerCurrent.textContent = groupLabel ? groupLabel + ' · ' + itemLabel : itemLabel;
+            return;
+        }
+        drawerCurrent.textContent = activeLink.textContent.trim() || 'EdgeOne 功能导航';
+    }
+
     function updateNavActive(url) {
         var path = url.split('?')[0];
         document.querySelectorAll('.vs-edgeone-nav a[href]').forEach(function (link) {
@@ -117,20 +149,17 @@
             link.classList.toggle('is-active', linkPath === path);
         });
 
-        document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__accordion').forEach(function (node) {
+        document.querySelectorAll('.vs-edgeone-nav__tab, .vs-edgeone-nav__group').forEach(function (node) {
             node.classList.remove('is-active', 'is-open');
         });
 
         document.querySelectorAll('.vs-edgeone-nav a.is-active').forEach(function (link) {
             var tab = link.closest('.vs-edgeone-nav__tab');
             if (tab) tab.classList.add('is-active');
-            var acc = link.closest('.vs-edgeone-nav__accordion');
-            if (acc) {
-                acc.classList.add('is-open', 'is-active');
-                var btn = acc.querySelector('.vs-edgeone-nav__accordion-btn');
-                if (btn) btn.setAttribute('aria-expanded', 'true');
-            }
         });
+
+        updateMobileDrawerLabel();
+        collapseMobileDrawer();
     }
 
     function bindSpaNavigation() {
@@ -294,23 +323,44 @@
         });
     }
 
-    function bindMobileAccordion() {
-        document.querySelectorAll('.vs-edgeone-nav__accordion-btn').forEach(function (btn) {
-            if (btn.dataset.bound === '1') return;
-            btn.dataset.bound = '1';
+    function bindMobileDrawer() {
+        var drawer = document.getElementById('edgeoneMobileNav');
+        if (!drawer || drawer.dataset.bound === '1') return;
+        drawer.dataset.bound = '1';
+
+        var toggle = drawer.querySelector('.vs-edgeone-nav__drawer-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                var open = drawer.classList.contains('is-open');
+                if (open) {
+                    collapseMobileDrawer();
+                    return;
+                }
+                drawer.classList.add('is-open');
+                toggle.setAttribute('aria-expanded', 'true');
+            });
+        }
+
+        drawer.querySelectorAll('.vs-edgeone-nav__group-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var item = btn.closest('.vs-edgeone-nav__accordion');
-                if (!item) return;
-                var open = item.classList.contains('is-open');
-                document.querySelectorAll('.vs-edgeone-nav__accordion.is-open').forEach(function (other) {
-                    if (other !== item) {
+                var group = btn.closest('.vs-edgeone-nav__group');
+                if (!group) return;
+                var open = group.classList.contains('is-open');
+                drawer.querySelectorAll('.vs-edgeone-nav__group.is-open').forEach(function (other) {
+                    if (other !== group) {
                         other.classList.remove('is-open');
-                        var ob = other.querySelector('.vs-edgeone-nav__accordion-btn');
+                        var ob = other.querySelector('.vs-edgeone-nav__group-btn');
                         if (ob) ob.setAttribute('aria-expanded', 'false');
                     }
                 });
-                item.classList.toggle('is-open', !open);
+                group.classList.toggle('is-open', !open);
                 btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+            });
+        });
+
+        drawer.querySelectorAll('a[href]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                collapseMobileDrawer();
             });
         });
     }
@@ -336,7 +386,7 @@
         bindFragmentForms(document);
         bindOverviewPage(document);
         bindZoneForm();
-        bindMobileAccordion();
+        bindMobileDrawer();
         bindDesktopDropdowns();
         bindCharts(document);
         if (window.history && window.history.replaceState) {

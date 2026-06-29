@@ -76,6 +76,8 @@
     border-right: 4px solid transparent;
     border-top: 5px solid currentColor;
     opacity: 0.65;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
 }
 
 .vs-edgeone-nav__dropdown {
@@ -119,6 +121,134 @@
 
 .vs-edgeone-nav__accordion {
     border-bottom: 1px solid var(--border-color, #e8e8e8);
+}
+
+/* 手机端：总折叠抽屉（默认仅一条） */
+.vs-edgeone-nav__drawer-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    min-height: 42px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary, #333);
+    cursor: pointer;
+    text-align: left;
+}
+
+.vs-edgeone-nav__drawer-toggle:hover {
+    background: rgba(22, 119, 255, 0.04);
+}
+
+.vs-edgeone-nav__drawer-current {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vs-edgeone-nav__drawer-body {
+    display: none;
+    padding: 4px 8px 8px;
+    max-height: min(65vh, 420px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.vs-edgeone-nav__drawer.is-open .vs-edgeone-nav__drawer-body {
+    display: block;
+}
+
+.vs-edgeone-nav__drawer.is-open .vs-edgeone-nav__drawer-toggle {
+    border-bottom: 1px solid var(--border-color, #e8e8e8);
+}
+
+.vs-edgeone-nav__drawer.is-open .vs-edgeone-nav__drawer-toggle .vs-edgeone-nav__caret {
+    transform: rotate(180deg);
+}
+
+.vs-edgeone-nav__drawer-link,
+.vs-edgeone-nav__drawer-sublink {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    text-decoration: none;
+}
+
+.vs-edgeone-nav__drawer-link {
+    font-weight: 500;
+    color: var(--text-primary, #333);
+}
+
+.vs-edgeone-nav__drawer-link:hover,
+.vs-edgeone-nav__drawer-sublink:hover {
+    color: var(--primary, #1677ff);
+    background: rgba(22, 119, 255, 0.06);
+}
+
+.vs-edgeone-nav__drawer-link.is-active,
+.vs-edgeone-nav__drawer-sublink.is-active {
+    color: var(--primary, #1677ff);
+    background: rgba(22, 119, 255, 0.1);
+    font-weight: 600;
+}
+
+.vs-edgeone-nav__group {
+    border-top: 1px solid var(--border-color, #eee);
+}
+
+.vs-edgeone-nav__group:first-child {
+    border-top: none;
+}
+
+.vs-edgeone-nav__group-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 12px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary, #333);
+    cursor: pointer;
+    text-align: left;
+}
+
+.vs-edgeone-nav__group-btn:hover {
+    background: rgba(22, 119, 255, 0.04);
+}
+
+.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-btn {
+    color: var(--primary, #1677ff);
+}
+
+.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-btn .vs-edgeone-nav__caret {
+    transform: rotate(180deg);
+}
+
+.vs-edgeone-nav__group-panel {
+    display: none;
+    padding: 0 4px 4px 8px;
+}
+
+.vs-edgeone-nav__group.is-open .vs-edgeone-nav__group-panel {
+    display: block;
+}
+
+.vs-edgeone-nav__drawer-sublink {
+    padding-left: 20px;
+    font-weight: 400;
 }
 
 .vs-edgeone-nav__accordion:last-child {

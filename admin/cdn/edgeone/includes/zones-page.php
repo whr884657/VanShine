@@ -233,7 +233,7 @@ function vs_edgeone_render_zones_overview_panel(array $metrics, $activeTab = 'fl
 }
 
 /**
- * Pages 等云端托管站点不支持域名加速 / 七层加速 / 安全策略等自助管理。
+ * Pages 等云端托管站点不支持域名管理 / 规则引擎 / 安全策略等自助管理。
  *
  * @param array<string, mixed> $zone
  * @return bool
@@ -255,7 +255,7 @@ function vs_edgeone_render_zones_row_actions($zid, $managed, $wrapTag = 'td', $w
 {
     $items = array(
         array('domains.php', '域名管理'),
-        array('l7.php', '七层加速'),
+        array('rules.php', '规则引擎'),
         array('security.php', '安全策略'),
     );
     $tip = 'Pages 云端部署站点，请在 EdgeOne Pages 控制台管理';

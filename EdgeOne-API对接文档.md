@@ -216,7 +216,9 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 | BindSharedCNAME | 绑定共享 CNAME | 20 | [101363](https://cloud.tencent.com/document/api/1552/101363) |
 | DeleteSharedCNAME | 删除共享 CNAME | 20 | [101362](https://cloud.tencent.com/document/api/1552/101362) |
 
-### 4.3 站点加速配置（七层）
+### 4.3 站点加速配置（七层 / 规则引擎）
+
+> 腾讯云控制台称 **规则引擎**（针对特定域名生效的差异化加速配置）。VanShine 后台入口：`/admin/cdn/edgeone/rules.php`。API Action 名称仍为 `L7Acc*`。
 
 | Action | 功能描述 | 频率(次/s) | 官方文档 |
 |--------|----------|-----------|----------|
@@ -251,6 +253,8 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 | ModifyFunctionComponentBindings | 修改函数组件绑定 | 20 | [130179](https://cloud.tencent.com/document/api/1552/130179) |
 
 ### 4.5 别称域名
+
+> SDK 已封装对应 API，但 VanShine 后台**暂未开放**别称域名管理页（腾讯功能尚在测试）。
 
 | Action | 功能描述 | 频率(次/s) | 官方文档 |
 |--------|----------|-----------|----------|

@@ -14,8 +14,7 @@ function vs_edgeone_nav($active)
         '站点与域名' => array(
             'cdn_edgeone_zones'   => array('站点管理', $base . '/zones.php'),
             'cdn_edgeone_domains' => array('域名管理', $base . '/domains.php'),
-            'cdn_edgeone_l7'      => array('七层加速', $base . '/l7.php'),
-            'cdn_edgeone_alias'   => array('别称域名', $base . '/alias.php'),
+            'cdn_edgeone_rules'   => array('规则引擎', $base . '/rules.php'),
             'cdn_edgeone_dns'     => array('DNS 记录', $base . '/dns.php'),
         ),
         '内容与函数' => array(

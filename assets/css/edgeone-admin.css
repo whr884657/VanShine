@@ -2818,3 +2818,297 @@ body.vs-drawer-open {
         display: none !important;
     }
 }
+
+/* —— 规则引擎 —— */
+
+.vs-edgeone-rules-site-panel,
+.vs-edgeone-rules-list-panel {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.vs-edgeone-rules-site-meta {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.vs-edgeone-rules-site-meta__hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+}
+
+.vs-edgeone-rules-intro {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f0f5ff 0%, #fafbff 100%);
+    border: 1px solid #d6e4ff;
+}
+
+.vs-edgeone-rules-intro__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.vs-edgeone-rules-intro__icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #1677ff;
+    color: #fff;
+}
+
+.vs-edgeone-rules-intro__title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1677ff;
+}
+
+.vs-edgeone-rules-intro__desc {
+    margin: 0;
+    font-size: 13px;
+    color: #4096ff;
+}
+
+.vs-edgeone-rules-priority-tip {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    line-height: 1.6;
+}
+
+.vs-edgeone-rules-priority-tip a {
+    color: #1677ff;
+    text-decoration: none;
+}
+
+.vs-edgeone-rules-priority-tip a:hover {
+    text-decoration: underline;
+}
+
+.vs-edgeone-rules-toolbar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.vs-edgeone-rules-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.vs-edgeone-rules-list-body.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.vs-edgeone-rules-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.vs-edgeone-rules-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vs-edgeone-rules-item:last-child {
+    border-bottom: none;
+}
+
+.vs-edgeone-rules-item.is-dragging {
+    opacity: 0.65;
+    background: #f0f5ff;
+    box-shadow: 0 4px 12px rgba(22, 119, 255, 0.12);
+}
+
+.vs-edgeone-rules-item__index {
+    flex-shrink: 0;
+    width: 28px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #999);
+    font-variant-numeric: tabular-nums;
+}
+
+.vs-edgeone-rules-item__drag {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    color: #bfbfbf;
+    cursor: grab;
+}
+
+.vs-edgeone-rules-item__drag:active {
+    cursor: grabbing;
+}
+
+.vs-edgeone-rules-item__main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vs-edgeone-rules-item__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+    word-break: break-all;
+}
+
+.vs-edgeone-rules-item__comment {
+    font-size: 12px;
+    color: var(--text-secondary, #999);
+    word-break: break-all;
+}
+
+.vs-edgeone-rules-item__actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vs-edgeone-rules-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.vs-edgeone-rules-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.vs-edgeone-rules-switch__track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    border-radius: 11px;
+    background: #d9d9d9;
+    transition: background 0.2s ease;
+}
+
+.vs-edgeone-rules-switch__track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+}
+
+.vs-edgeone-rules-switch input:checked + .vs-edgeone-rules-switch__track {
+    background: #1677ff;
+}
+
+.vs-edgeone-rules-switch input:checked + .vs-edgeone-rules-switch__track::after {
+    transform: translateX(18px);
+}
+
+.vs-edgeone-rules-switch input:disabled + .vs-edgeone-rules-switch__track {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vs-edgeone-rules-switch--inline {
+    gap: 10px;
+}
+
+.vs-edgeone-rules-switch--inline span:last-child {
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+}
+
+.vs-edgeone-rules-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #595959;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.vs-edgeone-rules-icon-btn:hover {
+    background: #f5f5f5;
+    color: #1677ff;
+}
+
+.vs-edgeone-rules-icon-btn.vs-edgeone-rule-delete:hover {
+    color: #ff4d4f;
+    background: #fff1f0;
+}
+
+.vs-edgeone-subtitle {
+    margin: 18px 0 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
+.vs-edgeone-rule-condition-row {
+    display: grid;
+    gap: 12px;
+}
+
+.vs-edgeone-rule-form-drawer .vs-edgeone-zone-create-drawer__panel {
+    max-width: 560px;
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-rules-item {
+        flex-wrap: wrap;
+        padding: 12px 14px;
+    }
+
+    .vs-edgeone-rules-item__actions {
+        width: 100%;
+        justify-content: flex-end;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid #f5f5f5;
+    }
+
+    .vs-edgeone-rules-toolbar-inner .vs-edgeone-domains-search {
+        max-width: none;
+        flex: 1 1 100%;
+    }
+}

@@ -1,12 +1,13 @@
 {
-    "version": "1.4.5",
+    "version": "1.5.0",
     "release_date": "2026-06-30",
-    "title": "修复 EdgeOne HTTPS 证书状态误判为申请中",
+    "title": "EdgeOne 规则引擎页改版并移除别称域名入口",
     "db_changes": false,
     "changes": [
-        "优先读取 Certificate.List[].Status 与默认证书 SubjectAltName 匹配",
-        "DescribeDefaultCertificates 增加 ZoneId 与分页拉取",
-        "已生效域名 eofreecert 模式不再误显示申请中"
+        "七层加速更名为规则引擎，新页面 rules.php（删除 l7.php，无兼容跳转）",
+        "规则列表：拖拽排序、启用开关、编辑/复制/删除与创建抽屉",
+        "对接 Describe/Create/Modify/Delete/ModifyL7AccRulePriority 等 API",
+        "移除别称域名后台页 alias.php（腾讯功能尚在测试，暂不提供）"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

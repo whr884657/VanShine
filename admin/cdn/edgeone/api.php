@@ -344,6 +344,128 @@ try {
                 ),
             ));
 
+        case 'rule_list_refresh':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $pageData = vs_edgeone_fetch_l7_rules_data($eo, $zoneId);
+            if ($pageData['error'] !== '') {
+                throw new Exception($pageData['error']);
+            }
+            AjaxResponse::success('列表已刷新', array(
+                'data' => array(
+                    'list_html' => vs_edgeone_render_rules_list_body($pageData['rules'], '', true),
+                    'rules'     => $pageData['rules'],
+                    'total'     => $pageData['total'],
+                ),
+            ));
+
+        case 'rule_delete':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $ruleId = trim(isset($_POST['rule_id']) ? $_POST['rule_id'] : '');
+            if ($ruleId === '') {
+                throw new Exception('请指定规则');
+            }
+            $resp = $eo->l7Acc->deleteL7AccRules(array(
+                'ZoneId'  => $zoneId,
+                'RuleIds' => array($ruleId),
+            ));
+            AjaxResponse::success('规则已删除', array('data' => $resp));
+
+        case 'rule_status':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $ruleId = trim(isset($_POST['rule_id']) ? $_POST['rule_id'] : '');
+            $status = trim(isset($_POST['status']) ? $_POST['status'] : '');
+            if ($ruleId === '' || !in_array($status, array('enable', 'disable'), true)) {
+                throw new Exception('参数不完整');
+            }
+            $pageData = vs_edgeone_fetch_l7_rules_data($eo, $zoneId);
+            if ($pageData['error'] !== '') {
+                throw new Exception($pageData['error']);
+            }
+            $rule = vs_edgeone_find_l7_rule_by_id($pageData['rules'], $ruleId);
+            if ($rule === null) {
+                throw new Exception('规则不存在');
+            }
+            $rule['Status'] = $status;
+            $resp = $eo->l7Acc->modifyL7AccRule(array(
+                'ZoneId' => $zoneId,
+                'Rule'   => $rule,
+            ));
+            AjaxResponse::success($status === 'enable' ? '规则已启用' : '规则已关闭', array('data' => $resp));
+
+        case 'rule_priority':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $raw = trim(isset($_POST['rule_ids']) ? $_POST['rule_ids'] : '');
+            $ids = json_decode($raw, true);
+            if (!is_array($ids) || count($ids) === 0) {
+                throw new Exception('规则顺序无效');
+            }
+            $clean = array();
+            foreach ($ids as $id) {
+                $id = trim((string) $id);
+                if ($id !== '') {
+                    $clean[] = $id;
+                }
+            }
+            if (count($clean) === 0) {
+                throw new Exception('规则顺序无效');
+            }
+            $resp = $eo->l7Acc->modifyL7AccRulePriority(array(
+                'ZoneId'  => $zoneId,
+                'RuleIds' => $clean,
+            ));
+            AjaxResponse::success('规则顺序已更新', array('data' => $resp));
+
+        case 'rule_copy':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $ruleId = trim(isset($_POST['rule_id']) ? $_POST['rule_id'] : '');
+            if ($ruleId === '') {
+                throw new Exception('请指定规则');
+            }
+            $pageData = vs_edgeone_fetch_l7_rules_data($eo, $zoneId);
+            if ($pageData['error'] !== '') {
+                throw new Exception($pageData['error']);
+            }
+            $source = vs_edgeone_find_l7_rule_by_id($pageData['rules'], $ruleId);
+            if ($source === null) {
+                throw new Exception('规则不存在');
+            }
+            $copy = vs_edgeone_rule_item_for_copy($source);
+            $resp = $eo->l7Acc->createL7AccRules(array(
+                'ZoneId' => $zoneId,
+                'Rules'  => array($copy),
+            ));
+            AjaxResponse::success('规则已复制', array('data' => $resp));
+
+        case 'rule_save':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $item = vs_edgeone_build_rule_item_from_post($_POST);
+            $ruleId = isset($item['RuleId']) ? (string) $item['RuleId'] : '';
+            if ($ruleId !== '') {
+                $resp = $eo->l7Acc->modifyL7AccRule(array(
+                    'ZoneId' => $zoneId,
+                    'Rule'   => $item,
+                ));
+                AjaxResponse::success('规则已保存', array('data' => $resp));
+            }
+            unset($item['RuleId']);
+            $resp = $eo->l7Acc->createL7AccRules(array(
+                'ZoneId' => $zoneId,
+                'Rules'  => array($item),
+            ));
+            AjaxResponse::success('规则已创建', array('data' => $resp));
+
         case 'zones_overview_data':
             @set_time_limit(300);
             $rangeKey = trim(isset($_POST['range']) ? $_POST['range'] : 'today');

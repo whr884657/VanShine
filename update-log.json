@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.5.0",
+            "date": "2026-06-30",
+            "title": "EdgeOne 规则引擎页改版并移除别称域名入口",
+            "db_changes": false,
+            "changes": [
+                "七层加速更名为规则引擎，rules.php 替代 l7.php（无兼容跳转）",
+                "规则列表拖拽排序、开关、编辑/复制/删除与创建抽屉",
+                "对接 L7 规则 CRUD 与优先级 API",
+                "移除别称域名后台页（功能尚在测试）"
+            ]
+        },
+        {
             "version": "1.4.5",
             "date": "2026-06-30",
             "title": "修复 EdgeOne HTTPS 证书状态误判为申请中",

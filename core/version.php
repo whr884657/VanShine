@@ -1,9 +1,9 @@
 <?php
 /**
  * 文件：core/version.php
- * @version 1.0.85
+ * @version 1.0.86
  */
 
 if (!defined('VS_VERSION')) {
-    define('VS_VERSION', '1.0.85');
+    define('VS_VERSION', '1.0.86');
 }

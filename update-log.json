@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.0.86",
+            "date": "2026-06-29",
+            "title": "EdgeOne 移除时间颗粒度与概览查询布局优化",
+            "db_changes": false,
+            "changes": [
+                "查询不传 Interval，由 API 自动推算",
+                "概览查询条件电脑端单行、手机端 2 列网格"
+            ]
+        },
+        {
             "version": "1.0.85",
             "date": "2026-06-29",
             "title": "修复腾讯云 COS 上传失败（密钥与 Region 分离）",

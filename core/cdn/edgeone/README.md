@@ -26,7 +26,7 @@ CDN 侧边栏仅 **EdgeOne**、**ESA** 两项；EdgeOne 内导航：
 ## UI 展示
 
 - **概览**（`index.php`）：查询条件 + 统计图墙（异步加载）；电脑端双列折线图
-- **数据分析**（`analytics.php`）：可选指标、时间范围、粒度，KPI + 折线图；筛选存 Session
+- **数据分析**（`analytics.php`）：可选指标、时间范围，KPI + 折线图；时间颗粒度由 API 根据起止时间自动推算；筛选存 Session
 - **套餐计费**（`billing.php`）：套餐卡片、站点用量、计费趋势；**底部展示全部站点套餐配额与刷新/预热配额**；筛选存 Session
 - EdgeOne 内页切换、查询表单、切换站点为**局部刷新**（`fragment=1`），不整页 reload，**不在 URL 拼接筛选参数**
 - 其他功能页 API 结果经 `data-view.php` 渲染为表格/卡片/配额进度，**不展示原始 JSON**

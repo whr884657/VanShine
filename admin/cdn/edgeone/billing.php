@@ -32,12 +32,10 @@ $usageError = '';
 $bf = vs_edgeone_billing_filters_from_request();
 $billingMetric = $bf['metric'];
 $rangeKey = $bf['range'];
-$interval = $bf['interval'];
 
 $billingMetrics = vs_edgeone_billing_metrics();
 $billingMeta = vs_edgeone_metric_meta($billingMetric, 'l7');
 $rangePreset = vs_edgeone_analytics_range_preset($rangeKey);
-$intervals = vs_edgeone_analytics_intervals();
 
 if ($eo !== null) {
     $planResult = vs_edgeone_try_call(function () use ($eo) {
@@ -65,7 +63,6 @@ if ($eo !== null) {
                     $params = array_merge($todayWindow, array(
                         'ZoneIds'     => vs_edgeone_zone_ids($zoneId),
                         'MetricNames' => array('l7Flow_request'),
-                        'Interval'    => 'hour',
                         'Filters'     => array(
                             vs_edgeone_analytics_filter('cacheType', 'hit', 'equals'),
                         ),
@@ -89,7 +86,7 @@ if ($eo !== null) {
             $metricName = $mKey;
             $unit = isset($billingMetrics[$metricName]) ? $billingMetrics[$metricName]['unit'] : 'number';
             $todayResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $metricName, $todayWindow) {
-                return vs_edgeone_query_billing_series($eo, $zoneId, $metricName, 'hour', $todayWindow);
+                return vs_edgeone_query_billing_series($eo, $zoneId, $metricName, $todayWindow);
             });
             if ($todayResult['ok']) {
                 $rows = isset($todayResult['data']['Data']) && is_array($todayResult['data']['Data'])
@@ -102,7 +99,7 @@ if ($eo !== null) {
             }
 
             $monthResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $metricName, $monthWindow) {
-                return vs_edgeone_query_billing_series($eo, $zoneId, $metricName, 'day', $monthWindow);
+                return vs_edgeone_query_billing_series($eo, $zoneId, $metricName, $monthWindow);
             });
             if ($monthResult['ok'] && $mKey === 'acc_flux') {
                 $rows = isset($monthResult['data']['Data']) && is_array($monthResult['data']['Data'])
@@ -115,9 +112,9 @@ if ($eo !== null) {
             }
         }
 
-        $trendResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $billingMetric, $interval, $rangeKey) {
+        $trendResult = vs_edgeone_try_call(function () use ($eo, $zoneId, $billingMetric, $rangeKey) {
             $range = vs_edgeone_analytics_range_preset($rangeKey);
-            return vs_edgeone_query_billing_series($eo, $zoneId, $billingMetric, $interval, $range['times']);
+            return vs_edgeone_query_billing_series($eo, $zoneId, $billingMetric, $range['times']);
         });
         if (!$trendResult['ok']) {
             $usageError = $trendResult['error'];
@@ -202,16 +199,6 @@ if ($eo !== null) {
                     <?php foreach (vs_edgeone_analytics_ranges() as $key => $item): ?>
                         <option value="<?php echo vs_e($key); ?>"<?php echo $key === $rangeKey ? ' selected' : ''; ?>>
                             <?php echo vs_e($item['label']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="vs-form-col">
-                <label class="vs-label">时间粒度</label>
-                <select name="interval" class="vs-input">
-                    <?php foreach ($intervals as $key => $label): ?>
-                        <option value="<?php echo vs_e($key); ?>"<?php echo $key === $interval ? ' selected' : ''; ?>>
-                            <?php echo vs_e($label); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

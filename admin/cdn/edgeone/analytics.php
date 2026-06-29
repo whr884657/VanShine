@@ -21,12 +21,10 @@ $af = vs_edgeone_analytics_filters_from_request();
 $source = $af['source'];
 $metric = $af['metric'];
 $rangeKey = $af['range'];
-$interval = $af['interval'];
 
 $metrics = vs_edgeone_metrics_for_source($source);
 $ranges = vs_edgeone_analytics_ranges();
 $rangePreset = vs_edgeone_analytics_range_preset($rangeKey);
-$intervals = vs_edgeone_analytics_intervals();
 
 $meta = vs_edgeone_metric_meta($metric, $source);
 $queryError = '';
@@ -34,8 +32,8 @@ $series = array();
 $summary = array('avg' => null, 'max' => null, 'sum' => null, 'peak' => null);
 
 if ($eo !== null && $zoneId !== '') {
-    $result = vs_edgeone_try_call(function () use ($eo, $zoneId, $source, $metric, $interval, $rangeKey) {
-        return vs_edgeone_query_analytics($eo, $zoneId, $source, $metric, $interval, $rangeKey);
+    $result = vs_edgeone_try_call(function () use ($eo, $zoneId, $source, $metric, $rangeKey) {
+        return vs_edgeone_query_analytics($eo, $zoneId, $source, $metric, $rangeKey);
     });
     if (!$result['ok']) {
         $queryError = $result['error'];
@@ -62,7 +60,7 @@ if ($eo !== null && $zoneId !== '') {
 
 <div class="vs-panel">
     <h3 class="vs-panel__title">七层 / 回源 / 四层数据分析</h3>
-    <p class="vs-form-tip">数据约有 10 分钟延迟，建议查询当前时间 10 分钟以前的数据。时间范围不超过 31 天。</p>
+    <p class="vs-form-tip">数据约有 10 分钟延迟，建议查询当前时间 10 分钟以前的数据。时间范围不超过 31 天；折线时间颗粒度由 API 根据起止时间自动推算。</p>
 
     <?php if ($zoneId === ''): ?>
         <p class="vs-form-tip vs-form-tip--highlight">请先在上方选择站点后再查询。</p>
@@ -93,16 +91,6 @@ if ($eo !== null && $zoneId !== '') {
                         <?php foreach ($ranges as $key => $item): ?>
                             <option value="<?php echo vs_e($key); ?>"<?php echo $key === $rangeKey ? ' selected' : ''; ?>>
                                 <?php echo vs_e($item['label']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="vs-form-col">
-                    <label class="vs-label">时间粒度</label>
-                    <select name="interval" class="vs-input">
-                        <?php foreach ($intervals as $key => $label): ?>
-                            <option value="<?php echo vs_e($key); ?>"<?php echo $key === $interval ? ' selected' : ''; ?>>
-                                <?php echo vs_e($label); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>

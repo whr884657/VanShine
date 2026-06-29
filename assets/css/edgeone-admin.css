@@ -791,15 +791,39 @@
     margin: 4px 0 0;
 }
 
+/* 概览查询条件：电脑端单行横排 */
+.vs-edgeone-filter-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.vs-edgeone-filter-grid .vs-form-col {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.vs-edgeone-filter-grid .vs-input {
+    width: 100%;
+}
+
 @media (max-width: 991px) {
     .vs-edgeone-filter-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
         gap: 12px 10px;
     }
 
     .vs-edgeone-filter-grid .vs-form-col {
+        flex: none;
         min-width: 0;
+    }
+
+    .vs-edgeone-filter-grid .vs-form-col:last-child {
+        grid-column: 1 / -1;
     }
 
     .vs-edgeone-filter-grid .vs-input {

@@ -1,12 +1,11 @@
 {
-    "version": "1.0.85",
+    "version": "1.0.86",
     "release_date": "2026-06-29",
-    "title": "修复腾讯云 COS 上传失败（密钥与 Region 分离）",
+    "title": "EdgeOne 移除时间颗粒度与概览查询条件布局优化",
     "db_changes": false,
     "changes": [
-        "COS 与 EdgeOne 仅共用 SecretId/SecretKey，Region 各自独立",
-        "保存 CDN 设置不再覆盖 COS 桶地域",
-        "空密钥不再覆盖已有配置；COS 上传始终读取通用密钥"
+        "查询不再传 Interval，由腾讯云 API 自动推算颗粒度",
+        "概览查询条件：电脑端单行横排，手机端 2 列网格"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

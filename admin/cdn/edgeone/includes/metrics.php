@@ -5,34 +5,21 @@
  */
 
 /**
- * @return array<string, string>
- */
-function vs_edgeone_analytics_intervals()
-{
-    return array(
-        'min'   => '1 分钟',
-        '5min'  => '5 分钟',
-        'hour'  => '1 小时',
-        'day'   => '1 天',
-    );
-}
-
-/**
- * @return array<string, array{label: string, seconds: int, default_interval: string}>
+ * @return array<string, array{label: string, seconds: int}>
  */
 function vs_edgeone_analytics_ranges()
 {
     return array(
-        '1min'  => array('label' => '近 1 分钟', 'seconds' => 60, 'default_interval' => 'min'),
-        '5min'  => array('label' => '近 5 分钟', 'seconds' => 300, 'default_interval' => 'min'),
-        '1h'    => array('label' => '近 1 小时', 'seconds' => 3600, 'default_interval' => 'min'),
-        '2h'    => array('label' => '近 2 小时', 'seconds' => 7200, 'default_interval' => 'min'),
-        '1d'    => array('label' => '近 1 天', 'seconds' => 86400, 'default_interval' => '5min'),
-        '24h'   => array('label' => '近 24 小时', 'seconds' => 86400, 'default_interval' => '5min'),
-        '7d'    => array('label' => '近 7 天', 'seconds' => 604800, 'default_interval' => 'hour'),
-        '15d'   => array('label' => '近 15 天', 'seconds' => 1296000, 'default_interval' => 'hour'),
-        '31d'   => array('label' => '近 31 天', 'seconds' => 2678400, 'default_interval' => 'day'),
-        '30d'   => array('label' => '近 30 天', 'seconds' => 2592000, 'default_interval' => 'day'),
+        '1min'  => array('label' => '近 1 分钟', 'seconds' => 60),
+        '5min'  => array('label' => '近 5 分钟', 'seconds' => 300),
+        '1h'    => array('label' => '近 1 小时', 'seconds' => 3600),
+        '2h'    => array('label' => '近 2 小时', 'seconds' => 7200),
+        '1d'    => array('label' => '近 1 天', 'seconds' => 86400),
+        '24h'   => array('label' => '近 24 小时', 'seconds' => 86400),
+        '7d'    => array('label' => '近 7 天', 'seconds' => 604800),
+        '15d'   => array('label' => '近 15 天', 'seconds' => 1296000),
+        '31d'   => array('label' => '近 31 天', 'seconds' => 2678400),
+        '30d'   => array('label' => '近 30 天', 'seconds' => 2592000),
     );
 }
 
@@ -143,7 +130,7 @@ function vs_edgeone_metric_meta($metric, $source = 'l7')
 
 /**
  * @param string $rangeKey
- * @return array{label: string, times: array{StartTime: string, EndTime: string}, default_interval: string}
+ * @return array{label: string, times: array{StartTime: string, EndTime: string}}
  */
 function vs_edgeone_analytics_range_preset($rangeKey)
 {
@@ -156,50 +143,12 @@ function vs_edgeone_analytics_range_preset($rangeKey)
     $start = $end - (int) $cfg['seconds'];
 
     return array(
-        'label'             => $cfg['label'],
-        'default_interval'  => $cfg['default_interval'],
-        'times'             => array(
+        'label' => $cfg['label'],
+        'times' => array(
             'StartTime' => date('Y-m-d\TH:i:s+08:00', $start),
             'EndTime'   => date('Y-m-d\TH:i:s+08:00', $end),
         ),
     );
-}
-
-/**
- * 按时间范围限制可用 Interval，避免 API 返回「无效的参数」
- *
- * @param string $rangeKey
- * @param string $interval
- * @return string
- */
-function vs_edgeone_clamp_analytics_interval($rangeKey, $interval)
-{
-    $ranges = vs_edgeone_analytics_ranges();
-    if (!isset($ranges[$rangeKey])) {
-        $rangeKey = '7d';
-    }
-    $seconds = (int) $ranges[$rangeKey]['seconds'];
-    $default = vs_edgeone_analytics_range_preset($rangeKey)['default_interval'];
-    $intervals = vs_edgeone_analytics_intervals();
-
-    if (!isset($intervals[$interval])) {
-        return $default;
-    }
-
-    $allowed = array('day');
-    if ($seconds <= 7200) {
-        $allowed = array('min', '5min', 'hour', 'day');
-    } elseif ($seconds <= 172800) {
-        $allowed = array('5min', 'hour', 'day');
-    } elseif ($seconds <= 604800) {
-        $allowed = array('hour', 'day');
-    }
-
-    if (!in_array($interval, $allowed, true)) {
-        return $default;
-    }
-
-    return $interval;
 }
 
 /**
@@ -322,18 +271,15 @@ function vs_edgeone_sum_series_values(array $rows)
  * @param string  $zoneId
  * @param string  $source
  * @param string  $metric
- * @param string  $interval
  * @param string  $rangeKey
  * @return array
  */
-function vs_edgeone_query_analytics(EdgeOne $eo, $zoneId, $source, $metric, $interval, $rangeKey)
+function vs_edgeone_query_analytics(EdgeOne $eo, $zoneId, $source, $metric, $rangeKey)
 {
     $range = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
         'ZoneIds'     => vs_edgeone_zone_ids($zoneId),
         'MetricNames' => array($metric),
-        'Interval'    => $interval,
     ));
 
     if ($source === 'origin') {
@@ -343,21 +289,19 @@ function vs_edgeone_query_analytics(EdgeOne $eo, $zoneId, $source, $metric, $int
         return $eo->analytics->describeTimingL4Data($params);
     }
 
-    return vs_edgeone_query_l7_metric($eo, $zoneId, $metric, $interval, $rangeKey);
+    return vs_edgeone_query_l7_metric($eo, $zoneId, $metric, $rangeKey);
 }
 
 /**
  * @param EdgeOne $eo
  * @param string  $zoneId
  * @param string  $metric
- * @param string  $interval
  * @param array{StartTime: string, EndTime: string} $window
  * @return array
  */
-function vs_edgeone_query_billing_series(EdgeOne $eo, $zoneId, $metric, $interval, array $window)
+function vs_edgeone_query_billing_series(EdgeOne $eo, $zoneId, $metric, array $window)
 {
     return $eo->billing->describeBillingData(array_merge($window, array(
-        'Interval'   => $interval,
         'MetricName' => $metric,
         'ZoneIds'    => vs_edgeone_zone_ids($zoneId),
     )));
@@ -441,13 +385,12 @@ function vs_edgeone_append_total_bandwidth_chart(array $charts)
 }
 
 /**
- * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
+ * @return array{range: string, filter_zone: string, filter_domain: string}
  */
 function vs_edgeone_overview_filters_default()
 {
     return array(
         'range'         => '7d',
-        'interval'      => 'hour',
         'filter_zone'   => '*',
         'filter_domain' => '',
     );
@@ -455,25 +398,17 @@ function vs_edgeone_overview_filters_default()
 
 /**
  * @param array<string, mixed> $src
- * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
+ * @return array{range: string, filter_zone: string, filter_domain: string}
  */
 function vs_edgeone_overview_filters_normalize(array $src)
 {
     $defaults = vs_edgeone_overview_filters_default();
     $ranges = vs_edgeone_analytics_ranges();
-    $intervals = vs_edgeone_analytics_intervals();
 
     $rangeKey = isset($src['range']) ? (string) $src['range'] : $defaults['range'];
     if (!isset($ranges[$rangeKey])) {
         $rangeKey = $defaults['range'];
     }
-
-    $preset = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
-    if (!isset($intervals[$interval])) {
-        $interval = $preset['default_interval'];
-    }
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
 
     $filterZone = isset($src['filter_zone']) ? trim((string) $src['filter_zone']) : $defaults['filter_zone'];
     if ($filterZone === '') {
@@ -482,14 +417,13 @@ function vs_edgeone_overview_filters_normalize(array $src)
 
     return array(
         'range'         => $rangeKey,
-        'interval'      => $interval,
         'filter_zone'   => $filterZone,
         'filter_domain' => isset($src['filter_domain']) ? trim((string) $src['filter_domain']) : '',
     );
 }
 
 /**
- * @param array{range: string, interval: string, filter_zone: string, filter_domain: string} $filters
+ * @param array{range: string, filter_zone: string, filter_domain: string} $filters
  * @return void
  */
 function vs_edgeone_overview_filters_save(array $filters)
@@ -499,7 +433,7 @@ function vs_edgeone_overview_filters_save(array $filters)
 
 /**
  * @param array<string, mixed>|null $src
- * @return array{range: string, interval: string, filter_zone: string, filter_domain: string}
+ * @return array{range: string, filter_zone: string, filter_domain: string}
  */
 function vs_edgeone_overview_filters_from_request($src = null)
 {
@@ -528,27 +462,25 @@ function vs_edgeone_overview_filters_from_request($src = null)
 }
 
 /**
- * @return array{source: string, metric: string, range: string, interval: string}
+ * @return array{source: string, metric: string, range: string}
  */
 function vs_edgeone_analytics_filters_default()
 {
     return array(
-        'source'   => 'l7',
-        'metric'   => 'l7Flow_outFlux',
-        'range'    => '7d',
-        'interval' => 'hour',
+        'source' => 'l7',
+        'metric' => 'l7Flow_outFlux',
+        'range'  => '7d',
     );
 }
 
 /**
  * @param array<string, mixed> $src
- * @return array{source: string, metric: string, range: string, interval: string}
+ * @return array{source: string, metric: string, range: string}
  */
 function vs_edgeone_analytics_filters_normalize(array $src)
 {
     $defaults = vs_edgeone_analytics_filters_default();
     $ranges = vs_edgeone_analytics_ranges();
-    $intervals = vs_edgeone_analytics_intervals();
 
     $source = isset($src['source']) ? (string) $src['source'] : $defaults['source'];
     if (!in_array($source, array('l7', 'origin', 'l4'), true)) {
@@ -567,20 +499,15 @@ function vs_edgeone_analytics_filters_normalize(array $src)
         $rangeKey = $defaults['range'];
     }
 
-    $preset = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
-
     return array(
-        'source'   => $source,
-        'metric'   => $metric,
-        'range'    => $rangeKey,
-        'interval' => $interval,
+        'source' => $source,
+        'metric' => $metric,
+        'range'  => $rangeKey,
     );
 }
 
 /**
- * @param array{source: string, metric: string, range: string, interval: string} $filters
+ * @param array{source: string, metric: string, range: string} $filters
  * @return void
  */
 function vs_edgeone_analytics_filters_save(array $filters)
@@ -590,7 +517,7 @@ function vs_edgeone_analytics_filters_save(array $filters)
 
 /**
  * @param array<string, mixed>|null $src
- * @return array{source: string, metric: string, range: string, interval: string}
+ * @return array{source: string, metric: string, range: string}
  */
 function vs_edgeone_analytics_filters_from_request($src = null)
 {
@@ -619,26 +546,24 @@ function vs_edgeone_analytics_filters_from_request($src = null)
 }
 
 /**
- * @return array{metric: string, range: string, interval: string}
+ * @return array{metric: string, range: string}
  */
 function vs_edgeone_billing_filters_default()
 {
     return array(
-        'metric'   => 'acc_flux',
-        'range'    => '7d',
-        'interval' => 'hour',
+        'metric' => 'acc_flux',
+        'range'  => '7d',
     );
 }
 
 /**
  * @param array<string, mixed> $src
- * @return array{metric: string, range: string, interval: string}
+ * @return array{metric: string, range: string}
  */
 function vs_edgeone_billing_filters_normalize(array $src)
 {
     $defaults = vs_edgeone_billing_filters_default();
     $ranges = vs_edgeone_analytics_ranges();
-    $intervals = vs_edgeone_analytics_intervals();
     $billingMetrics = vs_edgeone_billing_metrics();
 
     $metric = isset($src['metric']) ? (string) $src['metric'] : $defaults['metric'];
@@ -651,19 +576,14 @@ function vs_edgeone_billing_filters_normalize(array $src)
         $rangeKey = $defaults['range'];
     }
 
-    $preset = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = isset($src['interval']) ? (string) $src['interval'] : $preset['default_interval'];
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval);
-
     return array(
-        'metric'   => $metric,
-        'range'    => $rangeKey,
-        'interval' => $interval,
+        'metric' => $metric,
+        'range'  => $rangeKey,
     );
 }
 
 /**
- * @param array{metric: string, range: string, interval: string} $filters
+ * @param array{metric: string, range: string} $filters
  * @return void
  */
 function vs_edgeone_billing_filters_save(array $filters)
@@ -673,7 +593,7 @@ function vs_edgeone_billing_filters_save(array $filters)
 
 /**
  * @param array<string, mixed>|null $src
- * @return array{metric: string, range: string, interval: string}
+ * @return array{metric: string, range: string}
  */
 function vs_edgeone_billing_filters_from_request($src = null)
 {
@@ -728,20 +648,17 @@ function vs_edgeone_l7_metric_query_spec($metric)
  * @param EdgeOne $eo
  * @param string  $zoneId
  * @param string  $metric   展示用指标 key
- * @param string  $interval
  * @param string  $rangeKey
  * @param string  $domain
  * @return array
  */
-function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $interval, $rangeKey, $domain = '')
+function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $rangeKey, $domain = '')
 {
     $spec = vs_edgeone_l7_metric_query_spec($metric);
     $range = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
         'ZoneIds'     => array($zoneId),
         'MetricNames' => array($spec['api_metric']),
-        'Interval'    => $interval,
     ));
 
     $filters = $spec['filters'];
@@ -759,23 +676,20 @@ function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $interval, $r
  * @param EdgeOne $eo
  * @param string  $zoneId
  * @param array<int, string> $metrics
- * @param string  $interval
  * @param string  $rangeKey
  * @param string  $domain
  * @return array
  */
-function vs_edgeone_query_l7_metrics_batch(EdgeOne $eo, $zoneId, array $metrics, $interval, $rangeKey, $domain = '')
+function vs_edgeone_query_l7_metrics_batch(EdgeOne $eo, $zoneId, array $metrics, $rangeKey, $domain = '')
 {
     if (count($metrics) === 1) {
-        return vs_edgeone_query_l7_metric($eo, $zoneId, $metrics[0], $interval, $rangeKey, $domain);
+        return vs_edgeone_query_l7_metric($eo, $zoneId, $metrics[0], $rangeKey, $domain);
     }
 
     $range = vs_edgeone_analytics_range_preset($rangeKey);
-    $interval = vs_edgeone_clamp_analytics_interval($rangeKey, $interval !== '' ? $interval : $range['default_interval']);
     $params = array_merge($range['times'], array(
         'ZoneIds'     => array($zoneId),
         'MetricNames' => array_values($metrics),
-        'Interval'    => $interval,
     ));
 
     if ($domain !== '') {
@@ -831,7 +745,7 @@ function vs_edgeone_series_points_for_metric(array $series, $metric)
 /**
  * @param EdgeOne $eo
  * @param array<int, array<string, mixed>> $zones
- * @param array{range: string, interval: string, filter_zone: string, filter_domain: string} $filters
+ * @param array{range: string, filter_zone: string, filter_domain: string} $filters
  * @return array<string, array{meta: array, series: array<int, array{label: string, points: array, is_total?: bool}>, sum: float|null, error: string}>
  */
 function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filters)
@@ -889,7 +803,6 @@ function vs_edgeone_fetch_overview_charts(EdgeOne $eo, array $zones, array $filt
                     $eo,
                     $zid,
                     $metric,
-                    $filters['interval'],
                     $filters['range'],
                     $filters['filter_domain']
                 );
@@ -992,7 +905,7 @@ function vs_edgeone_fetch_overview_quota(EdgeOne $eo, array $zones)
             'sec_request' => array('label' => '今日安全请求', 'unit' => 'count'),
         ) as $mKey => $cfg) {
             $usageResult = vs_edgeone_try_call(function () use ($eo, $zid, $mKey, $today) {
-                return vs_edgeone_query_billing_series($eo, $zid, $mKey, 'hour', $today);
+                return vs_edgeone_query_billing_series($eo, $zid, $mKey, $today);
             });
             if ($usageResult['ok']) {
                 $rows = isset($usageResult['data']['Data']) && is_array($usageResult['data']['Data'])

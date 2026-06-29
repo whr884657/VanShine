@@ -1,12 +1,12 @@
 {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "release_date": "2026-06-29",
-    "title": "EdgeOne 概览改版：自定义筛选与腾讯云式布局",
+    "title": "修复 EdgeOne Top 排行参数并优化查询条件 UI",
     "db_changes": false,
     "changes": [
-        "概览支持 Filters.N 自定义筛选（国家/状态码/协议/缓存等）",
-        "侧栏 KPI + 流量图 + 区域分布 + Top 排行布局",
-        "时间范围改为 Tab 快捷选择"
+        "修正 DescribeTopL7AnalysisData 的 MetricName（如 outFlux_sip/referers/ua_*）",
+        "时间范围恢复下拉选择，自定义筛选移至查询按钮前",
+        "说明文字改为标题旁 ? 悬停提示"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

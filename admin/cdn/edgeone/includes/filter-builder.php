@@ -241,17 +241,13 @@ function vs_edgeone_render_overview_custom_filters(array $filters)
         ? $filters['custom_filters']
         : array();
 
-    echo '<div class="vs-edgeone-custom-filters" id="edgeoneCustomFilters" data-defs="' . vs_e(json_encode($defs, JSON_UNESCAPED_UNICODE)) . '">';
-    echo '<div class="vs-edgeone-custom-filters__head">';
-    echo '<span class="vs-edgeone-custom-filters__title">自定义筛选</span>';
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm" id="edgeoneAddFilterBtn">+ 添加筛选</button>';
-    echo '</div>';
-    echo '<p class="vs-form-tip">多个条件之间为「且」关系，同一条件内多个取值为「或」关系。站点与域名请使用上方字段。</p>';
+    echo '<div class="vs-form-col vs-form-col--custom vs-edgeone-custom-filters" id="edgeoneCustomFilters" data-defs="' . vs_e(json_encode($defs, JSON_UNESCAPED_UNICODE)) . '">';
+    echo '<label class="vs-label">';
+    echo '自定义筛选 ';
+    vs_edgeone_render_help_tip('对应 API 的 Filters.N。多个条件为且关系，同一条件内多个取值为或关系。');
+    echo '</label>';
+    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm vs-edgeone-custom-filters__add" id="edgeoneAddFilterBtn">+ 添加筛选</button>';
     echo '<div class="vs-edgeone-custom-filters__list" id="edgeoneCustomFiltersList">';
-
-    if (count($active) === 0) {
-        echo '<p class="vs-form-tip vs-edgeone-custom-filters__empty" id="edgeoneCustomFiltersEmpty">暂无自定义筛选，点击「添加筛选」按 API 文档配置 Filters.N。</p>';
-    }
 
     foreach ($active as $idx => $row) {
         vs_edgeone_render_custom_filter_row($idx, $row, $defs, $ops);

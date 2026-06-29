@@ -304,10 +304,6 @@
                 rows.push({ key: key, operator: opEl.value, values: values });
             });
             jsonInput.value = JSON.stringify(rows);
-            var emptyTip = list.querySelector('#edgeoneCustomFiltersEmpty');
-            if (emptyTip) {
-                emptyTip.style.display = rows.length ? 'none' : '';
-            }
         }
 
         function bindRow(row) {
@@ -357,14 +353,6 @@
                 syncJson();
             });
         }
-
-        form.querySelectorAll('.vs-edgeone-range-tabs__item input').forEach(function (radio) {
-            radio.addEventListener('change', function () {
-                form.querySelectorAll('.vs-edgeone-range-tabs__item').forEach(function (item) {
-                    item.classList.toggle('is-active', item.contains(radio) && radio.checked);
-                });
-            });
-        });
 
         form.addEventListener('submit', syncJson);
         syncJson();

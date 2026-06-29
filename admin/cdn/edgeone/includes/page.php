@@ -40,6 +40,15 @@ function vs_edgeone_page_context()
 }
 
 /**
+ * @param string $text
+ * @return void
+ */
+function vs_edgeone_render_help_tip($text)
+{
+    echo '<span class="vs-help-tip" tabindex="0" role="note" aria-label="' . vs_e($text) . '" data-tip="' . vs_e($text) . '">?</span>';
+}
+
+/**
  * @param string $navId
  * @param string $pageTitle
  * @return array{eo: EdgeOne|null, zones: array, zone_id: string, error: string}

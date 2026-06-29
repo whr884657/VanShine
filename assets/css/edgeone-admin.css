@@ -815,6 +815,61 @@
     flex: 0 0 auto;
 }
 
+.vs-edgeone-filter-grid .vs-form-col--custom {
+    flex: 1.4;
+    min-width: 220px;
+}
+
+.vs-edgeone-custom-filters__add {
+    margin-bottom: 8px;
+}
+
+.vs-edgeone-custom-filters__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.vs-help-tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color, #d9d9d9);
+    background: #fafafa;
+    color: var(--text-secondary, #888);
+    font-size: 11px;
+    line-height: 1;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+}
+
+.vs-help-tip:hover::after,
+.vs-help-tip:focus::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    z-index: 20;
+    min-width: 220px;
+    max-width: 320px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.82);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: normal;
+    text-align: left;
+    pointer-events: none;
+}
+
 .vs-edgeone-filter-grid .vs-form-col--actions .vs-btn {
     min-width: 88px;
     white-space: nowrap;
@@ -838,6 +893,7 @@
     }
 
     .vs-edgeone-filter-grid .vs-form-col--domain,
+    .vs-edgeone-filter-grid .vs-form-col--custom,
     .vs-edgeone-filter-grid .vs-form-col--actions {
         grid-column: 1 / -1;
     }
@@ -851,68 +907,11 @@
     }
 }
 
-/* 时间范围 Tab */
-.vs-edgeone-range-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-
-.vs-edgeone-range-tabs__item {
-    position: relative;
-    cursor: pointer;
-}
-
-.vs-edgeone-range-tabs__item input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.vs-edgeone-range-tabs__item span {
-    display: inline-block;
-    padding: 6px 12px;
-    border: 1px solid var(--border-color, #e8e8e8);
-    border-radius: 6px;
-    font-size: 13px;
-    background: #fff;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
-}
-
-.vs-edgeone-range-tabs__item.is-active span,
-.vs-edgeone-range-tabs__item input:checked + span {
-    color: var(--primary, #1677ff);
-    border-color: rgba(22, 119, 255, 0.55);
-    background: rgba(22, 119, 255, 0.06);
-}
-
-/* 自定义筛选 Filters.N */
-.vs-edgeone-custom-filters {
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border-color, #e8e8e8);
-}
-
-.vs-edgeone-custom-filters__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 6px;
-}
-
-.vs-edgeone-custom-filters__title {
-    font-size: 14px;
-    font-weight: 600;
-}
-
 .vs-edgeone-custom-filter-row {
     display: grid;
-    grid-template-columns: minmax(140px, 1.2fr) minmax(110px, 0.9fr) minmax(180px, 2fr) auto;
-    gap: 10px;
+    grid-template-columns: minmax(120px, 1fr) minmax(96px, 0.8fr) minmax(140px, 1.5fr) auto;
+    gap: 8px;
     align-items: center;
-    margin-top: 10px;
 }
 
 .vs-edgeone-custom-filter-row__value-wrap,

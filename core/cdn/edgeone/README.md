@@ -25,7 +25,7 @@ CDN 侧边栏仅 **EdgeOne**、**ESA** 两项；EdgeOne 内导航：
 
 ## UI 展示
 
-- **概览**（`index.php`）：Filters.N 自定义筛选 + 时间 Tab + 侧栏 KPI（流量/命中率）+ L7 流量图 + 区域分布 + Host/IP/Referer 等 Top 排行（`DescribeTopL7AnalysisData`）
+- **概览**（`index.php`）：Filters.N 自定义筛选 + 侧栏 KPI + Top 排行（`DescribeTopL7AnalysisData`，MetricName 如 `l7Flow_outFlux_sip` / `l7Flow_outFlux_referers` 等）
 - **数据分析**（`analytics.php`）：可选指标、时间范围（30 分钟~30 天），KPI + 折线图；时间颗粒度由 API 根据起止时间自动推算；筛选存 Session
 - **套餐计费**（`billing.php`）：套餐卡片、站点用量、计费趋势；**底部展示全部站点套餐配额与刷新/预热配额**；筛选存 Session
 - EdgeOne 内页切换、查询表单、切换站点为**局部刷新**（`fragment=1`），不整页 reload，**不在 URL 拼接筛选参数**

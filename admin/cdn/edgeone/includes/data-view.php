@@ -525,7 +525,7 @@ function vs_edgeone_render_overview_dashboard(array $dashboard)
             $total += (float) $row['value'];
         }
         echo '<div class="vs-edgeone-country-layout">';
-        echo '<div class="vs-edgeone-country-map" aria-hidden="true"><div class="vs-edgeone-country-map__placeholder">区域分布</div></div>';
+        echo '<div class="vs-edgeone-country-map" aria-hidden="true"></div>';
         echo '<div class="vs-edgeone-country-list">';
         foreach ($country['rows'] as $row) {
             $pct = $total > 0 ? round(((float) $row['value'] / $total) * 100, 2) : 0;

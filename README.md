@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.1.0**
+**当前版本：1.1.1**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -199,6 +199,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.1.1（2026-06-29）
+
+**类型：** EdgeOne Top 排行修复与查询 UI 微调（小版本）
+
+**变更说明：**
+- 修正 Top API MetricName，修复「无效的参数」
+- 时间范围恢复下拉；自定义筛选移至查询按钮前
+- 说明改为标题旁 ? 悬停提示
+
+**数据库：** 无变更
+
+---
 
 ### v1.1.0（2026-06-29）
 

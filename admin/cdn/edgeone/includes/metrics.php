@@ -824,15 +824,15 @@ function vs_edgeone_extract_top_data(array $response)
 function vs_edgeone_overview_top_panels()
 {
     return array(
-        array('metric' => 'l7Flow_flux_domain', 'title' => 'Host 排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_clientIp', 'title' => '客户端 IP 排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_referer', 'title' => 'Referer 排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_url', 'title' => 'URL Path 排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_resourceType', 'title' => '资源类型排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_statusCode', 'title' => '状态码排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_browserType', 'title' => '客户端浏览器排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_deviceType', 'title' => '客户端设备类型排行', 'unit' => 'bytes'),
-        array('metric' => 'l7Flow_flux_operatingSystemType', 'title' => '客户端操作系统排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_domain', 'title' => 'Host 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_sip', 'title' => '客户端 IP 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_referers', 'title' => 'Referer 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_url', 'title' => 'URL Path 排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_resourceType', 'title' => '资源类型排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_statusCode', 'title' => '状态码排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_ua_browser', 'title' => '客户端浏览器排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_ua_device', 'title' => '客户端设备类型排行', 'unit' => 'bytes'),
+        array('metric' => 'l7Flow_outFlux_ua_os', 'title' => '客户端操作系统排行', 'unit' => 'bytes'),
     );
 }
 
@@ -906,7 +906,7 @@ function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $f
 
     $countryTop = array('title' => '访问区域分布', 'rows' => array(), 'error' => '');
     $countryCall = vs_edgeone_try_call(function () use ($eo, $zoneIds, $rangeKey, $domain, $custom) {
-        return vs_edgeone_query_l7_top($eo, $zoneIds, 'l7Flow_flux_country', $rangeKey, $domain, $custom, 10);
+        return vs_edgeone_query_l7_top($eo, $zoneIds, 'l7Flow_outFlux_country', $rangeKey, $domain, $custom, 10);
     });
     if ($countryCall['ok']) {
         $countryTop['rows'] = vs_edgeone_extract_top_data($countryCall['data']);

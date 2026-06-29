@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.1.1",
+            "date": "2026-06-29",
+            "title": "修复 EdgeOne Top 排行参数并优化查询条件 UI",
+            "db_changes": false,
+            "changes": [
+                "修正 Top API MetricName",
+                "时间范围恢复下拉选择",
+                "自定义筛选位置与悬停提示优化"
+            ]
+        },
+        {
             "version": "1.1.0",
             "date": "2026-06-29",
             "title": "EdgeOne 概览改版：自定义筛选与腾讯云式布局",

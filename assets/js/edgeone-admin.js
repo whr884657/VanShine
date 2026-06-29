@@ -269,6 +269,24 @@
         }
 
         bindCustomFilters(form);
+        bindFluxPanel(scope);
+    }
+
+    function openFilterDrawer(drawer) {
+        if (!drawer) return;
+        drawer.hidden = false;
+        drawer.setAttribute('aria-hidden', 'false');
+        drawer.classList.add('is-open');
+    }
+
+    function closeFilterDrawer(drawer) {
+        if (!drawer) return;
+        drawer.hidden = true;
+        drawer.setAttribute('aria-hidden', 'true');
+        drawer.classList.remove('is-open');
+        drawer.querySelectorAll('.vs-edgeone-filter-picker-menu').forEach(function (m) {
+            m.hidden = true;
+        });
     }
 
     function bindCustomFilters(form) {
@@ -278,15 +296,20 @@
         var wrap = form.querySelector('#edgeoneCustomFilters');
         if (!wrap) return;
 
+        var drawer = document.getElementById('edgeoneFilterDrawer');
         var jsonInput = wrap.querySelector('#edgeoneCustomFiltersJson');
         var addBtn = wrap.querySelector('#edgeoneAddFilterBtn');
         var chipsHost = wrap.querySelector('#edgeoneCustomFilterChips');
-        var popup = wrap.querySelector('#edgeoneCustomFilterPopup');
-        var keySel = wrap.querySelector('#edgeoneCustomFilterKey');
-        var opSel = wrap.querySelector('#edgeoneCustomFilterOp');
-        var valueWrap = wrap.querySelector('#edgeoneCustomFilterValueWrap');
-        var confirmBtn = wrap.querySelector('#edgeoneCustomFilterConfirm');
-        var cancelBtn = wrap.querySelector('#edgeoneCustomFilterCancel');
+        var keyInput = document.getElementById('edgeoneCustomFilterKey');
+        var opInput = document.getElementById('edgeoneCustomFilterOp');
+        var keyLabel = document.getElementById('edgeoneFilterKeyLabel');
+        var opLabel = document.getElementById('edgeoneFilterOpLabel');
+        var keyPicker = document.getElementById('edgeoneFilterKeyPicker');
+        var opPicker = document.getElementById('edgeoneFilterOpPicker');
+        var keyMenu = document.getElementById('edgeoneFilterKeyMenu');
+        var opMenu = document.getElementById('edgeoneFilterOpMenu');
+        var valueWrap = document.getElementById('edgeoneCustomFilterValueWrap');
+        var confirmBtn = document.getElementById('edgeoneCustomFilterConfirm');
         var defs = {};
         var ops = {};
         var filters = [];
@@ -322,128 +345,163 @@
             chipsHost.innerHTML = '';
             filters.forEach(function (row, idx) {
                 var label = (defs[row.key] && defs[row.key].label) ? defs[row.key].label : row.key;
-                var opLabel = ops[row.operator] || row.operator;
+                var opText = ops[row.operator] || row.operator;
                 var valText = (row.values || []).join(', ');
                 var chip = document.createElement('span');
                 chip.className = 'vs-edgeone-filter-chip';
-                chip.innerHTML = '<span class="vs-edgeone-filter-chip__text">' + escapeHtml(label) + ' · ' + escapeHtml(opLabel) + ' · ' + escapeHtml(valText) + '</span><button type="button" class="vs-edgeone-filter-chip__remove" data-idx="' + idx + '" aria-label="删除">×</button>';
+                chip.innerHTML = '<span class="vs-edgeone-filter-chip__text">' + escapeHtml(label) + ' · ' + escapeHtml(opText) + ' · ' + escapeHtml(valText) + '</span><button type="button" class="vs-edgeone-filter-chip__remove" data-idx="' + idx + '" aria-label="删除">×</button>';
                 chipsHost.appendChild(chip);
             });
         }
 
-        function updateOpOptions() {
-            if (!keySel || !opSel) return;
-            var key = keySel.value;
+        function closeMenus() {
+            if (keyMenu) keyMenu.hidden = true;
+            if (opMenu) opMenu.hidden = true;
+        }
+
+        function updateOpMenu() {
+            if (!opMenu || !keyInput) return;
+            var key = keyInput.value;
             var def = defs[key];
             var allowed = def && def.operators ? def.operators : Object.keys(ops);
-            var current = opSel.value;
-            opSel.innerHTML = '';
+            opMenu.innerHTML = '';
             allowed.forEach(function (opKey) {
                 if (!ops[opKey]) return;
-                var opt = document.createElement('option');
-                opt.value = opKey;
-                opt.textContent = ops[opKey];
-                opSel.appendChild(opt);
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'vs-edgeone-filter-picker-menu__item';
+                btn.setAttribute('data-value', opKey);
+                btn.textContent = ops[opKey];
+                opMenu.appendChild(btn);
             });
-            if (current && allowed.indexOf(current) !== -1) {
-                opSel.value = current;
+            if (allowed.indexOf(opInput.value) === -1 && allowed.length) {
+                opInput.value = allowed[0];
+                if (opLabel) opLabel.textContent = ops[allowed[0]] || allowed[0];
             }
         }
 
         function rebuildValueField() {
-            if (!valueWrap || !keySel) return;
-            var key = keySel.value;
+            if (!valueWrap || !keyInput) return;
+            var key = keyInput.value;
             var def = defs[key];
             valueWrap.innerHTML = '';
-            if (def && def.value_type === 'enum' && def.options) {
-                var sel = document.createElement('select');
-                sel.className = 'vs-input';
-                sel.id = 'edgeoneCustomFilterValue';
-                sel.multiple = true;
-                sel.setAttribute('aria-label', '筛选值');
+            if (!def) {
+                valueWrap.innerHTML = '<p class="vs-form-tip">请先选择筛选项</p>';
+                return;
+            }
+            if (def.value_type === 'enum' && def.options) {
+                var grid = document.createElement('div');
+                grid.className = 'vs-edgeone-filter-value-grid';
                 Object.keys(def.options).forEach(function (val) {
-                    var opt = document.createElement('option');
-                    opt.value = val;
-                    opt.textContent = def.options[val];
-                    sel.appendChild(opt);
+                    var lab = document.createElement('label');
+                    lab.className = 'vs-edgeone-filter-check';
+                    lab.innerHTML = '<input type="checkbox" value="' + escapeHtml(val) + '"><span>' + escapeHtml(def.options[val]) + '</span>';
+                    grid.appendChild(lab);
                 });
-                valueWrap.appendChild(sel);
+                valueWrap.appendChild(grid);
             } else {
-                var inp = document.createElement('input');
-                inp.type = 'text';
-                inp.className = 'vs-input';
-                inp.id = 'edgeoneCustomFilterValue';
-                inp.setAttribute('aria-label', '筛选值');
-                inp.placeholder = def && def.value_type === 'multitext' ? '多个值用逗号分隔' : '输入筛选值，多个用逗号分隔';
-                valueWrap.appendChild(inp);
+                var ta = document.createElement('textarea');
+                ta.className = 'vs-input vs-edgeone-filter-value-text';
+                ta.id = 'edgeoneCustomFilterValue';
+                ta.placeholder = def.value_type === 'multitext' ? '多个值用换行或逗号分隔' : '输入筛选值，多个用换行或逗号分隔';
+                valueWrap.appendChild(ta);
             }
         }
 
-        function getValuesFromPopup() {
-            var el = valueWrap ? valueWrap.querySelector('#edgeoneCustomFilterValue') : null;
-            if (!el) return [];
-            if (el.tagName === 'SELECT') {
-                return Array.prototype.slice.call(el.selectedOptions).map(function (opt) {
-                    return opt.value.trim();
+        function getValuesFromDrawer() {
+            if (!valueWrap) return [];
+            var grid = valueWrap.querySelector('.vs-edgeone-filter-value-grid');
+            if (grid) {
+                return Array.prototype.slice.call(grid.querySelectorAll('input:checked')).map(function (el) {
+                    return el.value.trim();
                 }).filter(Boolean);
             }
-            return el.value.split(/[\r\n,;|]+/).map(function (v) {
+            var ta = valueWrap.querySelector('#edgeoneCustomFilterValue');
+            if (!ta) return [];
+            return ta.value.split(/[\r\n,;|]+/).map(function (v) {
                 return v.trim();
             }).filter(Boolean);
         }
 
-        function openPopup() {
-            if (!popup) return;
-            popup.hidden = false;
-            if (keySel) keySel.value = '';
-            updateOpOptions();
+        function resetDrawer() {
+            if (keyInput) keyInput.value = '';
+            if (keyLabel) keyLabel.textContent = '选择筛选项';
+            if (opInput) opInput.value = 'equals';
+            if (opLabel) opLabel.textContent = ops.equals || '等于';
+            updateOpMenu();
             rebuildValueField();
         }
 
-        function closePopup() {
-            if (!popup) return;
-            popup.hidden = true;
-        }
-
-        if (addBtn) {
-            addBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                if (popup && popup.hidden) {
-                    openPopup();
-                } else {
-                    closePopup();
-                }
+        if (addBtn && drawer) {
+            addBtn.addEventListener('click', function () {
+                resetDrawer();
+                openFilterDrawer(drawer);
             });
         }
 
-        if (keySel) {
-            keySel.addEventListener('change', function () {
-                updateOpOptions();
+        if (drawer) {
+            drawer.querySelectorAll('[data-filter-drawer-close]').forEach(function (el) {
+                el.addEventListener('click', function () {
+                    closeFilterDrawer(drawer);
+                });
+            });
+        }
+
+        if (keyPicker && keyMenu) {
+            keyPicker.addEventListener('click', function (e) {
+                e.stopPropagation();
+                keyMenu.hidden = !keyMenu.hidden;
+                if (opMenu) opMenu.hidden = true;
+            });
+            keyMenu.addEventListener('click', function (e) {
+                var item = e.target.closest('.vs-edgeone-filter-picker-menu__item');
+                if (!item) return;
+                var val = item.getAttribute('data-value') || '';
+                keyInput.value = val;
+                keyLabel.textContent = item.textContent.trim();
+                keyMenu.hidden = true;
+                updateOpMenu();
                 rebuildValueField();
             });
         }
 
+        if (opPicker && opMenu) {
+            opPicker.addEventListener('click', function (e) {
+                e.stopPropagation();
+                opMenu.hidden = !opMenu.hidden;
+                if (keyMenu) keyMenu.hidden = true;
+            });
+            opMenu.addEventListener('click', function (e) {
+                var item = e.target.closest('.vs-edgeone-filter-picker-menu__item');
+                if (!item) return;
+                var val = item.getAttribute('data-value') || 'equals';
+                opInput.value = val;
+                opLabel.textContent = item.textContent.trim();
+                opMenu.hidden = true;
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.vs-edgeone-filter-picker') && !e.target.closest('.vs-edgeone-filter-picker-menu')) {
+                closeMenus();
+            }
+        });
+
         if (confirmBtn) {
             confirmBtn.addEventListener('click', function () {
-                if (!keySel) return;
-                var key = keySel.value.trim();
+                if (!keyInput) return;
+                var key = keyInput.value.trim();
                 if (!key) return;
-                var values = getValuesFromPopup();
+                var values = getValuesFromDrawer();
                 if (!values.length) return;
                 filters.push({
                     key: key,
-                    operator: opSel ? opSel.value : 'equals',
+                    operator: opInput ? opInput.value : 'equals',
                     values: values
                 });
                 syncHidden();
                 renderChips();
-                closePopup();
-            });
-        }
-
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function () {
-                closePopup();
+                closeFilterDrawer(drawer);
             });
         }
 
@@ -459,15 +517,104 @@
             });
         }
 
-        document.addEventListener('click', function (e) {
-            if (!popup || popup.hidden) return;
-            if (popup.contains(e.target) || (addBtn && addBtn.contains(e.target))) return;
-            closePopup();
-        });
-
         loadFilters();
         renderChips();
         form.addEventListener('submit', syncHidden);
+    }
+
+    function bindFluxPanel(root) {
+        var panel = document.getElementById('edgeoneFluxPanel');
+        var form = document.getElementById('edgeoneOverviewForm');
+        if (!panel || !form) return;
+
+        if (panel.dataset.fluxBound !== '1') {
+            panel.dataset.fluxBound = '1';
+            panel.addEventListener('click', function (e) {
+                var dimBtn = e.target.closest('[data-flux-dim]');
+                if (dimBtn) {
+                    e.preventDefault();
+                    var dim = dimBtn.getAttribute('data-flux-dim') || 'all';
+                    loadFluxDimension(form, dim);
+                    return;
+                }
+                var moreBtn = e.target.closest('.vs-edgeone-flux-tabs__btn--more');
+                if (moreBtn) {
+                    var drop = panel.querySelector('.vs-edgeone-flux-tabs__dropdown');
+                    if (drop) drop.classList.toggle('is-open');
+                }
+                if (e.target.matches('[data-legend-show-all]')) {
+                    toggleFluxLegend(panel, true);
+                }
+                if (e.target.matches('[data-legend-hide-all]')) {
+                    toggleFluxLegend(panel, false);
+                }
+                var legItem = e.target.closest('.vs-edgeone-flux-legend__item');
+                if (legItem && !e.target.matches('[data-legend-show-all],[data-legend-hide-all]')) {
+                    legItem.classList.toggle('is-visible');
+                    var idx = parseInt(legItem.getAttribute('data-legend-idx'), 10);
+                    toggleFluxSeries(panel, idx, legItem.classList.contains('is-visible'));
+                }
+            });
+        }
+        bindFluxLegend(panel);
+    }
+
+    function loadFluxDimension(form, dimension) {
+        var inner = document.getElementById('edgeoneFluxPanelInner');
+        var hidden = document.getElementById('edgeoneFluxDimension');
+        if (!inner || !form) return;
+        if (hidden) hidden.value = dimension;
+        inner.classList.add('is-loading');
+        var body = new FormData(form);
+        body.set('action', 'overview_flux');
+        body.set('flux_dimension', dimension);
+        postFormData(body).then(function (data) {
+            inner.classList.remove('is-loading');
+            if (data.code !== 1 || !data.data || !data.data.flux_html) {
+                toast(data.msg || '加载失败', 'error');
+                return;
+            }
+            inner.innerHTML = data.data.flux_html;
+            bindCharts(document);
+            bindFluxLegend(document.getElementById('edgeoneFluxPanel'));
+        }).catch(function () {
+            inner.classList.remove('is-loading');
+            toast('加载失败', 'error');
+        });
+    }
+
+    function bindFluxLegend(panel) {
+        if (!panel) return;
+        var canvas = panel.querySelector('.vs-edgeone-chart--multi');
+        if (!canvas || !canvas._eoChartState) return;
+        var items = panel.querySelectorAll('.vs-edgeone-flux-legend__item');
+        items.forEach(function (item) {
+            var idx = parseInt(item.getAttribute('data-legend-idx'), 10);
+            var visible = item.classList.contains('is-visible');
+            if (canvas._eoChartState.series[idx]) {
+                canvas._eoChartState.series[idx].hidden = !visible;
+            }
+        });
+        drawLineChart(canvas, canvas._eoChartState.series, canvas._eoChartState.unit, -1);
+    }
+
+    function toggleFluxLegend(panel, show) {
+        if (!panel) return;
+        panel.querySelectorAll('.vs-edgeone-flux-legend__item').forEach(function (item) {
+            item.classList.toggle('is-visible', show);
+            var idx = parseInt(item.getAttribute('data-legend-idx'), 10);
+            toggleFluxSeries(panel, idx, show);
+        });
+    }
+
+    function toggleFluxSeries(panel, idx, visible) {
+        if (!panel) return;
+        var canvas = panel.querySelector('.vs-edgeone-chart--multi');
+        if (!canvas || !canvas._eoChartState) return;
+        if (canvas._eoChartState.series[idx]) {
+            canvas._eoChartState.series[idx].hidden = !visible;
+            drawLineChart(canvas, canvas._eoChartState.series, canvas._eoChartState.unit, -1);
+        }
     }
 
     function loadOverviewData(form) {
@@ -489,6 +636,7 @@
             if (data.data.dashboard_html) {
                 dashboardHost.outerHTML = data.data.dashboard_html;
             }
+            bindFluxPanel(document);
             bindCharts(document);
             keepCleanUrl();
         }).catch(function () {
@@ -714,6 +862,7 @@
             var html = '<div class="vs-edgeone-chart-tooltip__time">' + timeStr + '</div>';
             var colorIdx = 0;
             st.series.forEach(function (s) {
+                if (s.hidden) return;
                 var points = s.points || [];
                 var val = null;
                 for (var i = 0; i < points.length; i++) {
@@ -756,6 +905,12 @@
     function drawLineChart(canvas, series, unit, highlightIdx) {
         if (!series || series.length === 0) return;
         if (typeof highlightIdx !== 'number') highlightIdx = -1;
+
+        var allSeries = series;
+        series = series.filter(function (s) {
+            return !s.hidden;
+        });
+        if (series.length === 0) return;
 
         var wrap = canvas.parentElement;
         if (!wrap) return;
@@ -813,7 +968,7 @@
         if (tsList.length === 0) return;
 
         canvas._eoChartState = {
-            series: series,
+            series: allSeries,
             unit: unit,
             tsList: tsList,
             max: max,

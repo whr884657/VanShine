@@ -410,21 +410,108 @@ function vs_edgeone_render_overview_summary_sidebar(array $items)
     foreach ($items as $item) {
         $icon = isset($item['icon']) ? (string) $item['icon'] : 'flux';
         $hint = isset($item['hint']) ? (string) $item['hint'] : '';
-        echo '<article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar vs-edgeone-kpi--animate" style="--kpi-delay:' . (int) $idx . '">';
+        $points = isset($item['points']) && is_array($item['points']) ? $item['points'] : array();
+        echo '<article class="vs-edgeone-kpi vs-edgeone-kpi--sidebar vs-edgeone-kpi--card vs-edgeone-kpi--animate" style="--kpi-delay:' . (int) $idx . '">';
+        echo '<div class="vs-edgeone-kpi__top">';
         echo '<div class="vs-edgeone-kpi__head">';
         echo vs_edgeone_kpi_icon_svg($icon);
         echo '<div class="vs-edgeone-kpi__meta">';
         echo '<span class="vs-edgeone-kpi__label">' . vs_e($item['label']) . '</span>';
+        echo '</div>';
+        echo '</div>';
         if ($hint !== '') {
-            echo '<span class="vs-edgeone-kpi__hint">' . vs_e($hint) . '</span>';
+            echo '<span class="vs-edgeone-kpi__agg">' . vs_e($hint) . '</span>';
         }
         echo '</div>';
-        echo '</div>';
+        echo '<div class="vs-edgeone-kpi__body">';
         echo '<strong class="vs-edgeone-kpi__value">' . vs_e($item['value']) . '</strong>';
+        echo vs_edgeone_render_sparkline_svg($points);
+        echo '</div>';
         echo '</article>';
         $idx++;
     }
     echo '</aside>';
+
+    return ob_get_clean();
+}
+
+/**
+ * @param array $flux
+ * @param string $activeDimension
+ * @return string
+ */
+function vs_edgeone_render_flux_chart_panel_inner(array $flux, $activeDimension = 'all')
+{
+    ob_start();
+    $dims = vs_edgeone_flux_chart_dimensions();
+    $mainTabs = array();
+    $moreTabs = array();
+    foreach ($dims as $key => $dim) {
+        if (!empty($dim['more'])) {
+            $moreTabs[$key] = $dim;
+        } else {
+            $mainTabs[$key] = $dim;
+        }
+    }
+
+    echo '<div class="vs-edgeone-flux-tabs" role="tablist">';
+    foreach ($mainTabs as $key => $dim) {
+        $active = $key === $activeDimension ? ' is-active' : '';
+        echo '<button type="button" class="vs-edgeone-flux-tabs__btn' . $active . '" data-flux-dim="' . vs_e($key) . '" role="tab">' . vs_e($dim['label']) . '</button>';
+    }
+    if (count($moreTabs) > 0) {
+        $moreActive = isset($moreTabs[$activeDimension]);
+        echo '<div class="vs-edgeone-flux-tabs__more">';
+        echo '<button type="button" class="vs-edgeone-flux-tabs__btn vs-edgeone-flux-tabs__btn--more' . ($moreActive ? ' is-active' : '') . '" aria-haspopup="true">更多</button>';
+        echo '<div class="vs-edgeone-flux-tabs__dropdown">';
+        foreach ($moreTabs as $key => $dim) {
+            $active = $key === $activeDimension ? ' is-active' : '';
+            echo '<button type="button" class="vs-edgeone-flux-tabs__drop-item' . $active . '" data-flux-dim="' . vs_e($key) . '">' . vs_e($dim['label']) . '</button>';
+        }
+        echo '</div></div>';
+    }
+    echo '</div>';
+
+    echo '<div class="vs-edgeone-flux-chart-layout">';
+    echo '<div class="vs-edgeone-flux-chart-main">';
+    if (!empty($flux['error'])) {
+        echo '<p class="vs-form-tip">查询失败：' . vs_e($flux['error']) . '</p>';
+    } elseif (empty($flux['series'])) {
+        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
+    } else {
+        $unit = isset($flux['unit']) ? (string) $flux['unit'] : 'bytes';
+        vs_edgeone_render_multi_line_chart(array(
+            'unit'   => $unit,
+            'series' => $flux['series'],
+        ));
+    }
+    echo '</div>';
+
+    $legend = isset($flux['legend']) && is_array($flux['legend']) ? $flux['legend'] : array();
+    if (count($legend) > 0) {
+        echo '<aside class="vs-edgeone-flux-legend" data-flux-legend>';
+        echo '<div class="vs-edgeone-flux-legend__head">';
+        echo '<span class="vs-edgeone-flux-legend__title">TOP' . count($legend) . '</span>';
+        echo '<span class="vs-edgeone-flux-legend__actions">';
+        echo '<button type="button" class="vs-edgeone-flux-legend__action" data-legend-show-all>显示全部</button>';
+        echo '<button type="button" class="vs-edgeone-flux-legend__action" data-legend-hide-all>隐藏全部</button>';
+        echo '</span></div>';
+        echo '<ul class="vs-edgeone-flux-legend__list">';
+        $i = 0;
+        foreach ($legend as $row) {
+            $label = isset($row['label']) ? (string) $row['label'] : '';
+            $val = isset($row['value']) ? (float) $row['value'] : 0;
+            $key = isset($row['key']) ? (string) $row['key'] : '';
+            echo '<li class="vs-edgeone-flux-legend__item is-visible" data-legend-idx="' . (int) $i . '" data-legend-key="' . vs_e($key) . '">';
+            echo '<span class="vs-edgeone-flux-legend__dot" style="--legend-color:var(--eo-color-' . ($i % 8) . ')"></span>';
+            echo '<span class="vs-edgeone-flux-legend__name" title="' . vs_e($label) . '">' . vs_e($label) . '</span>';
+            echo '<span class="vs-edgeone-flux-legend__val">' . vs_e(vs_edgeone_format_metric_value($val, 'bytes')) . '</span>';
+            echo '</li>';
+            $i++;
+        }
+        echo '</ul></aside>';
+    }
+    echo '</div>';
 
     return ob_get_clean();
 }
@@ -578,54 +665,18 @@ function vs_edgeone_render_overview_dashboard(array $dashboard)
 {
     ob_start();
     echo '<div class="vs-edgeone-overview" id="edgeoneDashboardHost">';
-    echo vs_edgeone_render_overview_summary_sidebar(isset($dashboard['summary']) ? $dashboard['summary'] : array());
+    $summary = isset($dashboard['summary']) ? $dashboard['summary'] : array();
+    echo vs_edgeone_render_overview_summary_sidebar($summary);
 
     echo '<div class="vs-edgeone-overview__main">';
 
     $flux = isset($dashboard['flux_chart']) ? $dashboard['flux_chart'] : array();
-    echo '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-overview-chart">';
+    $fluxDim = isset($dashboard['flux_dimension']) ? (string) $dashboard['flux_dimension'] : 'all';
+    echo '<div class="vs-panel vs-edgeone-chart-panel vs-edgeone-overview-chart vs-edgeone-flux-panel" id="edgeoneFluxPanel">';
     echo '<h3 class="vs-panel__title">L7 访问流量</h3>';
-    if (!empty($flux['error'])) {
-        echo '<p class="vs-form-tip">查询失败：' . vs_e($flux['error']) . '</p>';
-    } elseif (empty($flux['series'])) {
-        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
-    } else {
-        if (isset($flux['sum']) && $flux['sum'] !== null) {
-            echo '<p class="vs-edgeone-metric-avg">区间合计：<strong>' . vs_e(vs_edgeone_format_metric_value($flux['sum'], 'bytes')) . '</strong></p>';
-        }
-        vs_edgeone_render_multi_line_chart(array(
-            'unit'   => 'bytes',
-            'series' => $flux['series'],
-        ));
-    }
+    echo '<div class="vs-edgeone-flux-panel__inner" id="edgeoneFluxPanelInner">';
+    echo vs_edgeone_render_flux_chart_panel_inner($flux, $fluxDim);
     echo '</div>';
-
-    $country = isset($dashboard['country_top']) ? $dashboard['country_top'] : array();
-    echo '<div class="vs-panel vs-edgeone-country-panel">';
-    echo '<h3 class="vs-panel__title">' . vs_e(isset($country['title']) ? $country['title'] : '访问区域分布') . '</h3>';
-    if (!empty($country['error'])) {
-        echo '<p class="vs-form-tip">查询失败：' . vs_e($country['error']) . '</p>';
-    } elseif (empty($country['rows'])) {
-        echo '<p class="vs-form-tip">该条件下暂无数据</p>';
-    } else {
-        $total = 0.0;
-        foreach ($country['rows'] as $row) {
-            $total += (float) $row['value'];
-        }
-        echo '<div class="vs-edgeone-country-layout">';
-        echo '<div class="vs-edgeone-country-map">' . vs_edgeone_render_country_donut_svg($country['rows'], $total) . '</div>';
-        echo '<div class="vs-edgeone-country-list">';
-        foreach ($country['rows'] as $row) {
-            $pct = $total > 0 ? round(((float) $row['value'] / $total) * 100, 2) : 0;
-            $label = vs_edgeone_format_top_label($row['key']);
-            echo '<div class="vs-edgeone-country-list__item">';
-            echo '<span class="vs-edgeone-country-list__name">' . vs_e($label) . '</span>';
-            echo '<span class="vs-edgeone-country-list__value">' . vs_e(vs_edgeone_format_metric_value($row['value'], 'bytes')) . ' (' . vs_e(number_format($pct, 2)) . '%)</span>';
-            echo '</div>';
-        }
-        echo '</div>';
-        echo '</div>';
-    }
     echo '</div>';
 
     echo '<div class="vs-edgeone-top-grid">';

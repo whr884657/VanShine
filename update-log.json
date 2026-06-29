@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.2.0",
+            "date": "2026-06-30",
+            "title": "EdgeOne 概览 1.2：多维流量图、KPI 卡片与筛选抽屉",
+            "db_changes": false,
+            "changes": [
+                "L7 流量维度 Tab + TOP 多折线",
+                "移除区域分布板块",
+                "6 项 KPI 含 sparkline 与防护命中",
+                "筛选抽屉与枚举复选网格"
+            ]
+        },
+        {
             "version": "1.1.2",
             "date": "2026-06-29",
             "title": "EdgeOne 概览 UI 优化：紧凑筛选、SVG 区域图与 KPI 图标",

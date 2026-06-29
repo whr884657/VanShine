@@ -251,36 +251,50 @@ function vs_edgeone_render_overview_custom_filters(array $filters)
     echo '</label>';
 
     echo '<div class="vs-edgeone-custom-filters__bar">';
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm" id="edgeoneAddFilterBtn">+ 添加筛选</button>';
+    echo '<button type="button" class="vs-edgeone-filter-add-btn" id="edgeoneAddFilterBtn"><span class="vs-edgeone-filter-add-btn__icon">+</span>添加筛选</button>';
     echo '<div class="vs-edgeone-custom-filters__chips" id="edgeoneCustomFilterChips"></div>';
-    echo '</div>';
-
-    echo '<div class="vs-edgeone-custom-filter-popup" id="edgeoneCustomFilterPopup" hidden>';
-    echo '<div class="vs-edgeone-custom-filter-popup__card">';
-    echo '<div class="vs-edgeone-custom-filter-popup__title">添加筛选条件</div>';
-    echo '<select class="vs-input" id="edgeoneCustomFilterKey" aria-label="筛选项">';
-    echo '<option value="">选择筛选项</option>';
-    foreach ($defs as $k => $item) {
-        echo '<option value="' . vs_e($k) . '">' . vs_e($item['label']) . '</option>';
-    }
-    echo '</select>';
-    echo '<select class="vs-input" id="edgeoneCustomFilterOp" aria-label="运算符">';
-    foreach ($ops as $opKey => $opLabel) {
-        echo '<option value="' . vs_e($opKey) . '">' . vs_e($opLabel) . '</option>';
-    }
-    echo '</select>';
-    echo '<div id="edgeoneCustomFilterValueWrap">';
-    echo '<input type="text" class="vs-input" id="edgeoneCustomFilterValue" placeholder="输入筛选值，多个用逗号分隔">';
-    echo '</div>';
-    echo '<div class="vs-edgeone-custom-filter-popup__actions">';
-    echo '<button type="button" class="vs-btn vs-btn--ghost vs-btn--sm" id="edgeoneCustomFilterCancel">取消</button>';
-    echo '<button type="button" class="vs-btn vs-btn--primary vs-btn--sm" id="edgeoneCustomFilterConfirm">确定</button>';
-    echo '</div>';
-    echo '</div>';
     echo '</div>';
 
     echo '<input type="hidden" name="custom_filters_json" id="edgeoneCustomFiltersJson" value="' . vs_e(json_encode($active, JSON_UNESCAPED_UNICODE)) . '">';
     echo '</div>';
+
+    echo '<div class="vs-edgeone-filter-drawer" id="edgeoneFilterDrawer" hidden aria-hidden="true">';
+    echo '<div class="vs-edgeone-filter-drawer__overlay" data-filter-drawer-close></div>';
+    echo '<div class="vs-edgeone-filter-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="edgeoneFilterDrawerTitle">';
+    echo '<div class="vs-edgeone-filter-drawer__handle" aria-hidden="true"></div>';
+    echo '<div class="vs-edgeone-filter-drawer__head">';
+    echo '<h4 class="vs-edgeone-filter-drawer__title" id="edgeoneFilterDrawerTitle">添加筛选条件</h4>';
+    echo '<button type="button" class="vs-edgeone-filter-drawer__close" data-filter-drawer-close aria-label="关闭">';
+    echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    echo '</button></div>';
+    echo '<div class="vs-edgeone-filter-drawer__body">';
+    echo '<div class="vs-edgeone-filter-drawer__layout">';
+    echo '<div class="vs-edgeone-filter-drawer__side">';
+    echo '<label class="vs-label">筛选项</label>';
+    echo '<button type="button" class="vs-edgeone-filter-picker" id="edgeoneFilterKeyPicker" data-empty="选择筛选项">';
+    echo '<span id="edgeoneFilterKeyLabel">选择筛选项</span><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" fill="none"/></svg>';
+    echo '</button>';
+    echo '<input type="hidden" id="edgeoneCustomFilterKey" value="">';
+    echo '<div class="vs-edgeone-filter-picker-menu" id="edgeoneFilterKeyMenu" hidden>';
+    foreach ($defs as $k => $item) {
+        echo '<button type="button" class="vs-edgeone-filter-picker-menu__item" data-value="' . vs_e($k) . '">' . vs_e($item['label']) . '</button>';
+    }
+    echo '</div>';
+    echo '<label class="vs-label">匹配方式</label>';
+    echo '<button type="button" class="vs-edgeone-filter-picker" id="edgeoneFilterOpPicker" data-empty="等于">';
+    echo '<span id="edgeoneFilterOpLabel">等于</span><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5 6 7.5 9 4.5" stroke="currentColor" fill="none"/></svg>';
+    echo '</button>';
+    echo '<input type="hidden" id="edgeoneCustomFilterOp" value="equals">';
+    echo '<div class="vs-edgeone-filter-picker-menu" id="edgeoneFilterOpMenu" hidden></div>';
+    echo '</div>';
+    echo '<div class="vs-edgeone-filter-drawer__values" id="edgeoneCustomFilterValueWrap">';
+    echo '<p class="vs-form-tip">请先选择筛选项</p>';
+    echo '</div>';
+    echo '</div></div>';
+    echo '<div class="vs-edgeone-filter-drawer__foot">';
+    echo '<button type="button" class="vs-btn vs-btn--ghost" data-filter-drawer-close>取消</button>';
+    echo '<button type="button" class="vs-btn vs-btn--primary" id="edgeoneCustomFilterConfirm">确定</button>';
+    echo '</div></div></div>';
 }
 
 /**

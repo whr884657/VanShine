@@ -415,6 +415,7 @@ function vs_edgeone_overview_filters_default()
         'range'          => 'today',
         'filter_zone'    => '*',
         'filter_domain'  => '',
+        'flux_dimension' => 'all',
         'custom_filters' => array(),
     );
 }
@@ -445,10 +446,17 @@ function vs_edgeone_overview_filters_normalize(array $src)
         $customRaw = $src['custom_filters'];
     }
 
+    $fluxDim = isset($src['flux_dimension']) ? trim((string) $src['flux_dimension']) : $defaults['flux_dimension'];
+    $dimCfg = vs_edgeone_flux_dimension_config($fluxDim);
+    if ($dimCfg === null) {
+        $fluxDim = 'all';
+    }
+
     return array(
         'range'          => $rangeKey,
         'filter_zone'    => $filterZone,
         'filter_domain'  => isset($src['filter_domain']) ? trim((string) $src['filter_domain']) : '',
+        'flux_dimension' => $fluxDim,
         'custom_filters' => vs_edgeone_custom_filters_normalize($customRaw),
     );
 }
@@ -478,7 +486,7 @@ function vs_edgeone_overview_filters_from_request($src = null)
         }
     }
 
-    if (!empty($src) && (isset($src['range']) || isset($src['filter_zone']))) {
+    if (!empty($src) && (isset($src['range']) || isset($src['filter_zone']) || isset($src['flux_dimension']) || isset($src['custom_filters_json']))) {
         $filters = vs_edgeone_overview_filters_normalize($src);
         vs_edgeone_overview_filters_save($filters);
 
@@ -669,6 +677,15 @@ function vs_edgeone_l7_metric_query_spec($metric)
         );
     }
 
+    if ((string) $metric === 'l7Flow_mitigatedRequest') {
+        return array(
+            'api_metric' => 'l7Flow_request',
+            'filters'    => array(
+                vs_edgeone_analytics_filter('mitigatedByWebSecurity', 'yes', 'equals'),
+            ),
+        );
+    }
+
     return array(
         'api_metric' => (string) $metric,
         'filters'    => array(),
@@ -744,6 +761,21 @@ function vs_edgeone_query_l7_metric(EdgeOne $eo, $zoneId, $metric, $rangeKey, $d
  */
 function vs_edgeone_query_l7_metric_zones(EdgeOne $eo, array $zoneIds, $metric, $rangeKey, $domain = '', array $customFilters = array())
 {
+    return vs_edgeone_query_l7_metric_zones_extra($eo, $zoneIds, $metric, $rangeKey, $domain, $customFilters, array());
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param array<int, string> $zoneIds
+ * @param string $metric
+ * @param string $rangeKey
+ * @param string $domain
+ * @param array<int, array{key: string, operator: string, values: array<int, string>}> $customFilters
+ * @param array<int, array{Key: string, Operator: string, Value: array<int, string>}> $extraApiFilters
+ * @return array
+ */
+function vs_edgeone_query_l7_metric_zones_extra(EdgeOne $eo, array $zoneIds, $metric, $rangeKey, $domain = '', array $customFilters = array(), array $extraApiFilters = array())
+{
     $spec = vs_edgeone_l7_metric_query_spec($metric);
     $range = vs_edgeone_analytics_range_preset($rangeKey);
     $params = array_merge($range['times'], array(
@@ -752,6 +784,9 @@ function vs_edgeone_query_l7_metric_zones(EdgeOne $eo, array $zoneIds, $metric, 
     ));
 
     $filters = vs_edgeone_build_l7_query_filters($metric, $domain, $customFilters);
+    if (count($extraApiFilters) > 0) {
+        $filters = array_merge($filters, $extraApiFilters);
+    }
     if (count($filters) > 0) {
         $params['Filters'] = $filters;
     }
@@ -842,52 +877,38 @@ function vs_edgeone_overview_top_panels()
  * @param array $filters
  * @return array
  */
-function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $filters)
+/**
+ * @param EdgeOne $eo
+ * @param array<int, string> $zoneIds
+ * @param string $rangeKey
+ * @param string $domain
+ * @param array $custom
+ * @return array<string, array{meta: array, series: array, sum: float|null, peak: float|null, avg: float|null, spark_points: array, error: string}>
+ */
+function vs_edgeone_fetch_overview_kpi_charts(EdgeOne $eo, array $zoneIds, $rangeKey, $domain, array $custom)
 {
-    $zoneIds = vs_edgeone_overview_zone_ids($zones, $filters['filter_zone']);
-    $domain = isset($filters['filter_domain']) ? (string) $filters['filter_domain'] : '';
-    $custom = isset($filters['custom_filters']) && is_array($filters['custom_filters']) ? $filters['custom_filters'] : array();
-    $rangeKey = isset($filters['range']) ? (string) $filters['range'] : 'today';
-
-    $kpiMetrics = array('l7Flow_flux', 'l7Flow_outFlux', 'l7Flow_inFlux', 'l7Flow_hitRequest', 'l7Flow_request');
     $charts = array();
-    foreach ($kpiMetrics as $metric) {
-        $charts[$metric] = array(
-            'meta'   => vs_edgeone_metric_meta($metric, 'l7'),
-            'series' => array(),
-            'sum'    => null,
-            'error'  => '',
-        );
-    }
-
-    $fluxChart = array(
-        'meta'   => vs_edgeone_metric_meta('l7Flow_flux', 'l7'),
-        'series' => array(),
-        'sum'    => null,
-        'error'  => '',
+    $metricsToFetch = array(
+        'l7Flow_flux',
+        'l7Flow_outBandwidth',
+        'l7Flow_inBandwidth',
+        'l7Flow_request',
+        'l7Flow_mitigatedRequest',
+        'l7Flow_hitRequest',
+        'l7Flow_outFlux',
+        'l7Flow_inFlux',
     );
 
-    $result = vs_edgeone_try_call(function () use ($eo, $zoneIds, $kpiMetrics, $rangeKey, $domain, $custom) {
-        return vs_edgeone_query_l7_metric_zones($eo, $zoneIds, 'l7Flow_flux', $rangeKey, $domain, $custom);
-    });
-    if ($result['ok']) {
-        $extracted = vs_edgeone_extract_timing_series($result['data']);
-        $spec = vs_edgeone_l7_metric_query_spec('l7Flow_flux');
-        $fluxChart['series'][] = array(
-            'label'  => '总流量',
-            'points' => vs_edgeone_series_points_for_metric($extracted, $spec['api_metric']),
+    foreach ($metricsToFetch as $metric) {
+        $charts[$metric] = array(
+            'meta'         => vs_edgeone_metric_meta($metric, 'l7'),
+            'series'       => array(),
+            'sum'          => null,
+            'peak'         => null,
+            'avg'          => null,
+            'spark_points' => array(),
+            'error'        => '',
         );
-        foreach ($extracted as $block) {
-            if (isset($block['metric']) && (string) $block['metric'] === (string) $spec['api_metric'] && isset($block['sum'])) {
-                $fluxChart['sum'] = (float) $block['sum'];
-                $charts['l7Flow_flux']['sum'] = (float) $block['sum'];
-            }
-        }
-    } else {
-        $fluxChart['error'] = $result['error'];
-    }
-
-    foreach (array('l7Flow_outFlux', 'l7Flow_inFlux', 'l7Flow_hitRequest', 'l7Flow_request') as $metric) {
         $call = vs_edgeone_try_call(function () use ($eo, $zoneIds, $metric, $rangeKey, $domain, $custom) {
             return vs_edgeone_query_l7_metric_zones($eo, $zoneIds, $metric, $rangeKey, $domain, $custom);
         });
@@ -897,22 +918,107 @@ function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $f
         }
         $extracted = vs_edgeone_extract_timing_series($call['data']);
         $spec = vs_edgeone_l7_metric_query_spec($metric);
+        $points = vs_edgeone_series_points_for_metric($extracted, $spec['api_metric']);
         foreach ($extracted as $block) {
-            if (isset($block['metric']) && (string) $block['metric'] === (string) $spec['api_metric'] && isset($block['sum'])) {
+            if (!isset($block['metric']) || (string) $block['metric'] !== (string) $spec['api_metric']) {
+                continue;
+            }
+            if (isset($block['sum'])) {
                 $charts[$metric]['sum'] = (float) $block['sum'];
             }
+            if (isset($block['max'])) {
+                $charts[$metric]['peak'] = (float) $block['max'];
+            }
+            if (isset($block['avg'])) {
+                $charts[$metric]['avg'] = (float) $block['avg'];
+            }
         }
+        $charts[$metric]['spark_points'] = $points;
+        $charts[$metric]['series'][] = array('label' => $charts[$metric]['meta']['label'], 'points' => $points);
     }
 
-    $countryTop = array('title' => '访问区域分布', 'rows' => array(), 'error' => '');
-    $countryCall = vs_edgeone_try_call(function () use ($eo, $zoneIds, $rangeKey, $domain, $custom) {
-        return vs_edgeone_query_l7_top($eo, $zoneIds, 'l7Flow_outFlux_country', $rangeKey, $domain, $custom, 10);
-    });
-    if ($countryCall['ok']) {
-        $countryTop['rows'] = vs_edgeone_extract_top_data($countryCall['data']);
-    } else {
-        $countryTop['error'] = $countryCall['error'];
+    $charts = vs_edgeone_append_total_bandwidth_chart($charts);
+    $outBw = isset($charts['l7Flow_outBandwidth']) ? $charts['l7Flow_outBandwidth'] : null;
+    $inBw = isset($charts['l7Flow_inBandwidth']) ? $charts['l7Flow_inBandwidth'] : null;
+    if ($outBw && $inBw && isset($charts['l7Flow_totalBandwidth'])) {
+        $tb = $charts['l7Flow_totalBandwidth'];
+        $tb['peak'] = null;
+        if ($outBw['peak'] !== null || $inBw['peak'] !== null) {
+            $tb['peak'] = max(
+                $outBw['peak'] !== null ? (float) $outBw['peak'] : 0,
+                $inBw['peak'] !== null ? (float) $inBw['peak'] : 0
+            );
+        }
+        if (isset($tb['series'][0]['points'])) {
+            $tb['spark_points'] = $tb['series'][0]['points'];
+        }
+        $charts['l7Flow_totalBandwidth'] = $tb;
     }
+
+    $req = isset($charts['l7Flow_request']) ? $charts['l7Flow_request'] : null;
+    $hit = isset($charts['l7Flow_hitRequest']) ? $charts['l7Flow_hitRequest'] : null;
+    $hitPoints = $hit && isset($hit['spark_points']) ? $hit['spark_points'] : array();
+    $reqPoints = $req && isset($req['spark_points']) ? $req['spark_points'] : array();
+    $ratePoints = array();
+    $hitRatePoints = array();
+    $reqMap = array();
+    foreach ($reqPoints as $p) {
+        $reqMap[(int) $p['ts']] = (float) $p['value'];
+    }
+    foreach ($hitPoints as $p) {
+        $ts = (int) $p['ts'];
+        $hitVal = (float) $p['value'];
+        if (isset($reqMap[$ts]) && $reqMap[$ts] > 0) {
+            $hitRatePoints[] = array('ts' => $ts, 'value' => ($hitVal / $reqMap[$ts]) * 100);
+        }
+        if (isset($reqMap[$ts])) {
+            $ratePoints[] = array('ts' => $ts, 'value' => $reqMap[$ts]);
+        }
+    }
+    $hitRateSum = null;
+    $hitRateAvg = null;
+    if ($req && $req['sum'] !== null && (float) $req['sum'] > 0 && $hit && $hit['sum'] !== null) {
+        $hitRateSum = ((float) $hit['sum'] / (float) $req['sum']) * 100;
+        $hitRateAvg = $hitRateSum;
+    }
+    $charts['l7Flow_hitRate'] = array(
+        'meta'         => array('label' => '缓存命中率', 'unit' => 'percent', 'group' => '缓存'),
+        'series'       => array(array('label' => '缓存命中率', 'points' => $hitRatePoints)),
+        'sum'          => $hitRateSum,
+        'peak'         => null,
+        'avg'          => $hitRateAvg,
+        'spark_points' => $hitRatePoints,
+        'error'        => '',
+    );
+    $charts['l7Flow_requestPeak'] = array(
+        'meta'         => isset($charts['l7Flow_request']['meta']) ? $charts['l7Flow_request']['meta'] : array('label' => 'L7 访问请求速率', 'unit' => 'count'),
+        'series'       => array(array('label' => '请求速率', 'points' => $ratePoints)),
+        'sum'          => $req && $req['peak'] !== null ? $req['peak'] : null,
+        'peak'         => $req ? $req['peak'] : null,
+        'avg'          => null,
+        'spark_points' => $ratePoints,
+        'error'        => $req ? $req['error'] : '',
+    );
+
+    return $charts;
+}
+
+/**
+ * @param EdgeOne $eo
+ * @param array<int, array<string, mixed>> $zones
+ * @param array $filters
+ * @return array
+ */
+function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $filters)
+{
+    $zoneIds = vs_edgeone_overview_zone_ids($zones, $filters['filter_zone']);
+    $domain = isset($filters['filter_domain']) ? (string) $filters['filter_domain'] : '';
+    $custom = isset($filters['custom_filters']) && is_array($filters['custom_filters']) ? $filters['custom_filters'] : array();
+    $rangeKey = isset($filters['range']) ? (string) $filters['range'] : 'today';
+    $fluxDim = isset($filters['flux_dimension']) ? (string) $filters['flux_dimension'] : 'all';
+
+    $kpiCharts = vs_edgeone_fetch_overview_kpi_charts($eo, $zoneIds, $rangeKey, $domain, $custom);
+    $fluxChart = vs_edgeone_fetch_flux_chart_by_dimension($eo, $zoneIds, $rangeKey, $domain, $custom, $fluxDim);
 
     $tops = array();
     foreach (vs_edgeone_overview_top_panels() as $panel) {
@@ -934,10 +1040,11 @@ function vs_edgeone_fetch_overview_dashboard(EdgeOne $eo, array $zones, array $f
     }
 
     return array(
-        'summary'     => vs_edgeone_overview_summary_from_charts($charts),
-        'flux_chart'  => $fluxChart,
-        'country_top' => $countryTop,
-        'top_panels'  => $tops,
+        'summary'      => vs_edgeone_overview_kpi_items_from_charts($kpiCharts, false),
+        'summary_mobile' => vs_edgeone_overview_kpi_items_from_charts($kpiCharts, true),
+        'flux_chart'   => $fluxChart,
+        'flux_dimension' => $fluxDim,
+        'top_panels'   => $tops,
     );
 }
 

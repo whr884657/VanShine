@@ -79,6 +79,7 @@ if ($eo !== null && vs_edgeone_is_ready() && $filters['filter_zone'] !== '' && $
                     </select>
                 </div>
                 <?php vs_edgeone_render_overview_custom_filters($filters); ?>
+                <input type="hidden" name="flux_dimension" id="edgeoneFluxDimension" value="<?php echo vs_e(isset($filters['flux_dimension']) ? $filters['flux_dimension'] : 'all'); ?>">
                 <div class="vs-form-col vs-form-col--actions">
                     <button type="submit" class="vs-btn vs-btn--primary">查询</button>
                 </div>

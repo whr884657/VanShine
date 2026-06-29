@@ -124,6 +124,23 @@ try {
                 ),
             ));
 
+        case 'overview_flux':
+            @set_time_limit(300);
+            $filters = vs_edgeone_overview_filters_from_request($_POST);
+            $zones = vs_edgeone_fetch_zones($eo);
+            $zoneIds = vs_edgeone_overview_zone_ids($zones, $filters['filter_zone']);
+            $domain = isset($filters['filter_domain']) ? (string) $filters['filter_domain'] : '';
+            $custom = isset($filters['custom_filters']) && is_array($filters['custom_filters']) ? $filters['custom_filters'] : array();
+            $rangeKey = isset($filters['range']) ? (string) $filters['range'] : 'today';
+            $fluxDim = isset($filters['flux_dimension']) ? (string) $filters['flux_dimension'] : 'all';
+            $flux = vs_edgeone_fetch_flux_chart_by_dimension($eo, $zoneIds, $rangeKey, $domain, $custom, $fluxDim);
+            AjaxResponse::success('ok', array(
+                'data' => array(
+                    'flux_html' => vs_edgeone_render_flux_chart_panel_inner($flux, $fluxDim),
+                    'flux_dimension' => $fluxDim,
+                ),
+            ));
+
         case 'overview_domains':
             $filterZone = trim(isset($_POST['filter_zone']) ? $_POST['filter_zone'] : '');
             if ($filterZone === '' || $filterZone === '*') {

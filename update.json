@@ -1,13 +1,13 @@
 {
-    "version": "1.1.2",
-    "release_date": "2026-06-29",
-    "title": "EdgeOne 概览 UI 优化：紧凑筛选、SVG 区域图与 KPI 图标",
+    "version": "1.2.0",
+    "release_date": "2026-06-30",
+    "title": "EdgeOne 概览 1.2：多维流量图、KPI 卡片与筛选抽屉",
     "db_changes": false,
     "changes": [
-        "自定义筛选改为弹层 + 标签，不再堆叠多行表单",
-        "访问区域分布使用纯 SVG 环形图（无外网地图依赖）",
-        "侧栏 KPI 增加 SVG 图标、区间/均值标注与入场动效",
-        "新增访问请求数指标卡片"
+        "L7 访问流量支持维度 Tab（国家/缓存/Host 等）+ TOP 图例多折线",
+        "移除访问区域分布板块",
+        "侧栏 6 项 KPI：含防护命中次数、sparkline 与总和/峰值/均值标注",
+        "自定义筛选改为手机抽屉 / 桌面弹窗，枚举值复选框网格"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

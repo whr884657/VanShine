@@ -1283,4 +1283,469 @@
     .vs-edgeone-country-layout {
         grid-template-columns: 1fr;
     }
+
+    .vs-edgeone-flux-chart-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-edgeone-flux-legend {
+        max-height: 240px;
+    }
+}
+
+/* 图表系列色 */
+.vs-edgeone-flux-panel {
+    --eo-color-0: #3b82f6;
+    --eo-color-1: #f97316;
+    --eo-color-2: #06b6d4;
+    --eo-color-3: #6366f1;
+    --eo-color-4: #e11d48;
+    --eo-color-5: #0ea5e9;
+    --eo-color-6: #f59e0b;
+    --eo-color-7: #84cc16;
+}
+
+/* L7 流量多维 Tab */
+.vs-edgeone-flux-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    padding-bottom: 4px;
+}
+
+.vs-edgeone-flux-tabs__btn {
+    border: none;
+    background: transparent;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+}
+
+.vs-edgeone-flux-tabs__btn.is-active {
+    color: #1677ff;
+    font-weight: 600;
+}
+
+.vs-edgeone-flux-tabs__btn.is-active::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: -5px;
+    height: 2px;
+    background: #1677ff;
+    border-radius: 1px;
+}
+
+.vs-edgeone-flux-tabs__more {
+    position: relative;
+}
+
+.vs-edgeone-flux-tabs__dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    min-width: 160px;
+    margin-top: 4px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.vs-edgeone-flux-tabs__dropdown.is-open {
+    display: block;
+}
+
+.vs-edgeone-flux-tabs__drop-item {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.vs-edgeone-flux-tabs__drop-item:hover,
+.vs-edgeone-flux-tabs__drop-item.is-active {
+    background: rgba(22, 119, 255, 0.08);
+    color: #1677ff;
+}
+
+.vs-edgeone-flux-chart-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 12px;
+    align-items: start;
+}
+
+.vs-edgeone-flux-chart-main {
+    min-width: 0;
+}
+
+.vs-edgeone-flux-panel__inner.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.vs-edgeone-flux-legend {
+    border-left: 1px solid var(--border-color, #f0f0f0);
+    padding-left: 12px;
+    max-height: 300px;
+    overflow: auto;
+}
+
+.vs-edgeone-flux-legend__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.vs-edgeone-flux-legend__title {
+    font-weight: 600;
+    color: var(--text-primary, #222);
+}
+
+.vs-edgeone-flux-legend__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.vs-edgeone-flux-legend__action {
+    border: none;
+    background: none;
+    color: #1677ff;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.vs-edgeone-flux-legend__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.vs-edgeone-flux-legend__item {
+    display: grid;
+    grid-template-columns: 14px 1fr auto;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 4px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.45;
+}
+
+.vs-edgeone-flux-legend__item.is-visible {
+    opacity: 1;
+}
+
+.vs-edgeone-flux-legend__item:hover {
+    background: rgba(22, 119, 255, 0.06);
+}
+
+.vs-edgeone-flux-legend__dot {
+    display: block;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--legend-color, #1677ff);
+}
+
+.vs-edgeone-flux-legend__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vs-edgeone-flux-legend__val {
+    color: var(--text-secondary, #888);
+    font-size: 11px;
+}
+
+/* KPI 卡片增强 */
+.vs-edgeone-kpi--card {
+    position: relative;
+}
+
+.vs-edgeone-kpi__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.vs-edgeone-kpi__agg {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f5f5f5;
+}
+
+.vs-edgeone-kpi__body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.vs-edgeone-kpi__spark {
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.vs-edgeone-kpi__icon {
+    background: linear-gradient(135deg, rgba(22, 119, 255, 0.14), rgba(22, 119, 255, 0.04));
+    color: #1677ff;
+}
+
+/* 筛选抽屉 */
+.vs-edgeone-filter-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px dashed #1677ff;
+    border-radius: 6px;
+    background: rgba(22, 119, 255, 0.04);
+    color: #1677ff;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.vs-edgeone-filter-add-btn__icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.vs-edgeone-filter-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    pointer-events: none;
+}
+
+.vs-edgeone-filter-drawer.is-open {
+    display: block;
+    pointer-events: auto;
+}
+
+.vs-edgeone-filter-drawer__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.vs-edgeone-filter-drawer__panel {
+    position: absolute;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+}
+
+.vs-edgeone-filter-drawer__handle {
+    display: none;
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    margin: 10px auto 0;
+}
+
+.vs-edgeone-filter-drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.vs-edgeone-filter-drawer__title {
+    margin: 0;
+    font-size: 16px;
+}
+
+.vs-edgeone-filter-drawer__close {
+    border: none;
+    background: transparent;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.vs-edgeone-filter-drawer__body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px 18px;
+}
+
+.vs-edgeone-filter-drawer__layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 16px;
+    min-height: 280px;
+}
+
+.vs-edgeone-filter-drawer__side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.vs-edgeone-filter-drawer__values {
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 240px;
+    background: #fafafa;
+}
+
+.vs-edgeone-filter-picker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, #d9d9d9);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.vs-edgeone-filter-picker-menu {
+    position: absolute;
+    z-index: 10;
+    width: calc(100% - 36px);
+    max-height: 220px;
+    overflow: auto;
+    margin-top: 4px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.vs-edgeone-filter-drawer__side {
+    position: relative;
+}
+
+.vs-edgeone-filter-picker-menu__item {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.vs-edgeone-filter-picker-menu__item:hover {
+    background: rgba(22, 119, 255, 0.08);
+    color: #1677ff;
+}
+
+.vs-edgeone-filter-value-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.vs-edgeone-filter-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.vs-edgeone-filter-check input {
+    flex-shrink: 0;
+}
+
+.vs-edgeone-filter-value-text {
+    width: 100%;
+    min-height: 200px;
+    resize: vertical;
+}
+
+.vs-edgeone-filter-drawer__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid #e8e8e8;
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-filter-drawer__panel {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 82vh;
+        max-height: 82vh;
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .vs-edgeone-filter-drawer.is-open .vs-edgeone-filter-drawer__panel {
+        transform: translateY(0);
+    }
+
+    .vs-edgeone-filter-drawer__handle {
+        display: block;
+    }
+
+    .vs-edgeone-filter-drawer__layout {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .vs-edgeone-filter-drawer__values {
+        min-height: 160px;
+    }
+}
+
+@media (min-width: 768px) {
+    .vs-edgeone-filter-drawer__panel {
+        top: 50%;
+        left: 50%;
+        width: min(720px, calc(100vw - 48px));
+        max-height: min(560px, calc(100vh - 48px));
+        border-radius: 12px;
+        transform: translate(-50%, -50%);
+    }
 }

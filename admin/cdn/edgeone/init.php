@@ -17,6 +17,7 @@ require_once __DIR__ . '/includes/kpi-icons.php';
 require_once __DIR__ . '/includes/flux-dimension.php';
 require_once __DIR__ . '/includes/overview-kpi.php';
 require_once __DIR__ . '/includes/zones-page.php';
+require_once __DIR__ . '/includes/domains-page.php';
 require_once __DIR__ . '/includes/metrics.php';
 
 /** @var string */
@@ -195,6 +196,7 @@ function vs_edgeone_translate($group, $value)
             'partial'         => 'CNAME 接入',
             'noDomainAccess'  => '无域名接入',
             'dnsPodAccess'    => 'DNSPod 托管',
+            'pages'           => 'Pages 部署',
         ),
         'CnameStatus' => array(
             'finished' => '已完成',
@@ -206,8 +208,8 @@ function vs_edgeone_translate($group, $value)
             'global'   => '全球',
         ),
         'DomainStatus' => array(
-            'online'  => '已上线',
-            'offline' => '已下线',
+            'online'  => '已生效',
+            'offline' => '已停用',
             'process' => '部署中',
         ),
         'CertStatus' => array(

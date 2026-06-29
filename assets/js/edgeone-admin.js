@@ -64,6 +64,7 @@
                 bindFragmentForms(main);
                 bindOverviewPage(main);
                 bindZonesPage(main);
+                bindDomainsPage(main);
                 bindCharts(main);
                 updateNavActive(path);
                 keepCleanUrl();
@@ -99,6 +100,7 @@
             bindFragmentForms(main);
             bindOverviewPage(main);
             bindZonesPage(main);
+            bindDomainsPage(main);
             bindCharts(main);
             keepCleanUrl();
         }).catch(function () {
@@ -364,7 +366,7 @@
                     return;
                 }
                 var base = pagePath().replace(/\/[^/]+$/, '');
-                window.location.href = base + '/' + gotoPath;
+                window.location.href = base + '/' + gotoPath + '?zone_id=' + encodeURIComponent(zoneId);
             })
             .catch(function () {
                 toast('网络异常', 'error');
@@ -424,6 +426,151 @@
                     navigateWithZone(zid, goto);
                 }
             });
+        });
+    }
+
+    function openDomainDrawer(id) {
+        var drawer = document.getElementById(id);
+        if (!drawer) return;
+        drawer.hidden = false;
+        drawer.setAttribute('aria-hidden', 'false');
+        drawer.classList.add('is-open');
+    }
+
+    function closeDomainDrawers() {
+        document.querySelectorAll('#edgeoneDomainCreateDrawer, #edgeoneDomainEditDrawer').forEach(function (drawer) {
+            drawer.hidden = true;
+            drawer.setAttribute('aria-hidden', 'true');
+            drawer.classList.remove('is-open');
+        });
+    }
+
+    function getDomainRowsMeta() {
+        var node = document.getElementById('edgeoneDomainRowsMeta');
+        if (!node) return [];
+        try {
+            var rows = JSON.parse(node.textContent || '[]');
+            return Array.isArray(rows) ? rows : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function findDomainRow(name) {
+        var rows = getDomainRowsMeta();
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i] && rows[i].DomainName === name) return rows[i];
+        }
+        return null;
+    }
+
+    function bindDomainsPage(root) {
+        var scope = root || document;
+        var page = scope.querySelector('#edgeoneDomainsPage') || (scope.id === 'edgeoneDomainsPage' ? scope : null);
+        if (!page) return;
+
+        if (page.dataset.domainsBound === '1') return;
+        page.dataset.domainsBound = '1';
+
+        var addBtn = page.querySelector('#edgeoneDomainAddBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                openDomainDrawer('edgeoneDomainCreateDrawer');
+            });
+        }
+
+        page.querySelectorAll('[data-domain-drawer-close]').forEach(function (node) {
+            node.addEventListener('click', function () {
+                closeDomainDrawers();
+            });
+        });
+
+        var searchInput = page.querySelector('#edgeoneDomainsSearch');
+        var countNode = page.querySelector('#edgeoneDomainsCount');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var q = searchInput.value.trim().toLowerCase();
+                var visible = 0;
+                page.querySelectorAll('[data-domain-search]').forEach(function (node) {
+                    var text = node.getAttribute('data-domain-search') || '';
+                    var show = !q || text.indexOf(q) !== -1;
+                    node.hidden = !show;
+                    if (show) visible++;
+                });
+                if (countNode) {
+                    countNode.textContent = '共 ' + visible + ' 条';
+                }
+            });
+        }
+
+        page.addEventListener('click', function (e) {
+            var editLink = e.target.closest('.vs-edgeone-domain-edit');
+            if (editLink) {
+                e.preventDefault();
+                var name = editLink.getAttribute('data-domain') || '';
+                var row = findDomainRow(name);
+                if (!row) return;
+                var form = document.getElementById('edgeoneDomainEditForm');
+                if (!form) return;
+                document.getElementById('edgeoneDomainEditName').value = name;
+                document.getElementById('edgeoneDomainEditTitle').textContent = name;
+                var ipv6 = document.getElementById('edgeoneDomainEditIpv6');
+                if (ipv6) ipv6.value = row.IPv6Status || 'follow';
+                var origin = row.OriginDetail && row.OriginDetail.Origin ? row.OriginDetail.Origin : '';
+                var originInput = document.getElementById('edgeoneDomainEditOrigin');
+                if (originInput) originInput.value = origin;
+                var protocol = document.getElementById('edgeoneDomainEditProtocol');
+                if (protocol) protocol.value = row.OriginProtocol || 'FOLLOW';
+                var httpPort = document.getElementById('edgeoneDomainEditHttpPort');
+                if (httpPort) httpPort.value = row.HttpOriginPort || 80;
+                var httpsPort = document.getElementById('edgeoneDomainEditHttpsPort');
+                if (httpsPort) httpsPort.value = row.HttpsOriginPort || 443;
+                openDomainDrawer('edgeoneDomainEditDrawer');
+                return;
+            }
+
+            var toggleLink = e.target.closest('.vs-edgeone-domain-status-toggle');
+            if (toggleLink) {
+                e.preventDefault();
+                var domainName = toggleLink.getAttribute('data-domain') || '';
+                var status = toggleLink.getAttribute('data-status') || '';
+                if (!domainName || !status) return;
+                var body = new FormData();
+                body.set('action', 'domain_status');
+                body.set('domain_name', domainName);
+                body.set('status', status);
+                postFormData(body).then(function (data) {
+                    if (data.code === 1) {
+                        toast(data.msg || '操作成功', 'success');
+                        window.location.reload();
+                    } else {
+                        toast(data.msg || '操作失败', 'error');
+                    }
+                }).catch(function () {
+                    toast('网络异常', 'error');
+                });
+                return;
+            }
+
+            var deleteLink = e.target.closest('.vs-edgeone-domain-delete');
+            if (deleteLink) {
+                e.preventDefault();
+                var delName = deleteLink.getAttribute('data-domain') || '';
+                if (!delName || !window.confirm('确定删除域名 ' + delName + ' ？')) return;
+                var delBody = new FormData();
+                delBody.set('action', 'domain_delete');
+                delBody.set('domain_name', delName);
+                postFormData(delBody).then(function (data) {
+                    if (data.code === 1) {
+                        toast(data.msg || '已删除', 'success');
+                        window.location.reload();
+                    } else {
+                        toast(data.msg || '删除失败', 'error');
+                    }
+                }).catch(function () {
+                    toast('网络异常', 'error');
+                });
+            }
         });
     }
 
@@ -885,6 +1032,7 @@
         bindFragmentForms(document);
         bindOverviewPage(document);
         bindZonesPage(document);
+        bindDomainsPage(document);
         bindZoneForm();
         bindMobileDrawer();
         bindDesktopDropdowns();

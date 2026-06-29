@@ -14,6 +14,10 @@ function vs_edgeone_page_context()
         return $ctx;
     }
 
+    if (!vs_edgeone_is_fragment_request() && isset($_GET['zone_id']) && trim((string) $_GET['zone_id']) !== '') {
+        vs_edgeone_set_zone(trim((string) $_GET['zone_id']));
+    }
+
     $ctx = array(
         'eo'      => null,
         'zones'   => array(),
@@ -67,7 +71,7 @@ function vs_edgeone_page_start($navId, $pageTitle)
         vs_edgeone_render_setup_notice();
         vs_edgeone_render_error($ctx['error']);
         vs_edgeone_nav($navId);
-        $showZonePicker = ($navId !== 'cdn_edgeone' && $navId !== 'cdn_edgeone_zones') && vs_edgeone_is_ready() && count($ctx['zones']) > 0;
+        $showZonePicker = ($navId !== 'cdn_edgeone' && $navId !== 'cdn_edgeone_zones' && $navId !== 'cdn_edgeone_domains') && vs_edgeone_is_ready() && count($ctx['zones']) > 0;
         if ($showZonePicker) {
             echo '<div class="vs-panel vs-edgeone-zone-panel">';
             vs_edgeone_render_zone_picker($ctx['zones']);

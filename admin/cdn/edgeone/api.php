@@ -107,11 +107,111 @@ try {
             if ($domain === '') {
                 throw new Exception('请填写加速域名');
             }
-            $resp = $eo->accelerationDomain->createAccelerationDomain(array(
-                'ZoneId' => $zoneId,
+            $params = array(
+                'ZoneId'     => $zoneId,
                 'DomainName' => $domain,
-            ));
+            );
+            $origin = trim(isset($_POST['origin']) ? $_POST['origin'] : '');
+            if ($origin !== '') {
+                $originType = trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN');
+                $originInfo = array(
+                    'OriginType' => $originType !== '' ? $originType : 'IP_DOMAIN',
+                    'Origin'     => $origin,
+                );
+                $hostMode = trim(isset($_POST['host_header_mode']) ? $_POST['host_header_mode'] : '');
+                $hostHeader = trim(isset($_POST['host_header']) ? $_POST['host_header'] : '');
+                if ($hostMode === 'custom' && $hostHeader !== '') {
+                    $originInfo['HostHeader'] = $hostHeader;
+                }
+                $params['OriginInfo'] = $originInfo;
+            }
+            $protocol = trim(isset($_POST['origin_protocol']) ? $_POST['origin_protocol'] : '');
+            if ($protocol !== '') {
+                $params['OriginProtocol'] = $protocol;
+            }
+            $httpPort = (int) (isset($_POST['http_port']) ? $_POST['http_port'] : 0);
+            $httpsPort = (int) (isset($_POST['https_port']) ? $_POST['https_port'] : 0);
+            if ($httpPort > 0) {
+                $params['HttpOriginPort'] = $httpPort;
+            }
+            if ($httpsPort > 0) {
+                $params['HttpsOriginPort'] = $httpsPort;
+            }
+            $ipv6 = trim(isset($_POST['ipv6_status']) ? $_POST['ipv6_status'] : '');
+            if ($ipv6 !== '') {
+                $params['IPv6Status'] = $ipv6;
+            }
+            $resp = $eo->accelerationDomain->createAccelerationDomain($params);
             AjaxResponse::success('加速域名已创建', array('data' => $resp));
+
+        case 'domain_modify':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            $params = array(
+                'ZoneId'     => $zoneId,
+                'DomainName' => $domain,
+            );
+            $origin = trim(isset($_POST['origin']) ? $_POST['origin'] : '');
+            if ($origin !== '') {
+                $originType = trim(isset($_POST['origin_type']) ? $_POST['origin_type'] : 'IP_DOMAIN');
+                $params['OriginInfo'] = array(
+                    'OriginType' => $originType !== '' ? $originType : 'IP_DOMAIN',
+                    'Origin'     => $origin,
+                );
+            }
+            $protocol = trim(isset($_POST['origin_protocol']) ? $_POST['origin_protocol'] : '');
+            if ($protocol !== '') {
+                $params['OriginProtocol'] = $protocol;
+            }
+            $httpPort = (int) (isset($_POST['http_port']) ? $_POST['http_port'] : 0);
+            $httpsPort = (int) (isset($_POST['https_port']) ? $_POST['https_port'] : 0);
+            if ($httpPort > 0) {
+                $params['HttpOriginPort'] = $httpPort;
+            }
+            if ($httpsPort > 0) {
+                $params['HttpsOriginPort'] = $httpsPort;
+            }
+            $ipv6 = trim(isset($_POST['ipv6_status']) ? $_POST['ipv6_status'] : '');
+            if ($ipv6 !== '') {
+                $params['IPv6Status'] = $ipv6;
+            }
+            $resp = $eo->accelerationDomain->modifyAccelerationDomain($params);
+            AjaxResponse::success('域名配置已更新', array('data' => $resp));
+
+        case 'domain_status':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            $status = trim(isset($_POST['status']) ? $_POST['status'] : '');
+            if ($domain === '' || $status === '') {
+                throw new Exception('参数不完整');
+            }
+            $resp = $eo->accelerationDomain->modifyAccelerationDomainStatuses(array(
+                'ZoneId'      => $zoneId,
+                'DomainNames' => array($domain),
+                'Status'      => $status,
+            ));
+            AjaxResponse::success($status === 'offline' ? '域名已停用' : '域名已启用', array('data' => $resp));
+
+        case 'domain_delete':
+            if ($zoneId === '') {
+                throw new Exception('请先选择站点');
+            }
+            $domain = trim(isset($_POST['domain_name']) ? $_POST['domain_name'] : '');
+            if ($domain === '') {
+                throw new Exception('请指定域名');
+            }
+            $resp = $eo->accelerationDomain->deleteAccelerationDomains(array(
+                'ZoneId'      => $zoneId,
+                'DomainNames' => array($domain),
+            ));
+            AjaxResponse::success('域名已删除', array('data' => $resp));
 
         case 'zones_overview_data':
             @set_time_limit(300);

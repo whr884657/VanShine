@@ -1933,6 +1933,29 @@
     margin-right: 0;
 }
 
+.vs-edgeone-zones-action.is-disabled {
+    color: #bbb;
+    font-size: 13px;
+    cursor: not-allowed;
+    user-select: none;
+}
+
+.vs-edgeone-zones-table__actions .vs-edgeone-zones-action.is-disabled {
+    margin-right: 10px;
+}
+
+.vs-edgeone-zones-card__actions .vs-edgeone-zones-action.is-disabled {
+    padding: 4px 10px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    background: #f5f5f5;
+}
+
+.vs-edgeone-zones-table__name--plain {
+    font-weight: 600;
+    color: var(--text-primary, #333);
+}
+
 .vs-edgeone-zones-table__foot {
     margin: 12px 0 0;
     font-size: 13px;
@@ -2131,5 +2154,213 @@
     .vs-edgeone-zone-create-drawer.is-open .vs-edgeone-zone-create-drawer__panel {
         transform: translateY(0);
         opacity: 1;
+    }
+}
+
+/* 域名管理页 */
+.vs-edgeone-domain-toolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.vs-edgeone-domain-toolbar__label {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: var(--text-secondary, #666);
+}
+
+.vs-edgeone-domain-toolbar .vs-edgeone-zone-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+}
+
+.vs-edgeone-domain-toolbar .vs-btn--default {
+    flex-shrink: 0;
+}
+
+.vs-edgeone-domain-toolbar .vs-btn--primary {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.vs-edgeone-domain-config-panel {
+    margin-top: 12px;
+}
+
+.vs-edgeone-domain-config__title {
+    margin: 0 0 12px;
+    font-size: 15px;
+}
+
+.vs-edgeone-domain-config__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin: 0;
+}
+
+.vs-edgeone-domain-config__grid dt {
+    font-size: 12px;
+    color: var(--text-secondary, #999);
+    margin-bottom: 4px;
+}
+
+.vs-edgeone-domain-config__grid dd {
+    margin: 0;
+    font-size: 14px;
+}
+
+.vs-edgeone-domain-config__shield::before {
+    content: '🛡';
+    margin-right: 4px;
+}
+
+.vs-edgeone-domains-toolbar-inner {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.vs-edgeone-domains-search {
+    width: 100%;
+    max-width: 360px;
+}
+
+.vs-edgeone-domain-cards {
+    display: none;
+}
+
+.vs-edgeone-domain-card {
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+
+.vs-edgeone-domain-card__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+}
+
+.vs-edgeone-domain-card__title {
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.vs-edgeone-domain-card__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+.vs-edgeone-domain-card__meta dt {
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+}
+
+.vs-edgeone-domain-card__meta dd {
+    margin: 0;
+    font-size: 13px;
+}
+
+.vs-edgeone-domain-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.vs-edgeone-domain-card__actions a {
+    color: #1677ff;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.vs-edgeone-domain-cname {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-secondary, #999);
+    word-break: break-all;
+}
+
+.vs-edgeone-domain-status.is-ok {
+    color: #52c41a;
+}
+
+.vs-edgeone-domain-status.is-warning {
+    color: #faad14;
+}
+
+.vs-edgeone-domain-status.is-muted {
+    color: var(--text-secondary, #999);
+}
+
+.vs-edgeone-domain-ext__tag {
+    display: inline-block;
+    padding: 1px 6px;
+    margin-right: 4px;
+    border-radius: 4px;
+    font-size: 11px;
+    background: #f0f5ff;
+    color: #1677ff;
+}
+
+.vs-edgeone-domain-ext__tag.is-ipv6 {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.vs-edgeone-domain-table__actions a {
+    margin-right: 10px;
+    color: #1677ff;
+    text-decoration: none;
+}
+
+.vs-edgeone-domains-table__foot {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary, #999);
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-domain-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .vs-edgeone-domain-toolbar .vs-btn--primary {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .vs-edgeone-domain-config__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .vs-edgeone-domain-table-wrap {
+        display: none;
+    }
+
+    .vs-edgeone-domain-cards {
+        display: block;
+    }
+
+    .vs-edgeone-domains-search {
+        max-width: none;
+    }
+}
+
+@media (min-width: 768px) {
+    .vs-edgeone-domain-cards {
+        display: none !important;
     }
 }

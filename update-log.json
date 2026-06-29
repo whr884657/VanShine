@@ -3,6 +3,17 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.4.0",
+            "date": "2026-06-30",
+            "title": "EdgeOne 域名管理页整页改版",
+            "db_changes": false,
+            "changes": [
+                "域名管理页：配置区+官方式列表+抽屉添加/编辑",
+                "站点切换与添加按钮同行，手机卡片布局",
+                "Pages 站点禁用操作，跳转绑定 zone_id"
+            ]
+        },
+        {
             "version": "1.3.1",
             "date": "2026-06-30",
             "title": "EdgeOne 导航与站点管理交互优化",

@@ -233,6 +233,45 @@ function vs_edgeone_render_zones_overview_panel(array $metrics, $activeTab = 'fl
 }
 
 /**
+ * Pages 等云端托管站点不支持域名加速 / 七层加速 / 安全策略等自助管理。
+ *
+ * @param array<string, mixed> $zone
+ * @return bool
+ */
+function vs_edgeone_zone_supports_self_service_ops(array $zone)
+{
+    $type = isset($zone['Type']) ? strtolower((string) $zone['Type']) : '';
+    return $type !== 'pages';
+}
+
+/**
+ * @param string $zid
+ * @param bool   $managed
+ * @param string $wrapTag
+ * @param string $wrapClass
+ * @return void
+ */
+function vs_edgeone_render_zones_row_actions($zid, $managed, $wrapTag = 'td', $wrapClass = 'vs-edgeone-zones-table__actions')
+{
+    $items = array(
+        array('domains.php', '域名管理'),
+        array('l7.php', '七层加速'),
+        array('security.php', '安全策略'),
+    );
+    $tip = 'Pages 云端部署站点，请在 EdgeOne Pages 控制台管理';
+
+    echo '<' . $wrapTag . ' class="' . vs_e($wrapClass) . '">';
+    foreach ($items as $item) {
+        if ($managed) {
+            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="' . vs_e($item[0]) . '">' . vs_e($item[1]) . '</a>';
+        } else {
+            echo '<span class="vs-edgeone-zones-action is-disabled" title="' . vs_e($tip) . '">' . vs_e($item[1]) . '</span>';
+        }
+    }
+    echo '</' . $wrapTag . '>';
+}
+
+/**
  * @param array<int, array<string, mixed>> $zones
  * @param array<string, array<string, mixed>> $planMap
  * @param array<int, array<string, mixed>> $availablePlans
@@ -274,6 +313,7 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
             $planLabel = $plan ? vs_edgeone_plan_type_label(isset($plan['PlanType']) ? $plan['PlanType'] : '') : '—';
             $tags = isset($zone['Tags']) && is_array($zone['Tags']) ? $zone['Tags'] : array();
             $searchText = strtolower($displayName . ' ' . $name . ' ' . $zid);
+            $managed = vs_edgeone_zone_supports_self_service_ops($zone);
             $statusHtml = $active === 'active'
                 ? '<span class="vs-edgeone-zones-status is-ok"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>已启用</span>'
                 : '<span class="vs-edgeone-zones-status">' . vs_e(vs_edgeone_translate('ActiveStatus', $active)) . '</span>';
@@ -302,11 +342,8 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
                 echo '—';
             }
             echo '</dd></div></dl>';
-            echo '<div class="vs-edgeone-zones-card__actions">';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">域名加速</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="l7.php">七层加速</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="security.php">安全策略</a>';
-            echo '</div></article>';
+            vs_edgeone_render_zones_row_actions($zid, $managed, 'div', 'vs-edgeone-zones-card__actions');
+            echo '</article>';
         }
         echo '</div>';
 
@@ -330,10 +367,15 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
             $planLabel = $plan ? vs_edgeone_plan_type_label(isset($plan['PlanType']) ? $plan['PlanType'] : '') : '—';
             $tags = isset($zone['Tags']) && is_array($zone['Tags']) ? $zone['Tags'] : array();
             $searchText = strtolower($displayName . ' ' . $name . ' ' . $zid);
+            $managed = vs_edgeone_zone_supports_self_service_ops($zone);
 
             echo '<tr data-zone-search="' . vs_e($searchText) . '">';
             echo '<td class="vs-edgeone-zones-table__site">';
-            echo '<a class="vs-edgeone-zones-table__name" href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">' . vs_e($displayName) . '</a>';
+            if ($managed) {
+                echo '<a class="vs-edgeone-zones-table__name" href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">' . vs_e($displayName) . '</a>';
+            } else {
+                echo '<span class="vs-edgeone-zones-table__name vs-edgeone-zones-table__name--plain">' . vs_e($displayName) . '</span>';
+            }
             if ($name !== '' && $displayName !== $name) {
                 echo '<span class="vs-edgeone-zones-table__sub">' . vs_e($name) . '</span>';
             }
@@ -360,11 +402,7 @@ function vs_edgeone_render_zones_table_panel(array $zones, array $planMap, array
                 echo '—';
             }
             echo '</td>';
-            echo '<td class="vs-edgeone-zones-table__actions">';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="domains.php">域名加速</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="l7.php">七层加速</a>';
-            echo '<a href="#" data-set-zone="' . vs_e($zid) . '" data-goto="security.php">安全策略</a>';
-            echo '</td>';
+            vs_edgeone_render_zones_row_actions($zid, $managed);
             echo '</tr>';
         }
         echo '</tbody></table>';

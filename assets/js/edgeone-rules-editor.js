@@ -1168,7 +1168,8 @@
 
     function renderBranches() {
         var host = $('edgeoneRuleEditorBranches');
-        if (host && host.children.length) {
+        var editor = $('edgeoneRuleEditor');
+        if (host && host.children.length && editor && editor.classList.contains('is-open')) {
             collectAllFromDom();
         }
         if (!host || !state.rule) return;
@@ -1277,6 +1278,9 @@
         editor.classList.remove('is-open');
         document.body.classList.remove('vs-drawer-open');
         closeActionPicker();
+        state.rule = null;
+        state.branchUi = [];
+        state.subRuleUi = {};
     }
 
     function openActionPicker(target) {
@@ -1362,14 +1366,19 @@
     }
 
     function getActionFromCard(card) {
+        if (!state.rule) return null;
         var scope = card.getAttribute('data-scope');
         var bi = parseInt(card.getAttribute('data-branch'), 10);
         var ai = parseInt(card.getAttribute('data-action'), 10);
         if (scope === 'subrule') {
             var si = parseInt(card.getAttribute('data-subrule'), 10);
-            return getSubBranch(bi, si).Actions[ai];
+            var subBranch = getSubBranch(bi, si);
+            if (!subBranch || !subBranch.Actions) return null;
+            return subBranch.Actions[ai] || null;
         }
-        return state.rule.Branches[bi].Actions[ai];
+        var branch = state.rule.Branches[bi];
+        if (!branch || !branch.Actions) return null;
+        return branch.Actions[ai] || null;
     }
 
     function collectActionFieldsFromDom() {
@@ -1560,15 +1569,20 @@
     var editorBound = false;
 
     function bindEditorOnce() {
-        if (editorBound) return;
+        var editor = $('edgeoneRuleEditor');
+        if (!editor || editor.dataset.editorBound === '1') return;
+        editor.dataset.editorBound = '1';
         editorBound = true;
 
-        document.querySelectorAll('[data-rule-editor-close]').forEach(function (node) {
+        editor.querySelectorAll('[data-rule-editor-close]').forEach(function (node) {
             node.addEventListener('click', closeEditor);
         });
-        document.querySelectorAll('[data-action-picker-close]').forEach(function (node) {
-            node.addEventListener('click', closeActionPicker);
-        });
+        var picker = $('edgeoneRuleActionPicker');
+        if (picker) {
+            picker.querySelectorAll('[data-action-picker-close]').forEach(function (node) {
+                node.addEventListener('click', closeActionPicker);
+            });
+        }
 
         var savePub = $('edgeoneRuleEditorSavePublish');
         var saveOnly = $('edgeoneRuleEditorSaveOnly');

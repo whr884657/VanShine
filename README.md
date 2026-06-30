@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.11.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.2-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.11.2（2026-06-29）
+
+**类型：** 规则引擎手机端弹窗修复（小版本）
+
+**变更说明：**
+- 规则编辑器与操作选择器手机端改为 80vh 底部抽屉，与域名编辑/文件预览一致
+- 修复关闭规则编辑器后再次点击编辑或新建时弹窗无法打开的问题
+- SPA 切换站点后编辑器事件自动重新绑定
+
+**数据库：** 无变更
+
+---
 
 ### v1.11.1（2026-07-01）
 

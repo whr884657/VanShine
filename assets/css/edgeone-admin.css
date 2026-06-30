@@ -3123,13 +3123,21 @@ body.vs-drawer-open {
     gap: 12px;
 }
 
-/* 规则引擎全屏编辑器 */
+/* 规则引擎编辑器（手机端底部抽屉 / 桌面端居中弹窗，对齐域名编辑与文件预览） */
 .vs-edgeone-rule-editor,
 .vs-edgeone-rule-action-picker {
     position: fixed;
     inset: 0;
     z-index: 1200;
+    display: none;
+    pointer-events: none;
     overflow: hidden;
+}
+
+.vs-edgeone-rule-editor.is-open,
+.vs-edgeone-rule-action-picker.is-open {
+    display: block;
+    pointer-events: auto;
 }
 
 .vs-edgeone-rule-editor[hidden],
@@ -3141,7 +3149,14 @@ body.vs-drawer-open {
 .vs-edgeone-rule-action-picker__overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.vs-edgeone-rule-editor.is-open .vs-edgeone-rule-editor__overlay,
+.vs-edgeone-rule-action-picker.is-open .vs-edgeone-rule-action-picker__overlay {
+    opacity: 1;
 }
 
 .vs-edgeone-rule-editor__panel {
@@ -3165,11 +3180,13 @@ body.vs-drawer-open {
 }
 
 .vs-edgeone-rule-editor__handle {
+    display: none;
     width: 40px;
     height: 4px;
-    border-radius: 2px;
-    background: #d9d9d9;
+    border-radius: 999px;
+    background: #cbd5e1;
     margin: 10px auto 0;
+    flex-shrink: 0;
 }
 
 .vs-edgeone-rule-editor__head {
@@ -3673,6 +3690,7 @@ body.vs-drawer-open {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
     opacity: 0;
     transition: transform 0.22s ease, opacity 0.22s ease;
+    overflow: hidden;
 }
 
 .vs-edgeone-rule-action-picker.is-open .vs-edgeone-rule-action-picker__panel {
@@ -3798,15 +3816,49 @@ body.vs-drawer-open {
 }
 
 @media (max-width: 767px) {
-    .vs-edgeone-rule-editor.is-open {
+    .vs-edgeone-rule-editor__panel {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100vw;
+        height: var(--vs-mobile-drawer-height, 80vh);
+        max-height: var(--vs-mobile-drawer-height, 80vh);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .vs-edgeone-rule-editor.is-open .vs-edgeone-rule-editor__panel {
+        transform: translateY(0);
+    }
+
+    .vs-edgeone-rule-editor__handle {
         display: block;
     }
 
-    .vs-edgeone-rule-editor__panel {
-        max-height: 100dvh;
-        border-radius: 12px 12px 0 0;
+    .vs-edgeone-rule-action-picker__panel {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
         width: 100%;
         max-width: 100vw;
+        height: var(--vs-mobile-drawer-height, 80vh);
+        max-height: var(--vs-mobile-drawer-height, 80vh);
+        border-radius: 16px 16px 0 0;
+        transform: translateY(100%);
+        opacity: 1;
+    }
+
+    .vs-edgeone-rule-action-picker.is-open .vs-edgeone-rule-action-picker__panel {
+        transform: translateY(0);
+    }
+
+    .vs-edgeone-rule-action-picker__body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     .vs-edgeone-rule-editor__body {

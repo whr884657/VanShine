@@ -454,7 +454,7 @@ try {
             if ($zoneId === '') {
                 throw new Exception('请先选择站点');
             }
-            $item = vs_edgeone_build_rule_item_from_post($_POST);
+            $item = vs_edgeone_build_rule_item_from_json($_POST);
             $ruleId = isset($item['RuleId']) ? (string) $item['RuleId'] : '';
             if ($ruleId !== '') {
                 $resp = $eo->l7Acc->modifyL7AccRule(array(

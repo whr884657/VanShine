@@ -23,6 +23,8 @@ require_once __DIR__ . '/includes/overview-kpi.php';
 require_once __DIR__ . '/includes/zones-page.php';
 require_once __DIR__ . '/includes/domains-page.php';
 require_once __DIR__ . '/includes/rules-page.php';
+require_once __DIR__ . '/includes/rules-catalog.php';
+require_once __DIR__ . '/includes/rules-editor.php';
 require_once __DIR__ . '/includes/metrics.php';
 
 /** @var string */

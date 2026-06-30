@@ -11,7 +11,7 @@
  * - POST 请求转发至 api.php（set_zone、rule_list_refresh、rule_save 等）
  *
  * 说明：
- * - 渲染逻辑在 includes/rules-page.php；交互在 assets/js/edgeone-admin.js
+ * - 渲染逻辑在 includes/rules-page.php；列表交互 edgeone-admin.js，编辑器 edgeone-rules-editor.js
  * - Pages 云端托管站点不支持自助管理，仅展示提示
  * - 规则优先级：列表自上而下执行，越靠下优先级越高
  */
@@ -48,10 +48,14 @@ if ($eo !== null && $zoneId !== '' && $canManage) {
 
     <?php
     if ($canManage) {
-        echo vs_edgeone_render_rule_drawers();
+        echo vs_edgeone_render_rule_editor_shell();
     }
     ?>
 </div>
+
+<script type="application/json" id="edgeoneRulesCatalog"><?php
+echo json_encode(vs_edgeone_rules_catalog_export(), JSON_UNESCAPED_UNICODE);
+?></script>
 
 <script type="application/json" id="edgeoneRuleRowsMeta"><?php
 echo json_encode($rules, JSON_UNESCAPED_UNICODE);

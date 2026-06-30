@@ -1,6 +1,6 @@
 # VanShine
 
-**当前版本：1.5.0**
+**当前版本：1.6.0**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -206,6 +206,21 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.6.0（2026-06-29）
+
+**类型：** EdgeOne 规则引擎完整重做（大版本）
+
+**变更说明：**
+- 规则引擎改为**全屏桌面弹窗**（约 1120×860），手机端底部抽屉约 92vh
+- **16 种匹配类型**（HOST、URL Path、请求头、Cookie、地理位置等）+ **6 种运算符**
+- **40+ 种操作**按缓存/网络/HTTPS/HTTP 头/高级配置分类，支持搜索与参数编辑
+- 可视化 IF/THEN 条件构建；支持**高级 Condition 表达式**与 **SubRules** 子规则
+- `rule_save` 提交完整 `RuleEngineItem` JSON，编辑时整规则加载，不再简化覆盖
+
+**数据库：** 无变更
+
+---
 
 ### v1.5.0（2026-06-30）
 

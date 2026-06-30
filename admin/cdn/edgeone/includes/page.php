@@ -90,7 +90,7 @@ function vs_edgeone_page_start($navId, $pageTitle)
 /**
  * @return void
  */
-function vs_edgeone_page_end()
+function vs_edgeone_page_end($extraScripts = array())
 {
     global $vsBase;
 
@@ -100,7 +100,8 @@ function vs_edgeone_page_end()
         echo '</div>';
         echo '</div>';
         echo '<script>window.VS_EDGEONE_API = ' . json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE) . ';</script>';
-        vs_admin_layout_end(array('edgeone-admin.js'));
+        $scripts = array_merge(array('edgeone-admin.js', 'edgeone-rules-editor.js'), is_array($extraScripts) ? $extraScripts : array());
+        vs_admin_layout_end($scripts);
         return;
     }
 }

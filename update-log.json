@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.6.0",
+            "date": "2026-06-29",
+            "title": "EdgeOne 规则引擎完整重做（全屏编辑器 + 全量 API 对接）",
+            "db_changes": false,
+            "changes": [
+                "规则引擎全屏桌面弹窗（1120×860），替代原窄抽屉",
+                "16 种匹配类型 + 6 种运算符 + 40+ 种操作（分类选择与搜索）",
+                "可视化 IF/THEN 构建、高级 Condition 表达式、SubRules 子规则",
+                "保存走完整 rule_json，对接 Create/Modify L7AccRules，不覆盖复杂规则"
+            ]
+        },
+        {
             "version": "1.5.0",
             "date": "2026-06-30",
             "title": "EdgeOne 规则引擎页改版并移除别称域名入口",

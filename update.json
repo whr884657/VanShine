@@ -1,13 +1,13 @@
 {
-    "version": "1.5.0",
-    "release_date": "2026-06-30",
-    "title": "EdgeOne 规则引擎页改版并移除别称域名入口",
+    "version": "1.6.0",
+    "release_date": "2026-06-29",
+    "title": "EdgeOne 规则引擎完整重做（全屏编辑器 + 全量 API 对接）",
     "db_changes": false,
     "changes": [
-        "七层加速更名为规则引擎，新页面 rules.php（删除 l7.php，无兼容跳转）",
-        "规则列表：拖拽排序、启用开关、编辑/复制/删除与创建抽屉",
-        "对接 Describe/Create/Modify/Delete/ModifyL7AccRulePriority 等 API",
-        "移除别称域名后台页 alias.php（腾讯功能尚在测试，暂不提供）"
+        "规则引擎全屏桌面弹窗（1120×860），替代原窄抽屉",
+        "16 种匹配类型 + 6 种运算符 + 40+ 种操作（分类选择与搜索）",
+        "可视化 IF/THEN 构建、高级 Condition 表达式、SubRules 子规则",
+        "保存走完整 rule_json，对接 Create/Modify L7AccRules API，不覆盖复杂规则"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

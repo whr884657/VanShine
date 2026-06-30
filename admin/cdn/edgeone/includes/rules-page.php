@@ -5,7 +5,7 @@
  *
  * 说明：
  * - 封装 DescribeL7AccRules 及规则 CRUD 所需的 Branches/Actions 构建
- * - 首版表单仅支持 HOST/全站 + 常用操作；复杂规则请在腾讯云控制台编辑
+ * - 完整规则编辑由 includes/rules-editor.php + edgeone-rules-editor.js 实现
  * - 列表 UI 由 vs_edgeone_render_rules_* 系列函数输出
  */
 
@@ -307,129 +307,9 @@ function vs_edgeone_render_rules_list_panel(array $rules, $error, $zoneId, $canM
 /**
  * @return string
  */
-function vs_edgeone_render_rule_drawers()
+function vs_edgeone_render_rule_editor_shell()
 {
-    ob_start();
-    echo '<div class="vs-edgeone-zone-create-drawer vs-edgeone-rule-form-drawer" id="edgeoneRuleFormDrawer" hidden aria-hidden="true">';
-    echo '<div class="vs-edgeone-zone-create-drawer__overlay" data-rule-drawer-close></div>';
-    echo '<div class="vs-edgeone-zone-create-drawer__panel" role="dialog" aria-modal="true">';
-    echo '<div class="vs-edgeone-zone-create-drawer__handle" aria-hidden="true"></div>';
-    echo '<div class="vs-edgeone-zone-create-drawer__head">';
-    echo '<h4 id="edgeoneRuleFormTitle">创建规则</h4>';
-    echo '<button type="button" class="vs-edgeone-zone-create-drawer__close" data-rule-drawer-close aria-label="关闭">';
-    echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-    echo '</button></div>';
-    echo '<form class="vs-form" id="edgeoneRuleForm" data-reload="none">';
-    echo '<input type="hidden" name="rule_id" id="edgeoneRuleFormId" value="">';
-    echo '<div class="vs-edgeone-zone-create-drawer__body">';
-    echo '<div class="vs-form-row"><label class="vs-label" for="edgeoneRuleFormName">规则名称</label>';
-    echo '<input type="text" class="vs-input" name="rule_name" id="edgeoneRuleFormName" placeholder="未命名规则" required maxlength="255"></div>';
-    echo '<div class="vs-form-row"><label class="vs-label" for="edgeoneRuleFormComment">注释</label>';
-    echo '<input type="text" class="vs-input" name="rule_comment" id="edgeoneRuleFormComment" placeholder="可选"></div>';
-    echo '<div class="vs-form-row"><label class="vs-label">启用状态</label>';
-    echo '<label class="vs-edgeone-rules-switch vs-edgeone-rules-switch--inline">';
-    echo '<input type="checkbox" name="rule_enabled" id="edgeoneRuleFormEnabled" value="1" checked>';
-    echo '<span class="vs-edgeone-rules-switch__track"></span><span>保存后启用</span></label></div>';
-    echo '<h5 class="vs-edgeone-subtitle">IF · 匹配条件</h5>';
-    echo '<div class="vs-edgeone-rule-condition-row">';
-    echo '<div class="vs-form-row"><label class="vs-label">匹配类型</label>';
-    echo '<select class="vs-input" name="match_type" id="edgeoneRuleMatchType">';
-    echo '<option value="host" selected>HOST</option>';
-    echo '<option value="all">全部（站点任意请求）</option>';
-    echo '</select></div>';
-    echo '<div class="vs-form-row vs-edgeone-rule-host-field" id="edgeoneRuleHostField">';
-    echo '<label class="vs-label">HOST 值</label>';
-    echo '<input type="text" class="vs-input" name="match_host" id="edgeoneRuleMatchHost" placeholder="www.example.com 或留空匹配全部">';
-    echo '</div></div>';
-    echo '<h5 class="vs-edgeone-subtitle">THEN · 操作</h5>';
-    echo '<p class="vs-form-tip">首版支持常用操作；复杂规则请在保存后于腾讯云控制台继续编辑。</p>';
-    echo '<div class="vs-form-row"><label class="vs-label">操作类型</label>';
-    echo '<select class="vs-input" name="action_name" id="edgeoneRuleActionName">';
-    echo '<option value="Compression">智能压缩</option>';
-    echo '<option value="ForceRedirectHTTPS">强制 HTTPS</option>';
-    echo '<option value="HTTP2">HTTP/2</option>';
-    echo '<option value="Cache">节点缓存 TTL（不缓存）</option>';
-    echo '</select></div>';
-    echo '</div>';
-    echo '<div class="vs-edgeone-zone-create-drawer__foot">';
-    echo '<button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-rule-drawer-close>取消</button>';
-    echo '<button type="submit" class="vs-btn vs-btn--rect vs-btn--primary" id="edgeoneRuleFormSubmit">保存并发布</button>';
-    echo '</div></form></div></div>';
-
-    return ob_get_clean();
-}
-
-/**
- * @param string               $host
- * @param string               $actionName
- * @return array<string, mixed>
- */
-function vs_edgeone_build_simple_rule_branch($host, $actionName)
-{
-    $branch = array(
-        'Condition' => vs_edgeone_build_host_rule_condition($host),
-        'Actions'   => array(vs_edgeone_build_simple_rule_action($actionName)),
-    );
-
-    return $branch;
-}
-
-/**
- * @param string $actionName
- * @return array<string, mixed>
- */
-function vs_edgeone_build_simple_rule_action($actionName)
-{
-    $actionName = (string) $actionName;
-    if ($actionName === 'ForceRedirectHTTPS') {
-        return array(
-            'Name'                        => 'ForceRedirectHTTPS',
-            'ForceRedirectHTTPSParameters' => array('Switch' => 'on', 'RedirectStatusCode' => 302),
-        );
-    }
-    if ($actionName === 'HTTP2') {
-        return array('Name' => 'HTTP2', 'HTTP2Parameters' => array('Switch' => 'on'));
-    }
-    if ($actionName === 'Cache') {
-        return array(
-            'Name'            => 'Cache',
-            'CacheParameters' => array('NoCache' => array('Switch' => 'on')),
-        );
-    }
-
-    return array('Name' => 'Compression', 'CompressionParameters' => array('Switch' => 'on'));
-}
-
-/**
- * @param array<string, mixed> $post
- * @return array<string, mixed>
- */
-function vs_edgeone_build_rule_item_from_post(array $post)
-{
-    $name = trim(isset($post['rule_name']) ? (string) $post['rule_name'] : '');
-    if ($name === '') {
-        throw new Exception('请填写规则名称');
-    }
-    $comment = trim(isset($post['rule_comment']) ? (string) $post['rule_comment'] : '');
-    $enabled = !empty($post['rule_enabled']);
-    $matchType = trim(isset($post['match_type']) ? (string) $post['match_type'] : 'host');
-    $host = $matchType === 'all' ? '' : trim(isset($post['match_host']) ? (string) $post['match_host'] : '');
-    $actionName = trim(isset($post['action_name']) ? (string) $post['action_name'] : 'Compression');
-
-    $item = array(
-        'RuleName' => $name,
-        'Status'   => $enabled ? 'enable' : 'disable',
-        'Branches' => array(vs_edgeone_build_simple_rule_branch($host, $actionName)),
-    );
-    if ($comment !== '') {
-        $item['Description'] = array($comment);
-    }
-    $ruleId = trim(isset($post['rule_id']) ? (string) $post['rule_id'] : '');
-    if ($ruleId !== '') {
-        $item['RuleId'] = $ruleId;
-    }
-
-    return $item;
+    return vs_edgeone_render_rule_editor_modal();
 }
 
 /**

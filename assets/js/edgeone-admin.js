@@ -1434,13 +1434,9 @@
         var createBtn = page.querySelector('#edgeoneRuleCreateBtn');
         if (createBtn) {
             createBtn.addEventListener('click', function () {
-                openRuleDrawer(null);
+                openRuleEditor(null);
             });
         }
-
-        page.querySelectorAll('[data-rule-drawer-close]').forEach(function (node) {
-            node.addEventListener('click', closeRuleDrawer);
-        });
 
         var refreshBtn = page.querySelector('#edgeoneRulesRefreshBtn');
         if (refreshBtn) {
@@ -1465,39 +1461,6 @@
                     if (show) visible++;
                 });
                 if (countNode) countNode.textContent = String(visible);
-            });
-        }
-
-        var matchType = page.querySelector('#edgeoneRuleMatchType');
-        var hostField = page.querySelector('#edgeoneRuleHostField');
-        if (matchType && hostField) {
-            matchType.addEventListener('change', function () {
-                hostField.hidden = matchType.value === 'all';
-            });
-        }
-
-        var ruleForm = page.querySelector('#edgeoneRuleForm');
-        if (ruleForm && ruleForm.dataset.bound !== '1') {
-            ruleForm.dataset.bound = '1';
-            ruleForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var body = new FormData(ruleForm);
-                body.set('action', 'rule_save');
-                var btn = ruleForm.querySelector('[type="submit"]');
-                if (btn) btn.disabled = true;
-                postFormData(body).then(function (data) {
-                    if (data.code === 1) {
-                        toast(data.msg || '保存成功', 'success');
-                        closeRuleDrawer();
-                        refreshRulesList(true);
-                    } else {
-                        toast(data.msg || '保存失败', 'error');
-                    }
-                }).catch(function () {
-                    toast('网络异常', 'error');
-                }).finally(function () {
-                    if (btn) btn.disabled = false;
-                });
             });
         }
 
@@ -1549,7 +1512,7 @@
             var editBtn = e.target.closest('.vs-edgeone-rule-edit');
             if (editBtn) {
                 e.preventDefault();
-                openRuleDrawer(editBtn.getAttribute('data-rule-id') || '');
+                openRuleEditor(editBtn.getAttribute('data-rule-id') || '');
             }
         });
 
@@ -1629,66 +1592,22 @@
         });
     }
 
-    function openRuleDrawer(ruleId) {
-        var drawer = document.getElementById('edgeoneRuleFormDrawer');
-        var form = document.getElementById('edgeoneRuleForm');
-        if (!drawer || !form) return;
-        form.reset();
-        document.getElementById('edgeoneRuleFormId').value = '';
-        document.getElementById('edgeoneRuleFormTitle').textContent = ruleId ? '编辑规则' : '创建规则';
-        document.getElementById('edgeoneRuleFormSubmit').textContent = ruleId ? '保存并发布' : '保存并发布';
-        document.getElementById('edgeoneRuleFormEnabled').checked = true;
-        var matchType = document.getElementById('edgeoneRuleMatchType');
-        var hostField = document.getElementById('edgeoneRuleHostField');
-        if (matchType) matchType.value = 'host';
-        if (hostField) hostField.hidden = false;
-
-        if (ruleId) {
-            var row = findRuleRow(ruleId);
-            if (row) {
-                document.getElementById('edgeoneRuleFormId').value = ruleId;
-                document.getElementById('edgeoneRuleFormName').value = row.RuleName || '';
-                if (row.Description && row.Description[0]) {
-                    document.getElementById('edgeoneRuleFormComment').value = row.Description[0];
-                }
-                document.getElementById('edgeoneRuleFormEnabled').checked = String(row.Status || '').toLowerCase() === 'enable';
-                var branch = row.Branches && row.Branches[0] ? row.Branches[0] : null;
-                if (branch && branch.Condition) {
-                    var host = branch.Condition.indexOf("ne ''") !== -1 ? '' : (branch.Condition.match(/\['([^']*)'\]/) || [])[1] || '';
-                    if (host === '' && branch.Condition.indexOf("ne ''") !== -1 && matchType) {
-                        matchType.value = 'all';
-                        if (hostField) hostField.hidden = true;
-                    } else if (matchType) {
-                        matchType.value = 'host';
-                        document.getElementById('edgeoneRuleMatchHost').value = host.replace(/\\'/g, "'");
-                    }
-                }
-                if (branch && branch.Actions && branch.Actions[0] && branch.Actions[0].Name) {
-                    var actionSelect = document.getElementById('edgeoneRuleActionName');
-                    if (actionSelect) {
-                        var actionName = branch.Actions[0].Name;
-                        if (actionName === 'Cache' || actionSelect.querySelector('option[value="' + actionName + '"]')) {
-                            actionSelect.value = actionName;
-                        }
-                    }
-                }
-            }
+    function openRuleEditor(ruleId) {
+        if (window.VS_EDGEONE_RULES_EDITOR && typeof window.VS_EDGEONE_RULES_EDITOR.open === 'function') {
+            window.VS_EDGEONE_RULES_EDITOR.open(ruleId || null);
+            return;
         }
-
-        drawer.hidden = false;
-        drawer.setAttribute('aria-hidden', 'false');
-        drawer.classList.add('is-open');
-        document.body.classList.add('vs-drawer-open');
+        toast('规则编辑器未加载，请刷新页面', 'error');
     }
 
-    function closeRuleDrawer() {
-        var drawer = document.getElementById('edgeoneRuleFormDrawer');
-        if (!drawer) return;
-        drawer.hidden = true;
-        drawer.setAttribute('aria-hidden', 'true');
-        drawer.classList.remove('is-open');
-        document.body.classList.remove('vs-drawer-open');
+    function closeRuleEditor() {
+        if (window.VS_EDGEONE_RULES_EDITOR && typeof window.VS_EDGEONE_RULES_EDITOR.close === 'function') {
+            window.VS_EDGEONE_RULES_EDITOR.close();
+        }
     }
+
+    window.edgeoneFindRuleRow = findRuleRow;
+    window.edgeoneRefreshRulesList = refreshRulesList;
 
     function bindRulesDragSort(page) {
         var list = page.querySelector('#edgeoneRulesList');

@@ -131,11 +131,16 @@
         return '已配置匹配条件';
     }
 
-    function subRuleBadge(index, total, desc) {
+    function subRuleBadge(index, total, desc, isElse) {
         if (desc) return desc;
-        if (index === 0) return '嵌套 IF';
-        if (index === total - 1 && total > 1) return 'ELSE IF / ELSE';
+        if (isElse) return 'ELSE（兜底）';
+        if (index === 0) return total === 1 ? '嵌套 IF' : '嵌套 IF';
         return 'ELSE IF ' + index;
+    }
+
+    function summarizeSubRuleUi(ui) {
+        if (ui && ui.isElse) return '未匹配以上条件';
+        return summarizeConditionUi(ui);
     }
 
     function taglistToText(val) {
@@ -388,6 +393,20 @@
         delete p._uiMode;
     }
 
+    function applySiteFailoverBeforeSave(action) {
+        if (!action || action.Name !== 'SiteFailover' || !action.SiteFailoverParameters) return;
+        var codes = action.SiteFailoverParameters.SiteFailoverStatusCodes;
+        if (Array.isArray(codes)) {
+            action.SiteFailoverParameters.SiteFailoverStatusCodes = codes.map(function (c) {
+                return parseInt(c, 10) || 0;
+            }).filter(function (c) { return c > 0; });
+        }
+        var params = action.SiteFailoverParameters.SiteFailoverParams;
+        if (Array.isArray(params) && params.length > 2) {
+            action.SiteFailoverParameters.SiteFailoverParams = params.slice(0, 2);
+        }
+    }
+
     function normalizeCacheAction(action) {
         if (!action || action.Name !== 'Cache' || !action.CacheParameters) return;
         var p = action.CacheParameters;
@@ -497,6 +516,7 @@
     function applyActionBeforeSave(action) {
         applyCacheUiMode(action);
         applyMaxAgeUiMode(action);
+        applySiteFailoverBeforeSave(action);
     }
 
     function renderNav() {
@@ -511,9 +531,9 @@
             html += '<button type="button" class="vs-edgeone-rule-editor__nav-item" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(ui)) + '">' + escHtml(label) + '</button>';
             (branch.SubRules || []).forEach(function (sub, si) {
                 var sui = state.subRuleUi[i] && state.subRuleUi[i][si] ? state.subRuleUi[i][si] : defaultBranchUi();
-                var subLabel = subRuleBadge(si, branch.SubRules.length, (sub.Description && sub.Description[0]) || '') + ' · ' + summarizeConditionUi(sui);
+                var subLabel = subRuleBadge(si, branch.SubRules.length, (sub.Description && sub.Description[0]) || '', sui.isElse) + ' · ' + summarizeSubRuleUi(sui);
                 if (subLabel.length > 36) subLabel = subLabel.slice(0, 36) + '…';
-                html += '<button type="button" class="vs-edgeone-rule-editor__nav-item vs-edgeone-rule-editor__nav-item--sub" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(sui)) + '">' + escHtml(subLabel) + '</button>';
+                html += '<button type="button" class="vs-edgeone-rule-editor__nav-item vs-edgeone-rule-editor__nav-item--sub" data-nav="branch-' + i + '" title="' + escHtml(summarizeSubRuleUi(sui)) + '">' + escHtml(subLabel) + '</button>';
             });
         });
         nav.innerHTML = html;
@@ -572,19 +592,86 @@
         return html;
     }
 
+    function genericFieldLabel(key) {
+        if (catalog && catalog.paramLabels && catalog.paramLabels[key]) {
+            return catalog.paramLabels[key];
+        }
+        return key;
+    }
+
+    function renderGenericFieldNode(path, label, val) {
+        var html = '<div class="vs-edgeone-rule-action-field" data-field-key="' + escHtml(path) + '">';
+        html += '<label class="vs-label">' + escHtml(genericFieldLabel(label)) + '</label>';
+        if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+            html += '<div class="vs-edgeone-rule-nested-fields">' + renderGenericFields(val, path) + '</div>';
+        } else if (Array.isArray(val)) {
+            html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" value="' + escHtml(taglistToText(val)) + '" placeholder="多个值用英文逗号分隔" data-field-type="taglist">';
+        } else if (String(val).toLowerCase() === 'on' || String(val).toLowerCase() === 'off') {
+            var on = String(val).toLowerCase() === 'on';
+            html += '<label class="vs-edgeone-rules-switch vs-edgeone-rules-switch--inline">';
+            html += '<input type="checkbox" class="vs-edgeone-rule-action-field-input"' + (on ? ' checked' : '') + ' data-field-type="switch">';
+            html += '<span class="vs-edgeone-rules-switch__track"></span><span>' + (on ? '开启' : '关闭') + '</span></label>';
+        } else if (typeof val === 'number') {
+            html += '<input type="number" class="vs-input vs-edgeone-rule-action-field-input" value="' + escHtml(val) + '" data-field-type="number">';
+        } else {
+            html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" value="' + escHtml(val == null ? '' : val) + '" data-field-type="text">';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function renderGenericFields(obj, pathPrefix) {
+        var html = '';
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return html;
+        Object.keys(obj).forEach(function (k) {
+            var path = pathPrefix ? pathPrefix + '.' + k : k;
+            html += renderGenericFieldNode(path, k, obj[k]);
+        });
+        return html;
+    }
+
     function renderUnknownActionFields(action) {
         var html = '<div class="vs-edgeone-rule-action-card__fields">';
-        html += '<p class="vs-form-tip">该操作来自腾讯云控制台，可在下方查看或调整参数。</p>';
+        html += '<p class="vs-form-tip">该操作来自腾讯云控制台，已转为表单编辑，无需手写 JSON。</p>';
         Object.keys(action).forEach(function (key) {
             if (key === 'Name') return;
-            var val = action[key];
-            var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
-            html += '<div class="vs-edgeone-rule-action-field" data-field-key="' + escHtml(key) + '">';
-            html += '<label class="vs-label">' + escHtml(key) + '</label>';
-            html += '<textarea class="vs-input vs-edgeone-rule-action-field-input vs-edgeone-rule-action-unknown" rows="4" data-field-type="unknown">' + escHtml(jsonVal) + '</textarea>';
-            html += '</div>';
+            html += renderGenericFieldNode(key, key, action[key]);
         });
         html += '</div>';
+        return html;
+    }
+
+    function failoverModeOptions(selected) {
+        var opts = {
+            FailoverToHost: '回源到指定 IP/域名',
+            FailoverToCOS: '回源到腾讯云 COS',
+            FailoverToS3CompatibleObjectStorage: '回源到 S3 兼容存储',
+            FailoverRedirectToURL: '重定向至 URL',
+            FailoverCustomResponsePage: '自定义响应页'
+        };
+        var html = '';
+        Object.keys(opts).forEach(function (k) {
+            html += '<option value="' + escHtml(k) + '"' + (selected === k ? ' selected' : '') + '>' + escHtml(opts[k]) + '</option>';
+        });
+        return html;
+    }
+
+    function renderFailoverRow(row, ri) {
+        row = row || {};
+        var html = '<div class="vs-edgeone-rule-repeat-row vs-edgeone-rule-failover-row" data-row="' + ri + '">';
+        html += '<select class="vs-input vs-edgeone-rule-failover-mode">' + failoverModeOptions(row.Mode || 'FailoverToHost') + '</select>';
+        html += '<input type="text" class="vs-input vs-edgeone-rule-failover-origin" placeholder="源站/COS 域名" value="' + escHtml(row.Origin || '') + '">';
+        html += '<select class="vs-input vs-edgeone-rule-failover-protocol">';
+        html += '<option value="follow"' + (row.OriginProtocol === 'follow' ? ' selected' : '') + '>协议跟随</option>';
+        html += '<option value="http"' + (row.OriginProtocol === 'http' ? ' selected' : '') + '>HTTP</option>';
+        html += '<option value="https"' + (row.OriginProtocol === 'https' ? ' selected' : '') + '>HTTPS</option>';
+        html += '</select>';
+        html += '<input type="number" class="vs-input vs-edgeone-rule-failover-http-port" placeholder="HTTP 端口" min="1" max="65535" value="' + escHtml(row.HTTPOriginPort == null ? '' : row.HTTPOriginPort) + '">';
+        html += '<input type="number" class="vs-input vs-edgeone-rule-failover-https-port" placeholder="HTTPS 端口" min="1" max="65535" value="' + escHtml(row.HTTPSOriginPort == null ? '' : row.HTTPSOriginPort) + '">';
+        html += '<input type="text" class="vs-input vs-edgeone-rule-failover-redirect" placeholder="重定向 URL" value="' + escHtml(row.RedirectURL || '') + '">';
+        html += '<input type="text" class="vs-input vs-edgeone-rule-failover-page" placeholder="响应页 ID" value="' + escHtml(row.ResponsePageId || '') + '">';
+        html += '<input type="number" class="vs-input vs-edgeone-rule-failover-status" placeholder="状态码" min="100" max="599" value="' + escHtml(row.StatusCode == null ? '' : row.StatusCode) + '">';
+        html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
         return html;
     }
 
@@ -710,9 +797,29 @@
                 html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
             });
             html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add">+ 添加错误页面</button></div>';
+        } else if (field.type === 'failover_rows') {
+            var frows = Array.isArray(val) ? val : [];
+            html += '<div class="vs-edgeone-rule-repeat-rows" data-field-type="failover_rows">';
+            frows.forEach(function (row, ri) {
+                html += renderFailoverRow(row, ri);
+            });
+            html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add"' + (frows.length >= 2 ? ' disabled' : '') + '>+ 添加备用策略（最多 2 条）</button></div>';
+        } else if (field.type === 'auth_property_rows') {
+            var arows = Array.isArray(val) && val.length ? val : [{ Type: 'QueryString', Name: '', Value: '' }];
+            html += '<div class="vs-edgeone-rule-repeat-rows" data-field-type="auth_property_rows">';
+            arows.forEach(function (row, ri) {
+                html += '<div class="vs-edgeone-rule-repeat-row" data-row="' + ri + '">';
+                html += '<select class="vs-input vs-edgeone-rule-auth-type">';
+                html += '<option value="QueryString"' + (row.Type === 'QueryString' ? ' selected' : '') + '>URL 查询参数</option>';
+                html += '<option value="Header"' + (row.Type === 'Header' ? ' selected' : '') + '>HTTP 请求头</option>';
+                html += '</select>';
+                html += '<input type="text" class="vs-input vs-edgeone-rule-auth-name" placeholder="参数名称" value="' + escHtml(row.Name || '') + '">';
+                html += '<input type="text" class="vs-input vs-edgeone-rule-auth-value" placeholder="参数值" value="' + escHtml(row.Value || '') + '">';
+                html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
+            });
+            html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add">+ 添加鉴权参数</button></div>';
         } else {
-            var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
-            html += '<textarea class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" rows="5" data-field-type="json">' + escHtml(jsonVal) + '</textarea>';
+            html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" value="' + escHtml(val == null ? '' : String(val)) + '" data-field-type="text">';
         }
         if (field.hint) {
             html += '<p class="vs-form-tip vs-edgeone-rule-field-hint">' + escHtml(field.hint) + '</p>';
@@ -780,12 +887,17 @@
     function renderSubRules(branchIndex, subRules) {
         var html = '<div class="vs-edgeone-rule-subrules">';
         html += '<div class="vs-edgeone-rule-subrules__head"><h5>嵌套规则（IF / ELSE IF / ELSE）</h5>';
-        html += '<p class="vs-form-tip">与腾讯云控制台一致：先满足外层 IF，再按顺序匹配内层规则；命中后执行对应操作。</p></div>';
+        html += '<p class="vs-form-tip">与腾讯云控制台一致：先满足外层 IF，再按顺序匹配内层规则；最后可添加 ELSE 兜底分支。</p></div>';
+        var hasElse = false;
+        (state.subRuleUi[branchIndex] || []).forEach(function (u) {
+            if (u && u.isElse) hasElse = true;
+        });
         subRules.forEach(function (sub, si) {
             var scope = { type: 'subrule', branchIndex: branchIndex, subIndex: si };
             var ui = ensureSubRuleUi(branchIndex, si);
             var subBranch = getSubBranch(branchIndex, si);
-            var badge = subRuleBadge(si, subRules.length, '');
+            if (ui.isElse) hasElse = true;
+            var badge = subRuleBadge(si, subRules.length, '', ui.isElse);
             if (subBranch.Condition && !ui._inited) {
                 var parsed = parseConditionExpression(subBranch.Condition);
                 ui.logic = parsed.logic;
@@ -796,20 +908,31 @@
                 ui.conditions = parsed.conditions.length ? parsed.conditions : ui.conditions;
                 ui._inited = true;
             }
-            html += '<div class="vs-edgeone-rule-subrule" data-branch="' + branchIndex + '" data-subrule="' + si + '">';
+            html += '<div class="vs-edgeone-rule-subrule' + (ui.isElse ? ' is-else' : '') + '" data-branch="' + branchIndex + '" data-subrule="' + si + '">';
             html += '<header class="vs-edgeone-rule-subrule__head">';
             html += '<span class="vs-edgeone-rule-subrule__badge">' + escHtml(badge) + '</span>';
-            html += '<span class="vs-edgeone-rule-subrule__summary">' + escHtml(summarizeConditionUi(ui)) + '</span>';
+            html += '<span class="vs-edgeone-rule-subrule__summary">' + escHtml(summarizeSubRuleUi(ui)) + '</span>';
+            html += '<label class="vs-edgeone-rule-subrule-else-toggle">';
+            html += '<input type="checkbox" class="vs-edgeone-rule-subrule-is-else"' + (ui.isElse ? ' checked' : '') + '>';
+            html += ' ELSE 兜底</label>';
             html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-subrule-remove" data-branch-index="' + branchIndex + '" data-subrule-index="' + si + '">删除</button>';
             html += '</header>';
             html += '<div class="vs-form-row"><label class="vs-label">注释</label>';
             html += '<input type="text" class="vs-input vs-edgeone-rule-subrule-desc" placeholder="可选，便于识别" value="' + escHtml((sub.Description && sub.Description[0]) || '') + '"></div>';
-            html += renderConditionSection(scope, ui, 'edgeoneRuleSubCond-' + branchIndex + '-' + si);
+            if (ui.isElse) {
+                html += '<p class="vs-form-tip vs-edgeone-rule-else-tip">当以上嵌套 IF / ELSE IF 均未匹配时，执行下方操作（无需配置条件）。</p>';
+            } else {
+                html += renderConditionSection(scope, ui, 'edgeoneRuleSubCond-' + branchIndex + '-' + si);
+            }
             html += renderThenSection(scope, subBranch.Actions || []);
             html += '</div>';
         });
+        html += '<div class="vs-edgeone-rule-subrules__actions">';
         html += '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-subrule-add" data-branch-index="' + branchIndex + '">+ 添加 ELSE IF</button>';
-        html += '</div>';
+        if (!hasElse) {
+            html += '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-subrule-add-else" data-branch-index="' + branchIndex + '">+ 添加 ELSE（兜底）</button>';
+        }
+        html += '</div></div>';
         return html;
     }
 
@@ -888,6 +1011,10 @@
                     state.subRuleUi[bi] = (branch.SubRules || []).map(function (sub) {
                         var cond = sub.Branches && sub.Branches[0] ? sub.Branches[0].Condition : '';
                         var ui = parseConditionExpression(cond || '');
+                        if (cond === '' || cond == null) {
+                            ui.isElse = true;
+                            ui.conditions = [];
+                        }
                         ui._inited = true;
                         return ui;
                     });
@@ -991,12 +1118,20 @@
         branch.SubRules = [];
         nodes.forEach(function (node, si) {
             var desc = node.querySelector('.vs-edgeone-rule-subrule-desc');
+            var elseCb = node.querySelector('.vs-edgeone-rule-subrule-is-else');
             var ui = ensureSubRuleUi(branchIndex, si);
-            collectUiFromSection(node, ui);
+            if (elseCb) ui.isElse = elseCb.checked;
+            if (ui.isElse) {
+                ui.conditions = [];
+                ui.conditionsDirty = true;
+                ui.preserveCondition = '';
+            } else {
+                collectUiFromSection(node, ui);
+            }
             var oldBranch = oldSubs[si] && oldSubs[si].Branches && oldSubs[si].Branches[0]
                 ? oldSubs[si].Branches[0]
                 : { Condition: '', Actions: [] };
-            oldBranch.Condition = buildConditionExpression(ui);
+            oldBranch.Condition = ui.isElse ? '' : buildConditionExpression(ui);
             branch.SubRules.push({
                 Description: desc && desc.value.trim() ? [desc.value.trim()] : [],
                 Branches: [oldBranch]
@@ -1023,7 +1158,7 @@
                 var key = fieldNode.getAttribute('data-field-key');
                 if (!key) return;
                 var input = fieldNode.querySelector('.vs-edgeone-rule-action-field-input');
-                var repeat = fieldNode.querySelector('[data-field-type="status_rows"], [data-field-type="header_rows"], [data-field-type="error_page_rows"]');
+                var repeat = fieldNode.querySelector('[data-field-type="status_rows"], [data-field-type="header_rows"], [data-field-type="error_page_rows"], [data-field-type="failover_rows"], [data-field-type="auth_property_rows"]');
                 var checkboxes = fieldNode.querySelector('[data-field-type="checkboxes"]');
                 var durAmount = fieldNode.querySelector('[data-field-type="duration-amount"]');
                 if (repeat) {
@@ -1055,6 +1190,35 @@
                                 StatusCode: parseInt(code2.value, 10) || 0,
                                 RedirectURL: url ? url.value.trim() : ''
                             });
+                        } else if (ftype === 'failover_rows') {
+                            var mode = row.querySelector('.vs-edgeone-rule-failover-mode');
+                            if (!mode) return;
+                            var item = { Mode: mode.value };
+                            var origin = row.querySelector('.vs-edgeone-rule-failover-origin');
+                            var protocol = row.querySelector('.vs-edgeone-rule-failover-protocol');
+                            var httpPort = row.querySelector('.vs-edgeone-rule-failover-http-port');
+                            var httpsPort = row.querySelector('.vs-edgeone-rule-failover-https-port');
+                            var redirect = row.querySelector('.vs-edgeone-rule-failover-redirect');
+                            var page = row.querySelector('.vs-edgeone-rule-failover-page');
+                            var status = row.querySelector('.vs-edgeone-rule-failover-status');
+                            if (origin && origin.value.trim()) item.Origin = origin.value.trim();
+                            if (protocol) item.OriginProtocol = protocol.value;
+                            if (httpPort && httpPort.value !== '') item.HTTPOriginPort = parseInt(httpPort.value, 10) || 80;
+                            if (httpsPort && httpsPort.value !== '') item.HTTPSOriginPort = parseInt(httpsPort.value, 10) || 443;
+                            if (redirect && redirect.value.trim()) item.RedirectURL = redirect.value.trim();
+                            if (page && page.value.trim()) item.ResponsePageId = page.value.trim();
+                            if (status && status.value !== '') item.StatusCode = parseInt(status.value, 10) || 302;
+                            rows.push(item);
+                        } else if (ftype === 'auth_property_rows') {
+                            var authType = row.querySelector('.vs-edgeone-rule-auth-type');
+                            var authName = row.querySelector('.vs-edgeone-rule-auth-name');
+                            var authValue = row.querySelector('.vs-edgeone-rule-auth-value');
+                            if (!authName || !authName.value.trim()) return;
+                            rows.push({
+                                Type: authType ? authType.value : 'QueryString',
+                                Name: authName.value.trim(),
+                                Value: authValue ? authValue.value.trim() : ''
+                            });
                         }
                     });
                     setNested(action, key, rows);
@@ -1082,18 +1246,6 @@
                     val = input.value === '' ? 0 : Number(input.value);
                 } else if (type === 'taglist') {
                     val = textToTaglist(input.value);
-                } else if (type === 'json') {
-                    try {
-                        val = JSON.parse(input.value || '{}');
-                    } catch (err) {
-                        val = getNested(action, key);
-                    }
-                } else if (type === 'unknown') {
-                    try {
-                        val = JSON.parse(input.value || '{}');
-                        action[key] = val;
-                    } catch (err) { /* keep existing */ }
-                    return;
                 } else {
                     val = input.value;
                 }
@@ -1111,6 +1263,7 @@
         Object.keys(state.subRuleUi).forEach(function (bi) {
             var branchIndex = parseInt(bi, 10);
             (state.subRuleUi[branchIndex] || []).forEach(function (ui, si) {
+                if (ui && ui.isElse) return;
                 var node = document.querySelector('.vs-edgeone-rule-subrule[data-branch="' + branchIndex + '"][data-subrule="' + si + '"]');
                 collectUiFromSection(node, ui);
             });
@@ -1140,9 +1293,13 @@
             (branch.SubRules || []).forEach(function (sub, si) {
                 var ui = state.subRuleUi[bi] && state.subRuleUi[bi][si];
                 if (ui && sub.Branches && sub.Branches[0]) {
-                    var sc = buildConditionExpression(ui);
-                    if (!sc) hasEmptyBranch = true;
-                    sub.Branches[0].Condition = sc;
+                    if (ui.isElse) {
+                        sub.Branches[0].Condition = '';
+                    } else {
+                        var sc = buildConditionExpression(ui);
+                        if (!sc) hasEmptyBranch = true;
+                        sub.Branches[0].Condition = sc;
+                    }
                 }
             });
         });
@@ -1277,11 +1434,37 @@
                 if (addSub) {
                     var sb = parseInt(addSub.getAttribute('data-branch-index'), 10);
                     if (!state.rule.Branches[sb].SubRules) state.rule.Branches[sb].SubRules = [];
-                    state.rule.Branches[sb].SubRules.push({
-                        Description: [],
-                        Branches: [{ Condition: '', Actions: [] }]
-                    });
-                    ensureSubRuleUi(sb, state.rule.Branches[sb].SubRules.length - 1);
+                    if (!state.subRuleUi[sb]) state.subRuleUi[sb] = [];
+                    var subs = state.rule.Branches[sb].SubRules;
+                    var uis = state.subRuleUi[sb];
+                    var newSub = { Description: [], Branches: [{ Condition: '', Actions: [] }] };
+                    var newUi = defaultBranchUi();
+                    if (subs.length && uis[subs.length - 1] && uis[subs.length - 1].isElse) {
+                        subs.splice(subs.length - 1, 0, newSub);
+                        uis.splice(uis.length - 1, 0, newUi);
+                    } else {
+                        subs.push(newSub);
+                        uis.push(newUi);
+                    }
+                    renderBranches();
+                    return;
+                }
+                var addSubElse = e.target.closest('.vs-edgeone-rule-subrule-add-else');
+                if (addSubElse) {
+                    var sb2 = parseInt(addSubElse.getAttribute('data-branch-index'), 10);
+                    if (!state.rule.Branches[sb2].SubRules) state.rule.Branches[sb2].SubRules = [];
+                    if (!state.subRuleUi[sb2]) state.subRuleUi[sb2] = [];
+                    var uis2 = state.subRuleUi[sb2];
+                    if (uis2.some(function (u) { return u && u.isElse; })) {
+                        toast('每个 IF 块仅允许一个 ELSE 兜底分支', 'error');
+                        return;
+                    }
+                    state.rule.Branches[sb2].SubRules.push({ Description: [], Branches: [{ Condition: '', Actions: [] }] });
+                    var elseUi = defaultBranchUi();
+                    elseUi.isElse = true;
+                    elseUi.conditions = [];
+                    elseUi.conditionsDirty = true;
+                    uis2.push(elseUi);
                     renderBranches();
                     return;
                 }
@@ -1300,6 +1483,13 @@
                     var wrap = repeatAdd.closest('.vs-edgeone-rule-repeat-rows');
                     if (!wrap) return;
                     var ftype = wrap.getAttribute('data-field-type');
+                    if (ftype === 'failover_rows') {
+                        if (wrap.querySelectorAll('.vs-edgeone-rule-failover-row').length >= 2) return;
+                        repeatAdd.insertAdjacentHTML('beforebegin', renderFailoverRow({
+                            Mode: 'FailoverToHost', OriginProtocol: 'follow', HTTPOriginPort: 80, HTTPSOriginPort: 443
+                        }, wrap.querySelectorAll('.vs-edgeone-rule-repeat-row').length));
+                        return;
+                    }
                     var rowHtml = '<div class="vs-edgeone-rule-repeat-row">';
                     if (ftype === 'status_rows') {
                         rowHtml += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="404">';
@@ -1313,6 +1503,10 @@
                     } else if (ftype === 'error_page_rows') {
                         rowHtml += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="404">';
                         rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-error-url" placeholder="跳转 URL">';
+                    } else if (ftype === 'auth_property_rows') {
+                        rowHtml += '<select class="vs-input vs-edgeone-rule-auth-type"><option value="QueryString" selected>URL 查询参数</option><option value="Header">HTTP 请求头</option></select>';
+                        rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-auth-name" placeholder="参数名称">';
+                        rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-auth-value" placeholder="参数值">';
                     }
                     rowHtml += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
                     repeatAdd.insertAdjacentHTML('beforebegin', rowHtml);
@@ -1326,6 +1520,24 @@
             });
 
             branchesHost.addEventListener('change', function (e) {
+                var elseToggle = e.target.closest('.vs-edgeone-rule-subrule-is-else');
+                if (elseToggle) {
+                    collectAllFromDom();
+                    var subNode = elseToggle.closest('.vs-edgeone-rule-subrule');
+                    if (subNode) {
+                        var bi = parseInt(subNode.getAttribute('data-branch'), 10);
+                        var si = parseInt(subNode.getAttribute('data-subrule'), 10);
+                        var ui = ensureSubRuleUi(bi, si);
+                        ui.isElse = elseToggle.checked;
+                        if (ui.isElse) {
+                            ui.conditions = [];
+                            ui.conditionsDirty = true;
+                            ui.preserveCondition = '';
+                        }
+                    }
+                    renderBranches();
+                    return;
+                }
                 var logic = e.target.closest('.vs-edgeone-rule-cond-logic');
                 if (logic) {
                     var scope = logic.getAttribute('data-scope') || 'branch';

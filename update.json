@@ -1,12 +1,13 @@
 {
-    "version": "1.9.1",
+    "version": "1.10.0",
     "release_date": "2026-06-29",
-    "title": "规则引擎 PHP 致命错误修复 + 中文选项说明",
+    "title": "规则引擎全表单化 + SubRules ELSE 分支",
     "db_changes": false,
     "changes": [
-        "修复规则列表页 PHP 8.2+ 下 ${http.request.host} 字符串解析导致的致命错误",
-        "匹配类型、回源协议、TLS、鉴权类型等英文选项全部补充中文说明",
-        "规则编辑器各字段增加 hint 提示，面向 CDN 新手可读可用"
+        "AccessURLRedirect、SiteFailover、OriginAuthentication 全部改为中文表单，移除 JSON 编辑",
+        "未知操作自动展开为嵌套表单，不再显示 JSON 文本框",
+        "嵌套规则支持独立 ELSE 兜底分支，与腾讯云 IF/ELSE IF/ELSE 一致",
+        "源站故障转移支持多策略行编辑；回源鉴权支持参数列表表单"
     ],
     "repo": "xunjinlu/VanShine",
     "branch": "main",

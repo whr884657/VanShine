@@ -266,8 +266,33 @@ function vs_edgeone_rules_action_catalog()
         ),
         'AccessURLRedirect' => array(
             'label' => '访问 URL 重定向', 'category' => 'advanced',
-            'defaults' => array('Name' => 'AccessURLRedirect', 'AccessURLRedirectParameters' => array('StatusCode' => 302, 'Protocol' => 'follow', 'HostName' => array('Action' => 'follow'), 'URLPath' => array('Action' => 'follow'), 'QueryString' => array('Action' => 'full'))),
-            'fields' => array(array('type' => 'json', 'key' => 'AccessURLRedirectParameters', 'label' => 'AccessURLRedirectParameters（JSON）')),
+            'defaults' => array('Name' => 'AccessURLRedirect', 'AccessURLRedirectParameters' => array(
+                'StatusCode' => 302,
+                'Protocol' => 'follow',
+                'HostName' => array('Action' => 'follow', 'Value' => ''),
+                'URLPath' => array('Action' => 'follow', 'Value' => '', 'Regex' => ''),
+                'QueryString' => array('Action' => 'full'),
+            )),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'AccessURLRedirectParameters.StatusCode', 'label' => '跳转状态码', 'options' => array(
+                    301 => '301 永久跳转', 302 => '302 临时跳转', 303 => '303 See Other', 307 => '307 临时重定向', 308 => '308 永久重定向',
+                ), 'hint' => 'EdgeOne 直接返回 3xx，无需源站生成跳转'),
+                array('type' => 'select', 'key' => 'AccessURLRedirectParameters.Protocol', 'label' => '目标协议', 'options' => array(
+                    'follow' => '跟随请求协议', 'http' => '强制 HTTP', 'https' => '强制 HTTPS',
+                )),
+                array('type' => 'select', 'key' => 'AccessURLRedirectParameters.HostName.Action', 'label' => '目标域名', 'options' => array(
+                    'follow' => '跟随请求域名', 'custom' => '自定义域名',
+                )),
+                array('type' => 'text', 'key' => 'AccessURLRedirectParameters.HostName.Value', 'label' => '自定义域名', 'hint' => '选择「自定义域名」时填写，如 www.example.com'),
+                array('type' => 'select', 'key' => 'AccessURLRedirectParameters.URLPath.Action', 'label' => '目标路径', 'options' => array(
+                    'follow' => '跟随请求路径', 'custom' => '自定义完整路径', 'regex' => '正则替换路径',
+                )),
+                array('type' => 'text', 'key' => 'AccessURLRedirectParameters.URLPath.Value', 'label' => '路径/替换结果', 'hint' => '自定义路径或正则替换后的目标路径'),
+                array('type' => 'text', 'key' => 'AccessURLRedirectParameters.URLPath.Regex', 'label' => '路径正则表达式', 'hint' => '选择「正则替换」时填写，支持 $1～$9 引用捕获组'),
+                array('type' => 'select', 'key' => 'AccessURLRedirectParameters.QueryString.Action', 'label' => '查询参数', 'options' => array(
+                    'full' => '保留全部查询参数', 'ignore' => '丢弃全部查询参数',
+                )),
+            ),
         ),
         'Authentication' => array(
             'label' => 'Token 鉴权', 'category' => 'advanced',
@@ -348,9 +373,21 @@ function vs_edgeone_rules_action_catalog()
             'fields' => array(array('type' => 'text', 'key' => 'ShieldParameters.ShieldSpaceId', 'label' => '源站卸载空间 ID')),
         ),
         'SiteFailover' => array(
-            'label' => '源站故障转移', 'category' => 'advanced',
-            'defaults' => array('Name' => 'SiteFailover', 'SiteFailoverParameters' => array('SiteFailoverStatusCodes' => array(502, 503), 'SiteFailoverParams' => array())),
-            'fields' => array(array('type' => 'json', 'key' => 'SiteFailoverParameters', 'label' => '故障转移配置')),
+            'label' => '源站故障转移', 'category' => 'advanced', 'paid' => true,
+            'defaults' => array('Name' => 'SiteFailover', 'SiteFailoverParameters' => array(
+                'SiteFailoverStatusCodes' => array(502, 503),
+                'SiteFailoverParams' => array(array(
+                    'Mode' => 'FailoverToHost',
+                    'Origin' => '',
+                    'OriginProtocol' => 'follow',
+                    'HTTPOriginPort' => 80,
+                    'HTTPSOriginPort' => 443,
+                )),
+            )),
+            'fields' => array(
+                array('type' => 'taglist', 'key' => 'SiteFailoverParameters.SiteFailoverStatusCodes', 'label' => '触发状态码', 'hint' => '源站返回这些状态码时执行转移，如 502,503,504（4xx 或 5xx）'),
+                array('type' => 'failover_rows', 'key' => 'SiteFailoverParameters.SiteFailoverParams', 'label' => '故障转移策略', 'hint' => '最多 2 条，按顺序尝试备用源站或跳转'),
+            ),
         ),
         'SetContentIdentifier' => array(
             'label' => '设置内容标识符', 'category' => 'advanced',
@@ -359,8 +396,12 @@ function vs_edgeone_rules_action_catalog()
         ),
         'OriginAuthentication' => array(
             'label' => '回源鉴权', 'category' => 'advanced', 'paid' => true,
-            'defaults' => array('Name' => 'OriginAuthentication', 'OriginAuthenticationParameters' => array('Switch' => 'off')),
-            'fields' => array(array('type' => 'json', 'key' => 'OriginAuthenticationParameters', 'label' => '回源鉴权配置')),
+            'defaults' => array('Name' => 'OriginAuthentication', 'OriginAuthenticationParameters' => array(
+                'RequestProperties' => array(array('Type' => 'QueryString', 'Name' => '', 'Value' => '')),
+            )),
+            'fields' => array(
+                array('type' => 'auth_property_rows', 'key' => 'OriginAuthenticationParameters.RequestProperties', 'label' => '回源鉴权参数', 'hint' => '回源时在 URL 参数或请求头中携带鉴权信息（白名单功能）'),
+            ),
         ),
         'Vary' => array(
             'label' => 'Vary 特性', 'category' => 'advanced',
@@ -404,6 +445,19 @@ function vs_edgeone_rules_catalog_export()
             'MaxAgeParameters' => '浏览器缓存配置',
             'ModifyOriginParameters' => '修改源站配置',
             'HeaderActions' => 'HTTP 头规则',
+            'AccessURLRedirectParameters' => 'URL 重定向配置',
+            'SiteFailoverParameters' => '源站故障转移配置',
+            'OriginAuthenticationParameters' => '回源鉴权配置',
+            'RequestProperties' => '鉴权参数列表',
+            'HostName' => '目标域名',
+            'URLPath' => '目标路径',
+            'QueryString' => '查询参数',
+            'Switch' => '开关',
+            'StatusCode' => '状态码',
+            'Protocol' => '协议',
+            'Action' => '行为',
+            'Value' => '值',
+            'Regex' => '正则表达式',
         ),
     );
 }

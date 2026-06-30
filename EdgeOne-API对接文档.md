@@ -220,9 +220,10 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 
 > 腾讯云控制台称 **规则引擎**（针对特定域名生效的差异化加速配置）。VanShine 后台入口：`/admin/cdn/edgeone/rules.php`。API Action 名称仍为 `L7Acc*`。
 >
-> **VanShine v1.8.0+** 规则引擎后台能力：
-> - 全屏编辑器：**17 种匹配类型**（含客户端运营商）、6 种运算符、**官方文档全部 RuleEngineAction**（见 `includes/rules-catalog.php`）
-> - 全部表单化配置，无「开发者选项」；复杂条件未改时原样保留
+> **VanShine v1.10.0+** 规则引擎后台能力：
+> - 全屏编辑器：**16 种匹配类型**（含客户端运营商）、6 种运算符、**官方文档全部 RuleEngineAction**（见 `includes/rules-catalog.php`）
+> - **100% 表单化**：含 AccessURLRedirect、SiteFailover、OriginAuthentication；未知操作自动嵌套表单，无 JSON 编辑
+> - 嵌套 SubRules 支持 **IF / ELSE IF / ELSE 兜底** 三分支
 > - 保存/修改走完整 `RuleEngineItem`（`Branches` / `Actions` / `SubRules` / `Condition` 表达式）
 > - 前端脚本：`assets/js/edgeone-rules-editor.js`；列表 CRUD：`assets/js/edgeone-admin.js`
 > - 匹配类型与操作对照：[90438](https://cloud.tencent.com/document/product/1552/90438)

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.10.0-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.10.0（2026-06-29）
+
+**类型：** 规则引擎全表单化 + SubRules ELSE（大版本）
+
+**变更说明：**
+- AccessURLRedirect、SiteFailover、OriginAuthentication 全部改为中文表单，移除 JSON 编辑
+- 未知操作自动展开嵌套表单；规则编辑器不再出现 JSON 文本框
+- 嵌套规则支持独立 ELSE 兜底分支，与腾讯云 IF/ELSE IF/ELSE 一致
+
+**数据库：** 无变更
+
+---
 
 ### v1.9.1（2026-06-29）
 

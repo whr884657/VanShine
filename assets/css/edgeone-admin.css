@@ -3390,6 +3390,52 @@ body.vs-drawer-open {
     font-size: 12px;
 }
 
+.vs-edgeone-rule-subrules__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.vs-edgeone-rule-subrule.is-else {
+    border-color: var(--vs-primary, #1677ff);
+}
+
+.vs-edgeone-rule-else-tip {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    background: rgba(22, 119, 255, 0.06);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.vs-edgeone-rule-subrule-else-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.vs-edgeone-rule-failover-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    align-items: center;
+}
+
+.vs-edgeone-rule-nested-fields {
+    padding-left: 12px;
+    border-left: 2px solid rgba(0, 0, 0, 0.06);
+    margin-top: 4px;
+}
+
+.vs-edgeone-rule-action-card__fields .vs-edgeone-rule-nested-fields .vs-label {
+    font-size: 12px;
+}
+
 .vs-edgeone-rule-duration {
     display: flex;
     gap: 8px;

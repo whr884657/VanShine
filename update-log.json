@@ -3,6 +3,18 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.10.0",
+            "date": "2026-06-29",
+            "title": "规则引擎全表单化 + SubRules ELSE 分支",
+            "db_changes": false,
+            "changes": [
+                "AccessURLRedirect、SiteFailover、OriginAuthentication 全部改为中文表单，移除 JSON 编辑",
+                "未知操作自动展开为嵌套表单，不再显示 JSON 文本框",
+                "嵌套规则支持独立 ELSE 兜底分支，与腾讯云 IF/ELSE IF/ELSE 一致",
+                "源站故障转移支持多策略行编辑；回源鉴权支持参数列表表单"
+            ]
+        },
+        {
             "version": "1.9.1",
             "date": "2026-06-29",
             "title": "规则引擎 PHP 致命错误修复 + 中文选项说明",

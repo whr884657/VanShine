@@ -92,6 +92,31 @@ function vs_edgeone_parse_host_from_condition($condition)
 }
 
 /**
+ * @param string $condition
+ * @return string
+ */
+function vs_edgeone_humanize_condition($condition)
+{
+    $condition = trim((string) $condition);
+    if ($condition === '' || $condition === "${http.request.host} ne ''") {
+        return '全部（站点任意请求）';
+    }
+    if (preg_match("/\\\\\\\\{http\\.request\\.host\\\\} in \\\\['([^']*)'\\\\]/", $condition, $m)) {
+        return 'HOST 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+    if (preg_match("/host\\}\\s+in\\s+\\['([^']*)'\\]/", $condition, $m)) {
+        return 'HOST 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+    if (preg_match("/file_extension\\}\\s+in\\s+\\[(.*?)\\]/", $condition, $m)) {
+        return '文件后缀 等于 ' . preg_replace("/'\\s*,\\s*'/", '、', trim($m[1], "'"));
+    }
+    if (preg_match("/uri\\.path\\}\\s+in\\s+\\['([^']*)'\\]/", $condition, $m)) {
+        return 'URL Path 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+    return '已配置匹配条件';
+}
+
+/**
  * @param array<string, mixed> $rule
  * @return array{branches: int, subrules: int, actions: int, cond_hint: string}
  */
@@ -111,7 +136,7 @@ function vs_edgeone_rule_list_stats(array $rule)
             if ($condHint === '' && isset($branch['Condition'])) {
                 $cond = trim((string) $branch['Condition']);
                 if ($cond !== '') {
-                    $condHint = mb_strlen($cond) > 48 ? mb_substr($cond, 0, 48) . '…' : $cond;
+                    $condHint = vs_edgeone_humanize_condition($cond);
                 }
             }
             if (isset($branch['Actions']) && is_array($branch['Actions'])) {

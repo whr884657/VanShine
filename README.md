@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.9.0-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,20 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.9.0（2026-06-29）
+
+**类型：** 规则引擎控制台级表单化（大版本）
+
+**变更说明：**
+- 导航/列表/IF 标题全部中文可读，不再显示 `${http.request.host}` 等表达式
+- CacheKey、状态码缓存、HTTP 头修改等完整表单化，去除 JSON 配置块
+- 缓存时间支持秒/分/时/天；节点/浏览器缓存行为对齐腾讯云
+- 嵌套规则改为 IF / ELSE IF 标签
+
+**数据库：** 无变更
+
+---
 
 ### v1.8.0（2026-06-29）
 

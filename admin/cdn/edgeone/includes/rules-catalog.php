@@ -58,32 +58,57 @@ function vs_edgeone_rules_action_catalog()
     return array(
         'Cache' => array(
             'label' => '节点缓存 TTL', 'category' => 'cache',
-            'defaults' => array('Name' => 'Cache', 'CacheParameters' => array('FollowOrigin' => array('Switch' => 'on', 'DefaultCache' => 'on', 'DefaultCacheStrategy' => 'on', 'DefaultCacheTime' => 0))),
+            'defaults' => array('Name' => 'Cache', 'CacheParameters' => array(
+                'FollowOrigin' => array('Switch' => 'on', 'DefaultCache' => 'on', 'DefaultCacheStrategy' => 'on', 'DefaultCacheTime' => 0),
+                'NoCache' => array('Switch' => 'off'),
+                'CustomTime' => array('Switch' => 'off', 'CacheTime' => 600, 'IgnoreCacheControl' => 'off'),
+            )),
             'fields' => array(
-                array('type' => 'select', 'key' => 'CacheParameters._uiMode', 'label' => '缓存行为', 'options' => array('follow_origin' => '跟随源站', 'no_cache' => '不缓存', 'custom' => '自定义 TTL')),
-                array('type' => 'number', 'key' => 'CacheParameters.CustomTime.CacheTime', 'label' => '自定义缓存时间（秒）', 'min' => 0, 'max' => 31536000),
-                array('type' => 'switch', 'key' => 'CacheParameters.CustomTime.IgnoreCacheControl', 'label' => '忽略 Cache-Control'),
+                array('type' => 'select', 'key' => 'CacheParameters._uiMode', 'label' => '行为', 'options' => array(
+                    'follow_origin' => '遵循源站 Cache-Control',
+                    'no_cache' => '不缓存',
+                    'custom' => '自定义时间',
+                )),
+                array('type' => 'select', 'key' => 'CacheParameters.FollowOrigin.DefaultCacheStrategy', 'label' => '无 Cache-Control 时', 'options' => array('on' => '默认缓存策略', 'off' => '不缓存')),
+                array('type' => 'duration', 'key' => 'CacheParameters.FollowOrigin.DefaultCacheTime', 'label' => '默认缓存时间'),
+                array('type' => 'duration', 'key' => 'CacheParameters.CustomTime.CacheTime', 'label' => '自定义缓存时间'),
+                array('type' => 'switch', 'key' => 'CacheParameters.CustomTime.IgnoreCacheControl', 'label' => '强制缓存'),
             ),
         ),
         'MaxAge' => array(
             'label' => '浏览器缓存 TTL', 'category' => 'cache',
             'defaults' => array('Name' => 'MaxAge', 'MaxAgeParameters' => array('FollowOrigin' => 'off', 'CacheTime' => 600)),
             'fields' => array(
-                array('type' => 'select', 'key' => 'MaxAgeParameters.FollowOrigin', 'label' => '跟随源站 Cache-Control', 'options' => array('on' => '开启', 'off' => '关闭')),
-                array('type' => 'number', 'key' => 'MaxAgeParameters.CacheTime', 'label' => '浏览器缓存时间（秒）', 'min' => 0, 'max' => 31536000),
-                array('type' => 'switch', 'key' => 'MaxAgeParameters.CustomTime.Switch', 'label' => '启用自定义时间'),
-                array('type' => 'number', 'key' => 'MaxAgeParameters.CustomTime.CacheTime', 'label' => '自定义缓存（秒）', 'min' => 0, 'max' => 31536000),
+                array('type' => 'select', 'key' => 'MaxAgeParameters._uiMode', 'label' => '行为', 'options' => array('follow_origin' => '遵循源站 Cache-Control', 'custom' => '自定义时间')),
+                array('type' => 'duration', 'key' => 'MaxAgeParameters.CacheTime', 'label' => '浏览器缓存时间'),
             ),
         ),
         'CacheKey' => array(
             'label' => '自定义 Cache Key', 'category' => 'cache',
-            'defaults' => array('Name' => 'CacheKey', 'CacheKeyParameters' => array('FullURLCache' => 'on', 'IgnoreCase' => 'off', 'QueryString' => array('Switch' => 'off', 'Action' => 'includeCustom', 'Values' => array()))),
-            'fields' => array(array('type' => 'json', 'key' => 'CacheKeyParameters', 'label' => 'CacheKeyParameters（JSON）')),
+            'defaults' => array('Name' => 'CacheKey', 'CacheKeyParameters' => array(
+                'FullURLCache' => 'on', 'IgnoreCase' => 'off', 'Scheme' => 'off',
+                'QueryString' => array('Switch' => 'off', 'Action' => 'includeCustom', 'Values' => array()),
+                'Header' => array('Switch' => 'off', 'Values' => array()),
+                'Cookie' => array('Switch' => 'off'),
+            )),
+            'fields' => array(
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.FullURLCache', 'label' => '全 URL 缓存'),
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.IgnoreCase', 'label' => '忽略大小写'),
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.Scheme', 'label' => '区分 HTTP/HTTPS 协议'),
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.QueryString.Switch', 'label' => '查询字符串参与 Cache Key'),
+                array('type' => 'select', 'key' => 'CacheKeyParameters.QueryString.Action', 'label' => '查询字符串规则', 'options' => array(
+                    'includeCustom' => '保留指定参数', 'excludeCustom' => '忽略指定参数', 'full' => '保留全部', 'ignore' => '忽略全部',
+                )),
+                array('type' => 'taglist', 'key' => 'CacheKeyParameters.QueryString.Values', 'label' => '查询参数名（多个用逗号分隔）'),
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.Header.Switch', 'label' => '请求头参与 Cache Key'),
+                array('type' => 'taglist', 'key' => 'CacheKeyParameters.Header.Values', 'label' => '请求头名称（多个用逗号分隔）'),
+                array('type' => 'switch', 'key' => 'CacheKeyParameters.Cookie.Switch', 'label' => 'Cookie 参与 Cache Key'),
+            ),
         ),
         'StatusCodeCache' => array(
             'label' => '状态码缓存 TTL', 'category' => 'cache',
             'defaults' => array('Name' => 'StatusCodeCache', 'StatusCodeCacheParameters' => array('StatusCodeCacheParams' => array(array('StatusCode' => 404, 'CacheTime' => 10)))),
-            'fields' => array(array('type' => 'json', 'key' => 'StatusCodeCacheParameters', 'label' => 'StatusCodeCacheParameters（JSON）')),
+            'fields' => array(array('type' => 'status_rows', 'key' => 'StatusCodeCacheParameters.StatusCodeCacheParams', 'label' => '状态码与缓存时间')),
         ),
         'CachePrefresh' => array(
             'label' => '缓存预刷新', 'category' => 'cache',
@@ -129,6 +154,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'Compression', 'CompressionParameters' => array('Switch' => 'on', 'Algorithms' => array('gzip', 'brotli'))),
             'fields' => array(
                 array('type' => 'switch', 'key' => 'CompressionParameters.Switch', 'label' => '启用智能压缩'),
+                array('type' => 'checkboxes', 'key' => 'CompressionParameters.Algorithms', 'label' => '压缩算法', 'options' => array('gzip' => 'Gzip', 'brotli' => 'Brotli')),
             ),
         ),
         'ContentCompression' => array(
@@ -181,7 +207,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'HSTS', 'HSTSParameters' => array('Switch' => 'off', 'Timeout' => 0, 'IncludeSubDomains' => 'off', 'Preload' => 'off')),
             'fields' => array(
                 array('type' => 'switch', 'key' => 'HSTSParameters.Switch', 'label' => '启用 HSTS'),
-                array('type' => 'number', 'key' => 'HSTSParameters.Timeout', 'label' => 'max-age（秒）', 'min' => 0, 'max' => 31536000),
+                array('type' => 'duration', 'key' => 'HSTSParameters.Timeout', 'label' => 'max-age'),
                 array('type' => 'switch', 'key' => 'HSTSParameters.IncludeSubDomains', 'label' => '包含子域名'),
                 array('type' => 'switch', 'key' => 'HSTSParameters.Preload', 'label' => 'Preload'),
             ),
@@ -189,7 +215,10 @@ function vs_edgeone_rules_action_catalog()
         'TLSConfig' => array(
             'label' => 'SSL/TLS 安全配置', 'category' => 'https',
             'defaults' => array('Name' => 'TLSConfig', 'TLSConfigParameters' => array('Version' => array('TLSv1.2', 'TLSv1.3'), 'CipherSuite' => 'loose-v2023')),
-            'fields' => array(array('type' => 'json', 'key' => 'TLSConfigParameters', 'label' => 'TLSConfigParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'checkboxes', 'key' => 'TLSConfigParameters.Version', 'label' => 'TLS 版本', 'options' => array('TLSv1' => 'TLS 1.0', 'TLSv1.1' => 'TLS 1.1', 'TLSv1.2' => 'TLS 1.2', 'TLSv1.3' => 'TLS 1.3')),
+                array('type' => 'select', 'key' => 'TLSConfigParameters.CipherSuite', 'label' => '加密套件', 'options' => array('loose-v2023' => 'loose-v2023', 'strict-v2023' => 'strict-v2023')),
+            ),
         ),
         'OCSPStapling' => array(
             'label' => 'OCSP 装订', 'category' => 'https',
@@ -204,7 +233,7 @@ function vs_edgeone_rules_action_catalog()
         'ModifyResponseHeader' => array(
             'label' => '修改 HTTP 节点响应头', 'category' => 'headers',
             'defaults' => array('Name' => 'ModifyResponseHeader', 'ModifyResponseHeaderParameters' => array('HeaderActions' => array())),
-            'fields' => array(array('type' => 'json', 'key' => 'ModifyResponseHeaderParameters', 'label' => 'ModifyResponseHeaderParameters（JSON）')),
+            'fields' => array(array('type' => 'header_rows', 'key' => 'ModifyResponseHeaderParameters.HeaderActions', 'label' => '响应头规则', 'withValue' => true)),
         ),
         'ClientIPHeader' => array(
             'label' => '客户端 IP 头部', 'category' => 'headers',
@@ -225,7 +254,7 @@ function vs_edgeone_rules_action_catalog()
         'ModifyRequestHeader' => array(
             'label' => '修改 HTTP 回源请求头', 'category' => 'headers',
             'defaults' => array('Name' => 'ModifyRequestHeader', 'ModifyRequestHeaderParameters' => array('HeaderActions' => array())),
-            'fields' => array(array('type' => 'json', 'key' => 'ModifyRequestHeaderParameters', 'label' => 'ModifyRequestHeaderParameters（JSON）')),
+            'fields' => array(array('type' => 'header_rows', 'key' => 'ModifyRequestHeaderParameters.HeaderActions', 'label' => '回源请求头规则', 'withValue' => false)),
         ),
         'HostHeader' => array(
             'label' => 'Host Header 重写', 'category' => 'headers',
@@ -243,7 +272,13 @@ function vs_edgeone_rules_action_catalog()
         'Authentication' => array(
             'label' => 'Token 鉴权', 'category' => 'advanced',
             'defaults' => array('Name' => 'Authentication', 'AuthenticationParameters' => array('AuthType' => 'TypeA', 'Timeout' => 5, 'SecretKey' => '', 'BackupSecretKey' => '', 'AuthParam' => '')),
-            'fields' => array(array('type' => 'json', 'key' => 'AuthenticationParameters', 'label' => 'AuthenticationParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'AuthenticationParameters.AuthType', 'label' => '鉴权类型', 'options' => array('TypeA' => 'TypeA', 'TypeB' => 'TypeB', 'TypeC' => 'TypeC', 'TypeD' => 'TypeD')),
+                array('type' => 'number', 'key' => 'AuthenticationParameters.Timeout', 'label' => '有效时间（分钟）', 'min' => 1, 'max' => 1440),
+                array('type' => 'text', 'key' => 'AuthenticationParameters.SecretKey', 'label' => '主密钥'),
+                array('type' => 'text', 'key' => 'AuthenticationParameters.BackupSecretKey', 'label' => '备密钥'),
+                array('type' => 'text', 'key' => 'AuthenticationParameters.AuthParam', 'label' => '鉴权参数名'),
+            ),
         ),
         'ModifyOrigin' => array(
             'label' => '修改源站', 'category' => 'advanced',
@@ -259,12 +294,22 @@ function vs_edgeone_rules_action_catalog()
         'UpstreamURLRewrite' => array(
             'label' => '回源 URL 重写', 'category' => 'advanced',
             'defaults' => array('Name' => 'UpstreamURLRewrite', 'UpstreamURLRewriteParameters' => array('Type' => 'Path', 'Action' => 'addPrefix', 'Value' => '')),
-            'fields' => array(array('type' => 'json', 'key' => 'UpstreamURLRewriteParameters', 'label' => 'UpstreamURLRewriteParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'UpstreamURLRewriteParameters.Type', 'label' => '重写类型', 'options' => array('Path' => '路径', 'QueryString' => '查询字符串')),
+                array('type' => 'select', 'key' => 'UpstreamURLRewriteParameters.Action', 'label' => '重写方式', 'options' => array('addPrefix' => '添加前缀', 'rmPrefix' => '删除前缀', 'replace' => '替换')),
+                array('type' => 'text', 'key' => 'UpstreamURLRewriteParameters.Value', 'label' => '重写值'),
+            ),
         ),
         'UpstreamRequest' => array(
             'label' => '回源请求参数设置', 'category' => 'advanced',
             'defaults' => array('Name' => 'UpstreamRequest', 'UpstreamRequestParameters' => array('QueryString' => array('Switch' => 'off', 'Action' => 'includeCustom', 'Values' => array()), 'Cookie' => array('Switch' => 'off', 'Action' => 'full'))),
-            'fields' => array(array('type' => 'json', 'key' => 'UpstreamRequestParameters', 'label' => 'UpstreamRequestParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'switch', 'key' => 'UpstreamRequestParameters.QueryString.Switch', 'label' => '自定义查询字符串'),
+                array('type' => 'select', 'key' => 'UpstreamRequestParameters.QueryString.Action', 'label' => '查询字符串规则', 'options' => array('includeCustom' => '保留指定', 'excludeCustom' => '忽略指定', 'full' => '保留全部', 'ignore' => '忽略全部')),
+                array('type' => 'taglist', 'key' => 'UpstreamRequestParameters.QueryString.Values', 'label' => '查询参数名'),
+                array('type' => 'switch', 'key' => 'UpstreamRequestParameters.Cookie.Switch', 'label' => '自定义 Cookie'),
+                array('type' => 'select', 'key' => 'UpstreamRequestParameters.Cookie.Action', 'label' => 'Cookie 规则', 'options' => array('full' => '保留全部', 'ignore' => '忽略全部')),
+            ),
         ),
         'UpstreamFollowRedirect' => array(
             'label' => '回源跟随重定向', 'category' => 'advanced',
@@ -277,7 +322,7 @@ function vs_edgeone_rules_action_catalog()
         'ErrorPage' => array(
             'label' => '自定义错误页面', 'category' => 'advanced',
             'defaults' => array('Name' => 'ErrorPage', 'ErrorPageParameters' => array('ErrorPageParams' => array())),
-            'fields' => array(array('type' => 'json', 'key' => 'ErrorPageParameters', 'label' => 'ErrorPageParameters（JSON）')),
+            'fields' => array(array('type' => 'error_page_rows', 'key' => 'ErrorPageParameters.ErrorPageParams', 'label' => '错误页面规则')),
         ),
         'RangeOriginPull' => array(
             'label' => '分片回源', 'category' => 'advanced',
@@ -341,6 +386,12 @@ function vs_edgeone_rules_catalog_export()
         'matchGroups' => array(
             'client' => '客户端请求',
             'origin' => '源站响应',
+        ),
+        'timeUnits' => array(
+            array('id' => 's', 'label' => '秒', 'mult' => 1),
+            array('id' => 'm', 'label' => '分', 'mult' => 60),
+            array('id' => 'h', 'label' => '时', 'mult' => 3600),
+            array('id' => 'd', 'label' => '天', 'mult' => 86400),
         ),
     );
 }

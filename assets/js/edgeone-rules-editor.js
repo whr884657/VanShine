@@ -71,6 +71,84 @@
         return null;
     }
 
+    function splitDuration(seconds) {
+        seconds = parseInt(seconds, 10);
+        if (!seconds || seconds < 0) return { amount: 0, unit: 's' };
+        if (seconds % 86400 === 0) return { amount: seconds / 86400, unit: 'd' };
+        if (seconds % 3600 === 0) return { amount: seconds / 3600, unit: 'h' };
+        if (seconds % 60 === 0) return { amount: seconds / 60, unit: 'm' };
+        return { amount: seconds, unit: 's' };
+    }
+
+    function toSeconds(amount, unit) {
+        amount = parseFloat(amount);
+        if (isNaN(amount) || amount < 0) return 0;
+        var mult = 1;
+        (catalog && catalog.timeUnits || []).forEach(function (u) {
+            if (u.id === unit) mult = u.mult;
+        });
+        if (unit === 'm') mult = 60;
+        if (unit === 'h') mult = 3600;
+        if (unit === 'd') mult = 86400;
+        return Math.round(amount * mult);
+    }
+
+    function summarizeConditionRow(row) {
+        var mt = findMatchType(row.matchType);
+        var op = findOperator(row.operator);
+        if (mt && mt.all) return '全部（站点任意请求）';
+        var label = mt ? mt.label : '条件';
+        if (row.paramName) label += ' · ' + row.paramName;
+        var opLabel = op ? op.label : '等于';
+        if (row.operator === 'exists' || row.operator === 'not_exists') {
+            return label + ' ' + opLabel;
+        }
+        var vals = String(row.value || '').split(/[\n,;]+/).map(function (v) {
+            return v.trim();
+        }).filter(Boolean);
+        var valText = vals.slice(0, 2).join('、');
+        if (vals.length > 2) valText += ' 等';
+        return label + ' ' + opLabel + ' ' + (valText || '…');
+    }
+
+    function summarizeConditionUi(ui) {
+        if (!ui) return '未配置条件';
+        if (ui.preserveCondition && !ui.conditionsDirty) {
+            return summarizeConditionExpr(ui.preserveCondition);
+        }
+        var parts = (ui.conditions || []).map(summarizeConditionRow).filter(Boolean);
+        if (parts.length === 0) return '未配置条件';
+        return parts.join(ui.logic === 'or' ? ' 或 ' : ' 且 ');
+    }
+
+    function summarizeConditionExpr(expr) {
+        expr = String(expr || '').trim();
+        if (!expr || expr === "${http.request.host} ne ''") return '全部（站点任意请求）';
+        var parsed = parseConditionExpression(expr);
+        if (!parsed.parseWarning) return summarizeConditionUi(parsed);
+        var hostM = expr.match(/\$\{http\.request\.host\}\s+in\s+\['([^']*)'/);
+        if (hostM) return 'HOST 等于 ' + hostM[1];
+        return '已配置匹配条件';
+    }
+
+    function subRuleBadge(index, total, desc) {
+        if (desc) return desc;
+        if (index === 0) return '嵌套 IF';
+        if (index === total - 1 && total > 1) return 'ELSE IF / ELSE';
+        return 'ELSE IF ' + index;
+    }
+
+    function taglistToText(val) {
+        if (Array.isArray(val)) return val.join(', ');
+        return String(val || '');
+    }
+
+    function textToTaglist(text) {
+        return String(text || '').split(/[\n,;]+/).map(function (v) {
+            return v.trim();
+        }).filter(Boolean);
+    }
+
     function escapeCondValue(val) {
         return String(val || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
@@ -291,6 +369,25 @@
         return 'branch' + scope.branchIndex;
     }
 
+    function normalizeMaxAgeAction(action) {
+        if (!action || action.Name !== 'MaxAge' || !action.MaxAgeParameters) return;
+        var p = action.MaxAgeParameters;
+        if (!p._uiMode) {
+            p._uiMode = String(p.FollowOrigin).toLowerCase() === 'on' ? 'follow_origin' : 'custom';
+        }
+    }
+
+    function applyMaxAgeUiMode(action) {
+        if (!action || action.Name !== 'MaxAge' || !action.MaxAgeParameters) return;
+        var p = action.MaxAgeParameters;
+        if (p._uiMode === 'follow_origin') {
+            p.FollowOrigin = 'on';
+        } else {
+            p.FollowOrigin = 'off';
+        }
+        delete p._uiMode;
+    }
+
     function normalizeCacheAction(action) {
         if (!action || action.Name !== 'Cache' || !action.CacheParameters) return;
         var p = action.CacheParameters;
@@ -392,17 +489,32 @@
         });
     }
 
+    function normalizeActionBeforeRender(action) {
+        normalizeCacheAction(action);
+        normalizeMaxAgeAction(action);
+    }
+
+    function applyActionBeforeSave(action) {
+        applyCacheUiMode(action);
+        applyMaxAgeUiMode(action);
+    }
+
     function renderNav() {
         var nav = $('edgeoneRuleEditorNav');
         if (!nav) return;
         var html = '<div class="vs-edgeone-rule-editor__nav-title">规则导航</div>';
         html += '<button type="button" class="vs-edgeone-rule-editor__nav-item is-active" data-nav="meta">基本信息</button>';
         (state.rule.Branches || []).forEach(function (branch, i) {
-            var label = 'IF · 条件 ' + (i + 1);
-            if (branch.Condition) {
-                label = branch.Condition.length > 28 ? branch.Condition.slice(0, 28) + '…' : branch.Condition;
-            }
-            html += '<button type="button" class="vs-edgeone-rule-editor__nav-item" data-nav="branch-' + i + '">' + escHtml(label) + '</button>';
+            var ui = state.branchUi[i] || defaultBranchUi();
+            var label = 'IF · ' + summarizeConditionUi(ui);
+            if (label.length > 36) label = label.slice(0, 36) + '…';
+            html += '<button type="button" class="vs-edgeone-rule-editor__nav-item" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(ui)) + '">' + escHtml(label) + '</button>';
+            (branch.SubRules || []).forEach(function (sub, si) {
+                var sui = state.subRuleUi[i] && state.subRuleUi[i][si] ? state.subRuleUi[i][si] : defaultBranchUi();
+                var subLabel = subRuleBadge(si, branch.SubRules.length, (sub.Description && sub.Description[0]) || '') + ' · ' + summarizeConditionUi(sui);
+                if (subLabel.length > 36) subLabel = subLabel.slice(0, 36) + '…';
+                html += '<button type="button" class="vs-edgeone-rule-editor__nav-item vs-edgeone-rule-editor__nav-item--sub" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(sui)) + '">' + escHtml(subLabel) + '</button>';
+            });
         });
         nav.innerHTML = html;
     }
@@ -474,7 +586,7 @@
     }
 
     function renderActionCard(scope, actionIndex, action) {
-        normalizeCacheAction(action);
+        normalizeActionBeforeRender(action);
         var name = action.Name || '';
         var meta = catalog.actions && catalog.actions[name] ? catalog.actions[name] : null;
         var html = '<div class="vs-edgeone-rule-action-card" data-scope="' + escHtml(scope.type) + '" data-branch="' + scope.branchIndex + '"';
@@ -531,6 +643,70 @@
             html += '</select>';
         } else if (field.type === 'text') {
             html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" value="' + escHtml(val == null ? '' : val) + '" data-field-type="text">';
+        } else if (field.type === 'taglist') {
+            html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" value="' + escHtml(taglistToText(val)) + '" placeholder="多个值用英文逗号分隔" data-field-type="taglist">';
+        } else if (field.type === 'duration') {
+            var dur = splitDuration(val);
+            html += '<div class="vs-edgeone-rule-duration">';
+            html += '<input type="number" class="vs-input vs-edgeone-rule-duration-amount" min="0" value="' + escHtml(dur.amount) + '" data-field-type="duration-amount">';
+            html += '<select class="vs-input vs-edgeone-rule-duration-unit" data-field-type="duration-unit">';
+            (catalog.timeUnits || [{ id: 's', label: '秒' }, { id: 'm', label: '分' }, { id: 'h', label: '时' }, { id: 'd', label: '天' }]).forEach(function (u) {
+                html += '<option value="' + escHtml(u.id) + '"' + (dur.unit === u.id ? ' selected' : '') + '>' + escHtml(u.label) + '</option>';
+            });
+            html += '</select></div>';
+        } else if (field.type === 'checkboxes') {
+            var selected = Array.isArray(val) ? val : [];
+            html += '<div class="vs-edgeone-rule-checkboxes" data-field-type="checkboxes">';
+            var opts = field.options || {};
+            Object.keys(opts).forEach(function (k) {
+                var checked = selected.indexOf(k) >= 0;
+                html += '<label class="vs-edgeone-rule-checkbox-item"><input type="checkbox" class="vs-edgeone-rule-checkbox-input" value="' + escHtml(k) + '"' + (checked ? ' checked' : '') + '> ' + escHtml(opts[k]) + '</label>';
+            });
+            html += '</div>';
+        } else if (field.type === 'status_rows') {
+            var rows = Array.isArray(val) ? val : [];
+            html += '<div class="vs-edgeone-rule-repeat-rows" data-field-type="status_rows">';
+            rows.forEach(function (row, ri) {
+                var rd = splitDuration(row.CacheTime);
+                html += '<div class="vs-edgeone-rule-repeat-row" data-row="' + ri + '">';
+                html += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="' + escHtml(row.StatusCode == null ? '' : row.StatusCode) + '">';
+                html += '<input type="number" class="vs-input vs-edgeone-rule-duration-amount" min="0" value="' + escHtml(rd.amount) + '">';
+                html += '<select class="vs-input vs-edgeone-rule-duration-unit">';
+                (catalog.timeUnits || []).forEach(function (u) {
+                    html += '<option value="' + escHtml(u.id) + '"' + (rd.unit === u.id ? ' selected' : '') + '>' + escHtml(u.label) + '</option>';
+                });
+                html += '</select>';
+                html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
+            });
+            html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add">+ 添加状态码</button></div>';
+        } else if (field.type === 'header_rows') {
+            var hrows = Array.isArray(val) ? val : [];
+            var withValue = field.withValue !== false;
+            html += '<div class="vs-edgeone-rule-repeat-rows" data-field-type="header_rows" data-with-value="' + (withValue ? '1' : '0') + '">';
+            hrows.forEach(function (row, ri) {
+                html += '<div class="vs-edgeone-rule-repeat-row" data-row="' + ri + '">';
+                html += '<select class="vs-input vs-edgeone-rule-header-action">';
+                html += '<option value="add"' + (row.Action === 'add' ? ' selected' : '') + '>添加</option>';
+                html += '<option value="set"' + (row.Action === 'set' ? ' selected' : '') + '>设置</option>';
+                html += '<option value="del"' + (row.Action === 'del' ? ' selected' : '') + '>删除</option>';
+                html += '</select>';
+                html += '<input type="text" class="vs-input vs-edgeone-rule-header-name" placeholder="Header 名称" value="' + escHtml(row.Name || '') + '">';
+                if (withValue) {
+                    html += '<input type="text" class="vs-input vs-edgeone-rule-header-value" placeholder="Header 值" value="' + escHtml(row.Value || '') + '">';
+                }
+                html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
+            });
+            html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add">+ 添加 Header 规则</button></div>';
+        } else if (field.type === 'error_page_rows') {
+            var erows = Array.isArray(val) ? val : [];
+            html += '<div class="vs-edgeone-rule-repeat-rows" data-field-type="error_page_rows">';
+            erows.forEach(function (row, ri) {
+                html += '<div class="vs-edgeone-rule-repeat-row" data-row="' + ri + '">';
+                html += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="' + escHtml(row.StatusCode == null ? '' : row.StatusCode) + '">';
+                html += '<input type="text" class="vs-input vs-edgeone-rule-error-url" placeholder="跳转 URL" value="' + escHtml(row.RedirectURL || '') + '">';
+                html += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
+            });
+            html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-repeat-add">+ 添加错误页面</button></div>';
         } else {
             var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
             html += '<textarea class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" rows="5" data-field-type="json">' + escHtml(jsonVal) + '</textarea>';
@@ -583,7 +759,7 @@
         var scope = { type: 'branch', branchIndex: branchIndex };
         var html = '<section class="vs-edgeone-rule-branch" id="edgeoneRuleBranch-' + branchIndex + '" data-branch-index="' + branchIndex + '">';
         html += '<header class="vs-edgeone-rule-branch__head">';
-        html += '<h5>IF · 匹配条件 ' + (branchIndex + 1) + '</h5>';
+        html += '<h5>IF · ' + escHtml(summarizeConditionUi(ui)) + '</h5>';
         if (state.rule.Branches.length > 1) {
             html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-branch-remove" data-branch-index="' + branchIndex + '">删除条件块</button>';
         }
@@ -597,12 +773,13 @@
 
     function renderSubRules(branchIndex, subRules) {
         var html = '<div class="vs-edgeone-rule-subrules">';
-        html += '<div class="vs-edgeone-rule-subrules__head"><h5>ELSE IF · 子规则</h5>';
-        html += '<p class="vs-form-tip">当上方 IF 未完全匹配时，可继续添加子规则（与腾讯云 SubRules 一致）。</p></div>';
+        html += '<div class="vs-edgeone-rule-subrules__head"><h5>嵌套规则（IF / ELSE IF / ELSE）</h5>';
+        html += '<p class="vs-form-tip">与腾讯云控制台一致：先满足外层 IF，再按顺序匹配内层规则；命中后执行对应操作。</p></div>';
         subRules.forEach(function (sub, si) {
             var scope = { type: 'subrule', branchIndex: branchIndex, subIndex: si };
             var ui = ensureSubRuleUi(branchIndex, si);
             var subBranch = getSubBranch(branchIndex, si);
+            var badge = subRuleBadge(si, subRules.length, '');
             if (subBranch.Condition && !ui._inited) {
                 var parsed = parseConditionExpression(subBranch.Condition);
                 ui.logic = parsed.logic;
@@ -615,7 +792,8 @@
             }
             html += '<div class="vs-edgeone-rule-subrule" data-branch="' + branchIndex + '" data-subrule="' + si + '">';
             html += '<header class="vs-edgeone-rule-subrule__head">';
-            html += '<span class="vs-edgeone-rule-subrule__badge">子规则 ' + (si + 1) + '</span>';
+            html += '<span class="vs-edgeone-rule-subrule__badge">' + escHtml(badge) + '</span>';
+            html += '<span class="vs-edgeone-rule-subrule__summary">' + escHtml(summarizeConditionUi(ui)) + '</span>';
             html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-subrule-remove" data-branch-index="' + branchIndex + '" data-subrule-index="' + si + '">删除</button>';
             html += '</header>';
             html += '<div class="vs-form-row"><label class="vs-label">注释</label>';
@@ -624,7 +802,7 @@
             html += renderThenSection(scope, subBranch.Actions || []);
             html += '</div>';
         });
-        html += '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-subrule-add" data-branch-index="' + branchIndex + '">+ 添加子规则</button>';
+        html += '<button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-subrule-add" data-branch-index="' + branchIndex + '">+ 添加 ELSE IF</button>';
         html += '</div>';
         return html;
     }
@@ -837,15 +1015,68 @@
             if (!action) return;
             card.querySelectorAll('.vs-edgeone-rule-action-field').forEach(function (fieldNode) {
                 var key = fieldNode.getAttribute('data-field-key');
+                if (!key) return;
                 var input = fieldNode.querySelector('.vs-edgeone-rule-action-field-input');
-                if (!key || !input) return;
+                var repeat = fieldNode.querySelector('[data-field-type="status_rows"], [data-field-type="header_rows"], [data-field-type="error_page_rows"]');
+                var checkboxes = fieldNode.querySelector('[data-field-type="checkboxes"]');
+                var durAmount = fieldNode.querySelector('[data-field-type="duration-amount"]');
+                if (repeat) {
+                    var ftype = repeat.getAttribute('data-field-type');
+                    var rows = [];
+                    repeat.querySelectorAll('.vs-edgeone-rule-repeat-row').forEach(function (row) {
+                        if (ftype === 'status_rows') {
+                            var code = row.querySelector('.vs-edgeone-rule-status-code');
+                            var amt = row.querySelector('.vs-edgeone-rule-duration-amount');
+                            var unit = row.querySelector('.vs-edgeone-rule-duration-unit');
+                            if (!code || !code.value) return;
+                            rows.push({
+                                StatusCode: parseInt(code.value, 10) || 0,
+                                CacheTime: toSeconds(amt ? amt.value : 0, unit ? unit.value : 's')
+                            });
+                        } else if (ftype === 'header_rows') {
+                            var act = row.querySelector('.vs-edgeone-rule-header-action');
+                            var name = row.querySelector('.vs-edgeone-rule-header-name');
+                            var valInput = row.querySelector('.vs-edgeone-rule-header-value');
+                            if (!name || !name.value.trim()) return;
+                            var item = { Action: act ? act.value : 'add', Name: name.value.trim() };
+                            if (valInput && valInput.value.trim()) item.Value = valInput.value.trim();
+                            rows.push(item);
+                        } else if (ftype === 'error_page_rows') {
+                            var code2 = row.querySelector('.vs-edgeone-rule-status-code');
+                            var url = row.querySelector('.vs-edgeone-rule-error-url');
+                            if (!code2 || !code2.value) return;
+                            rows.push({
+                                StatusCode: parseInt(code2.value, 10) || 0,
+                                RedirectURL: url ? url.value.trim() : ''
+                            });
+                        }
+                    });
+                    setNested(action, key, rows);
+                    return;
+                }
+                if (checkboxes) {
+                    var vals = [];
+                    checkboxes.querySelectorAll('.vs-edgeone-rule-checkbox-input:checked').forEach(function (cb) {
+                        vals.push(cb.value);
+                    });
+                    setNested(action, key, vals);
+                    return;
+                }
+                if (durAmount) {
+                    var durUnit = fieldNode.querySelector('[data-field-type="duration-unit"]');
+                    setNested(action, key, toSeconds(durAmount.value, durUnit ? durUnit.value : 's'));
+                    return;
+                }
+                if (!input) return;
                 var type = input.getAttribute('data-field-type');
                 var val;
                 if (type === 'switch') {
                     val = input.checked ? 'on' : 'off';
                 } else if (type === 'number') {
                     val = input.value === '' ? 0 : Number(input.value);
-                } else                 if (type === 'json') {
+                } else if (type === 'taglist') {
+                    val = textToTaglist(input.value);
+                } else if (type === 'json') {
                     try {
                         val = JSON.parse(input.value || '{}');
                     } catch (err) {
@@ -862,7 +1093,7 @@
                 }
                 setNested(action, key, val);
             });
-            applyCacheUiMode(action);
+            applyActionBeforeSave(action);
         });
     }
 
@@ -1055,6 +1286,36 @@
                     state.rule.Branches[sbi].SubRules.splice(ssi, 1);
                     if (state.subRuleUi[sbi]) state.subRuleUi[sbi].splice(ssi, 1);
                     renderBranches();
+                    return;
+                }
+                var repeatAdd = e.target.closest('.vs-edgeone-rule-repeat-add');
+                if (repeatAdd) {
+                    collectAllFromDom();
+                    var wrap = repeatAdd.closest('.vs-edgeone-rule-repeat-rows');
+                    if (!wrap) return;
+                    var ftype = wrap.getAttribute('data-field-type');
+                    var rowHtml = '<div class="vs-edgeone-rule-repeat-row">';
+                    if (ftype === 'status_rows') {
+                        rowHtml += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="404">';
+                        rowHtml += '<input type="number" class="vs-input vs-edgeone-rule-duration-amount" min="0" value="10">';
+                        rowHtml += '<select class="vs-input vs-edgeone-rule-duration-unit"><option value="s" selected>秒</option><option value="m">分</option><option value="h">时</option><option value="d">天</option></select>';
+                    } else if (ftype === 'header_rows') {
+                        var withVal = wrap.getAttribute('data-with-value') === '1';
+                        rowHtml += '<select class="vs-input vs-edgeone-rule-header-action"><option value="add">添加</option><option value="set">设置</option><option value="del">删除</option></select>';
+                        rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-header-name" placeholder="Header 名称">';
+                        if (withVal) rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-header-value" placeholder="Header 值">';
+                    } else if (ftype === 'error_page_rows') {
+                        rowHtml += '<input type="number" class="vs-input vs-edgeone-rule-status-code" placeholder="状态码" value="404">';
+                        rowHtml += '<input type="text" class="vs-input vs-edgeone-rule-error-url" placeholder="跳转 URL">';
+                    }
+                    rowHtml += '<button type="button" class="vs-edgeone-rule-repeat-remove" title="删除">&times;</button></div>';
+                    repeatAdd.insertAdjacentHTML('beforebegin', rowHtml);
+                    return;
+                }
+                var repeatRm = e.target.closest('.vs-edgeone-rule-repeat-remove');
+                if (repeatRm) {
+                    var rrow = repeatRm.closest('.vs-edgeone-rule-repeat-row');
+                    if (rrow) rrow.remove();
                 }
             });
 

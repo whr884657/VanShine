@@ -31,8 +31,15 @@
             }
         }
         if (tip) {
-            tip.textContent = PURGE_TIPS[type] || PURGE_TIPS.purge_url;
+            var textNode = tip.querySelector('.vs-edgeone-purge-hint__text');
+            var text = PURGE_TIPS[type] || PURGE_TIPS.purge_url;
+            if (textNode) {
+                textNode.textContent = text;
+            } else {
+                tip.textContent = text;
+            }
             tip.setAttribute('data-for', type);
+            tip.hidden = false;
         }
     }
 

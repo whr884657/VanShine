@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.12.1-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.12.1（2026-06-29）
+
+**类型：** 缓存管理页 UI 微调（小版本）
+
+**变更说明：**
+- 站点选择框与切换按钮始终同一行（手机端/电脑端）
+- 清除缓存与预热缓存左右并排；板块间距优化
+- 刷新类型提示改为信息卡片样式；移除顶部冗余说明
+
+**数据库：** 无变更
+
+---
 
 ### v1.12.0（2026-06-29）
 

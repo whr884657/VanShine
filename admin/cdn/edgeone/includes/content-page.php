@@ -185,19 +185,18 @@ function vs_edgeone_render_cache_task_panel($supportsPrefetch = true)
 {
     echo '<div class="vs-panel vs-edgeone-cache-panel" id="edgeoneCachePanel">';
     echo '<h3 class="vs-panel__title">缓存任务</h3>';
-    echo '<p class="vs-form-tip">先选择任务类型，再填写对应目标。清除缓存与预热缓存的表单会根据选择自动切换。</p>';
 
     echo '<div class="vs-edgeone-cache-mode" role="tablist" aria-label="缓存任务类型">';
     echo '<button type="button" class="vs-edgeone-cache-mode__btn is-active" data-cache-mode="purge" role="tab" aria-selected="true">清除缓存</button>';
     if ($supportsPrefetch) {
         echo '<button type="button" class="vs-edgeone-cache-mode__btn" data-cache-mode="prefetch" role="tab" aria-selected="false">预热缓存</button>';
     } else {
-        echo '<span class="vs-form-tip vs-edgeone-cache-mode__tip">当前套餐不支持预热缓存</span>';
+        echo '<span class="vs-edgeone-cache-mode__placeholder">当前套餐不支持预热缓存</span>';
     }
     echo '</div>';
 
     echo '<form class="vs-form vs-edgeone-api-form vs-edgeone-cache-form is-active" id="edgeonePurgeForm" data-action="purge_create" data-cache-form="purge">';
-    echo '<div class="vs-form-row">';
+    echo '<div class="vs-form-row vs-edgeone-purge-type-row">';
     echo '<label class="vs-label" for="edgeonePurgeType">刷新类型</label>';
     echo '<select name="purge_type" class="vs-input" id="edgeonePurgeType">';
     echo '<option value="purge_url">URL 刷新</option>';
@@ -205,12 +204,14 @@ function vs_edgeone_render_cache_task_panel($supportsPrefetch = true)
     echo '<option value="purge_host">Hostname 刷新</option>';
     echo '<option value="purge_all">全部刷新</option>';
     echo '</select>';
-    echo '<p class="vs-form-tip vs-edgeone-purge-type-tip" id="edgeonePurgeTypeTip" data-for="purge_url">每行填写完整 URL，例如 https://example.com/path/file.js</p>';
+    echo '<div class="vs-edgeone-purge-hint" id="edgeonePurgeTypeTip" data-for="purge_url">';
+    echo '<span class="vs-edgeone-purge-hint__icon" aria-hidden="true">i</span>';
+    echo '<span class="vs-edgeone-purge-hint__text">每行填写完整 URL，例如 https://example.com/path/file.js</span>';
+    echo '</div>';
     echo '</div>';
     echo '<div class="vs-form-row vs-edgeone-purge-targets" id="edgeonePurgeTargetsRow">';
     echo '<label class="vs-label" for="edgeonePurgeTargets">目标</label>';
     echo '<textarea name="targets" class="vs-textarea" id="edgeonePurgeTargets" rows="5" placeholder="https://example.com/a.js"></textarea>';
-    echo '<p class="vs-form-tip">每行一条 URL 或目录</p>';
     echo '</div>';
     echo '<div class="vs-form-actions"><button type="submit" class="vs-btn vs-btn--primary">提交刷新</button></div>';
     echo '</form>';
@@ -220,7 +221,10 @@ function vs_edgeone_render_cache_task_panel($supportsPrefetch = true)
         echo '<div class="vs-form-row">';
         echo '<label class="vs-label" for="edgeonePrefetchTargets">预热 URL</label>';
         echo '<textarea name="targets" class="vs-textarea" id="edgeonePrefetchTargets" rows="5" placeholder="https://example.com/static/app.js"></textarea>';
-        echo '<p class="vs-form-tip">每行一条完整 URL，预热后节点会提前缓存资源</p>';
+        echo '<div class="vs-edgeone-purge-hint vs-edgeone-purge-hint--neutral">';
+        echo '<span class="vs-edgeone-purge-hint__icon" aria-hidden="true">i</span>';
+        echo '<span class="vs-edgeone-purge-hint__text">每行一条完整 URL，提交后节点将提前缓存资源</span>';
+        echo '</div>';
         echo '</div>';
         echo '<div class="vs-form-actions"><button type="submit" class="vs-btn vs-btn--primary">提交预热</button></div>';
         echo '</form>';

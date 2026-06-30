@@ -68,6 +68,7 @@
                 bindDomainsPage(main);
                 bindRulesPage(main);
                 bindZoneForm(main);
+                bindContentPage(main);
                 bindCharts(main);
                 updateNavActive(path);
                 if (pushState !== false && window.history.pushState) {
@@ -105,6 +106,7 @@
             bindDomainsPage(main);
             bindRulesPage(main);
             bindZoneForm(main);
+            bindContentPage(main);
             bindCharts(main);
             keepCleanUrl();
         }).catch(function () {
@@ -1668,6 +1670,12 @@
         });
     }
 
+    function bindContentPage(root) {
+        if (window.VS_EDGEONE_CONTENT_BIND) {
+            window.VS_EDGEONE_CONTENT_BIND(root || document);
+        }
+    }
+
     function bindZoneForm(root) {
         var scope = root || document;
         var form = scope.querySelector('#edgeoneZoneForm');
@@ -1680,6 +1688,10 @@
                 .then(function (data) {
                     if (data.code === 1) {
                         toast(data.msg || '已切换', 'success');
+                        if (document.querySelector('.vs-edgeone-zone-panel--cache')) {
+                            window.location.href = pagePath();
+                            return;
+                        }
                         reloadMainContent();
                     } else {
                         toast(data.msg || '切换失败', 'error');
@@ -1757,6 +1769,7 @@
         bindDomainsPage(document);
         bindRulesPage(document);
         bindZoneForm();
+        bindContentPage(document);
         bindMobileDrawer();
         bindDesktopDropdowns();
         bindCharts(document);

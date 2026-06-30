@@ -77,8 +77,13 @@ function vs_edgeone_page_start($navId, $pageTitle)
         vs_edgeone_nav($navId);
         $showZonePicker = ($navId !== 'cdn_edgeone' && $navId !== 'cdn_edgeone_zones' && $navId !== 'cdn_edgeone_domains' && $navId !== 'cdn_edgeone_rules') && vs_edgeone_is_ready() && count($ctx['zones']) > 0;
         if ($showZonePicker) {
-            echo '<div class="vs-panel vs-edgeone-zone-panel">';
-            vs_edgeone_render_zone_picker($ctx['zones']);
+            echo '<div class="vs-panel vs-edgeone-zone-panel' . ($navId === 'cdn_edgeone_content' ? ' vs-edgeone-zone-panel--cache' : '') . '">';
+            if ($navId === 'cdn_edgeone_content') {
+                require_once __DIR__ . '/content-page.php';
+                vs_edgeone_render_cache_zone_panel($ctx['zones'], $ctx['zone_id'], $ctx['eo']);
+            } else {
+                vs_edgeone_render_zone_picker($ctx['zones']);
+            }
             echo '</div>';
         }
         echo '<div id="edgeoneMainContent" class="vs-edgeone-main">';
@@ -100,7 +105,7 @@ function vs_edgeone_page_end($extraScripts = array())
         echo '</div>';
         echo '</div>';
         echo '<script>window.VS_EDGEONE_API = ' . json_encode($vsBase . '/admin/cdn/edgeone/api.php', JSON_UNESCAPED_UNICODE) . ';</script>';
-        $scripts = array_merge(array('edgeone-admin.js', 'edgeone-rules-editor.js'), is_array($extraScripts) ? $extraScripts : array());
+        $scripts = array_merge(array('edgeone-admin.js', 'edgeone-rules-editor.js', 'edgeone-content.js'), is_array($extraScripts) ? $extraScripts : array());
         vs_admin_layout_end($scripts);
         return;
     }

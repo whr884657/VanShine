@@ -165,6 +165,39 @@ function vs_edgeone_format_timestamp($ts)
 }
 
 /**
+ * @param mixed $value
+ * @return string
+ */
+function vs_edgeone_task_status_label($value)
+{
+    $v = strtolower((string) $value);
+    $aliases = array(
+        'completed' => 'success',
+        'finished'  => 'success',
+        'pending'   => 'processing',
+        'process'   => 'processing',
+    );
+    if (isset($aliases[$v])) {
+        $v = $aliases[$v];
+    }
+
+    return vs_edgeone_translate('TaskStatus', $v);
+}
+
+/**
+ * @param mixed $value
+ * @return bool
+ */
+function vs_edgeone_is_task_status_value($value)
+{
+    $v = strtolower((string) $value);
+
+    return in_array($v, array(
+        'success', 'processing', 'failed', 'timeout',
+        'completed', 'finished', 'pending', 'process',
+    ), true);
+}
+/**
  * @param string $group
  * @param mixed  $value
  * @return string
@@ -194,10 +227,16 @@ function vs_edgeone_status_badge_class($group, $value)
  * @param mixed  $value
  * @return void
  */
-function vs_edgeone_render_status_badge($group, $value)
+function vs_edgeone_render_status_badge($group, $value, array $ctx = array())
 {
     if ($value === null || $value === '') {
         echo '-';
+        return;
+    }
+    if ($group === 'Status' && (!empty($ctx['task_table']) || vs_edgeone_is_task_status_value($value))) {
+        $text = vs_edgeone_task_status_label($value);
+        $class = vs_edgeone_status_badge_class('TaskStatus', $value);
+        echo '<span class="vs-edgeone-badge ' . vs_e($class) . '">' . vs_e($text) . '</span>';
         return;
     }
     $text = vs_edgeone_translate($group, $value);
@@ -234,6 +273,10 @@ function vs_edgeone_format_cell($key, $value, array $ctx = array())
 
     $keyLower = strtolower((string) $key);
     $str = (string) $value;
+
+    if ($key === 'Type' && !empty($ctx['task_table'])) {
+        return vs_edgeone_quota_type_label($str);
+    }
 
     if ($key === 'Type' && isset($ctx['quota'])) {
         return vs_edgeone_quota_type_label($str);
@@ -1054,7 +1097,7 @@ function vs_edgeone_render_data_table(array $rows, $columns = null, array $ctx =
             $val = isset($row[$col]) ? $row[$col] : null;
             echo '<td>';
             if (in_array($col, array('Status', 'ActiveStatus', 'CnameStatus', 'DomainStatus', 'CertStatus', 'DnsVerificationStatus', 'FileVerificationStatus', 'AttackStatus'), true)) {
-                vs_edgeone_render_status_badge($col === 'DnsVerificationStatus' || $col === 'FileVerificationStatus' ? 'VerificationStatus' : $col, $val);
+                vs_edgeone_render_status_badge($col === 'DnsVerificationStatus' || $col === 'FileVerificationStatus' ? 'VerificationStatus' : $col, $val, $ctx);
             } else {
                 echo vs_e(vs_edgeone_format_cell($col, $val, $ctx));
             }
@@ -1266,10 +1309,11 @@ function vs_edgeone_list_keys()
 }
 
 /**
- * @param mixed $data
+ * @param mixed                $data
+ * @param array<string, mixed> $ctx
  * @return void
  */
-function vs_edgeone_render_api_data($data)
+function vs_edgeone_render_api_data($data, array $ctx = array())
 {
     if ($data === null || $data === '') {
         echo '<p class="vs-form-tip">暂无数据</p>';
@@ -1282,7 +1326,7 @@ function vs_edgeone_render_api_data($data)
     }
 
     if (vs_edgeone_array_is_list($data)) {
-        vs_edgeone_render_data_table($data);
+        vs_edgeone_render_data_table($data, null, $ctx);
         return;
     }
 
@@ -1346,7 +1390,7 @@ function vs_edgeone_render_api_data($data)
             continue;
         }
         echo '<h4 class="vs-edgeone-subtitle">' . vs_e(vs_edgeone_field_label($listKey)) . '</h4>';
-        vs_edgeone_render_data_table($data[$listKey]);
+        vs_edgeone_render_data_table($data[$listKey], null, $ctx);
         $rendered = true;
     }
 

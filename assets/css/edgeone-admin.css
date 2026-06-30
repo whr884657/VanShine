@@ -434,6 +434,172 @@
     max-width: 100%;
 }
 
+/* 缓存管理：站点选择 + 配额条 */
+.vs-edgeone-cache-zone-head {
+    display: grid;
+    gap: 16px;
+}
+
+.vs-edgeone-content-quota-strip__plan {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: #666;
+}
+
+.vs-edgeone-content-quota-strip__plan-label {
+    color: #999;
+}
+
+.vs-edgeone-content-quota-strip__empty {
+    margin: 0;
+}
+
+.vs-edgeone-content-quota-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.vs-edgeone-content-quota-item {
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #e8e8e8);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.vs-edgeone-content-quota-item:hover {
+    border-color: rgba(22, 119, 255, 0.35);
+    box-shadow: 0 4px 14px rgba(22, 119, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.vs-edgeone-content-quota-item__label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.vs-edgeone-content-quota-item__value {
+    display: block;
+    font-size: 22px;
+    line-height: 1.2;
+    color: #1677ff;
+    margin-bottom: 4px;
+}
+
+.vs-edgeone-content-quota-item__hint {
+    display: block;
+    font-size: 11px;
+    color: #999;
+    line-height: 1.4;
+}
+
+.vs-edgeone-cache-panel .vs-form-tip {
+    margin-top: 0;
+}
+
+.vs-edgeone-cache-mode {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.vs-edgeone-cache-mode__btn {
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    color: #333;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vs-edgeone-cache-mode__btn:hover {
+    border-color: #1677ff;
+    color: #1677ff;
+}
+
+.vs-edgeone-cache-mode__btn.is-active {
+    border-color: #1677ff;
+    background: rgba(22, 119, 255, 0.08);
+    color: #1677ff;
+    font-weight: 600;
+}
+
+.vs-edgeone-cache-mode__tip {
+    margin: 0;
+}
+
+.vs-edgeone-cache-form {
+    animation: vsEdgeoneFadeIn 0.22s ease;
+}
+
+.vs-edgeone-cache-form[hidden] {
+    display: none !important;
+}
+
+.vs-edgeone-purge-type-tip {
+    margin-top: 6px;
+}
+
+@keyframes vsEdgeoneFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 767px) {
+    .vs-edgeone-zone-panel--cache .vs-edgeone-zone-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .vs-edgeone-zone-panel--cache .vs-edgeone-zone-bar .vs-label {
+        width: 100%;
+    }
+
+    .vs-edgeone-zone-panel--cache .vs-edgeone-zone-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .vs-edgeone-zone-panel--cache .vs-edgeone-zone-bar .vs-btn {
+        width: 100%;
+    }
+
+    .vs-edgeone-content-quota-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vs-edgeone-content-quota-item__value {
+        font-size: 20px;
+    }
+
+    .vs-edgeone-cache-mode {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vs-edgeone-cache-mode__btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 .vs-edgeone-stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

@@ -316,7 +316,7 @@ Authorization: TC3-HMAC-SHA256 Credential=AKID***/2026-06-27/teo/tc3_request, Si
 | DescribeL4ProxyRules | 查询四层代理转发规则列表 | 20 | [103412](https://cloud.tencent.com/document/api/1552/103412) |
 | DeleteL4ProxyRules | 删除四层代理转发规则 | 20 | [103414](https://cloud.tencent.com/document/api/1552/103414) |
 
-### 4.8 内容管理
+### 4.8 缓存管理（Purge / Prefetch，控制台称「刷新预热」）
 
 | Action | 功能描述 | 频率(次/s) | 官方文档 |
 |--------|----------|-----------|----------|

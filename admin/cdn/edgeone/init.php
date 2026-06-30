@@ -234,6 +234,10 @@ function vs_edgeone_translate($group, $value)
             'processing' => '处理中',
             'failed'     => '失败',
             'timeout'    => '超时',
+            'completed'  => '成功',
+            'finished'   => '成功',
+            'pending'    => '处理中',
+            'process'    => '处理中',
         ),
     );
 
@@ -304,7 +308,7 @@ function vs_edgeone_render_error($error)
 }
 
 /**
- * 内容管理类查询常用时间范围
+ * 缓存管理类查询常用时间范围
  *
  * @param int $days
  * @return array{StartTime: string, EndTime: string}

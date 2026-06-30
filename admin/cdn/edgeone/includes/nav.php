@@ -25,8 +25,8 @@ function vs_edgeone_nav($active)
             'cdn_edgeone_rules'   => array('规则引擎', $base . '/rules.php'),
             'cdn_edgeone_dns'     => array('DNS 记录', $base . '/dns.php'),
         ),
-        '内容与函数' => array(
-            'cdn_edgeone_content' => array('内容管理', $base . '/content.php'),
+        '缓存与函数' => array(
+            'cdn_edgeone_content' => array('缓存管理', $base . '/content.php'),
             'cdn_edgeone_edge'    => array('边缘函数', $base . '/edge.php'),
         ),
         '安全与证书' => array(

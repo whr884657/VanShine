@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.11.2-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.12.0-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,20 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.12.0（2026-06-29）
+
+**类型：** EdgeOne 缓存管理页重构（大版本）
+
+**变更说明：**
+- 导航「内容与函数 / 内容管理」更名为「缓存与函数 / 缓存管理」
+- 站点头部展示刷新与预热配额（免费版 4 项，付费版 5 项）
+- 清除/预热任务表单按类型动态切换；全部刷新无需填写目标
+- 任务记录状态与类型中文显示；手机端站点选择器布局优化
+
+**数据库：** 无变更
+
+---
 
 ### v1.11.2（2026-06-29）
 

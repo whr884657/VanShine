@@ -65,8 +65,19 @@ try {
             $targets = trim(isset($_POST['targets']) ? $_POST['targets'] : '');
             $type = trim(isset($_POST['purge_type']) ? $_POST['purge_type'] : 'purge_url');
             $list = array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $targets)));
+            if ($type === 'purge_all' && count($list) === 0) {
+                foreach (vs_edgeone_fetch_zones($eo) as $zone) {
+                    if (isset($zone['ZoneId']) && (string) $zone['ZoneId'] === (string) $zoneId) {
+                        $zoneName = isset($zone['ZoneName']) ? trim((string) $zone['ZoneName']) : '';
+                        if ($zoneName !== '') {
+                            $list = array($zoneName);
+                        }
+                        break;
+                    }
+                }
+            }
             if (count($list) === 0) {
-                throw new Exception('请填写至少一条 URL 或目录');
+                throw new Exception('请填写至少一条 URL、目录或 Hostname');
             }
             $resp = $eo->content->createPurgeTask(array(
                 'ZoneId'  => $zoneId,

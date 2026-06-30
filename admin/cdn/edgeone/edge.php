@@ -3,7 +3,7 @@
  * 文件：admin/cdn/edgeone/edge.php
  * 页面：EdgeOne · 边缘函数
  * 路由：/admin/cdn/edgeone/edge.php
- * 菜单：cdn_edgeone_edge（内容与函数 → 边缘函数）
+ * 菜单：cdn_edgeone_edge（缓存与函数 → 边缘函数）
  *
  * 作用：
  * - 展示边缘函数列表与触发规则

@@ -225,17 +225,21 @@ function vs_edgeone_render_rule_list_item(array $rule, $index, $canManage = true
         echo '</span>';
     }
     echo '<div class="vs-edgeone-rules-item__main">';
+    echo '<div class="vs-edgeone-rules-item__title-row">';
     echo '<span class="vs-edgeone-rules-item__name">' . vs_e($name) . '</span>';
+    if ($canManage) {
+        echo '<label class="vs-edgeone-rules-switch vs-edgeone-rules-switch--list" title="' . ($enabled ? '已启用' : '已关闭') . '">';
+        echo '<input type="checkbox" class="vs-edgeone-rule-status-toggle" data-rule-id="' . vs_e($ruleId) . '"' . ($enabled ? ' checked' : '') . '>';
+        echo '<span class="vs-edgeone-rules-switch__track"></span>';
+        echo '</label>';
+    }
+    echo '</div>';
     if (isset($rule['Description']) && is_array($rule['Description']) && count($rule['Description']) > 0) {
         echo '<span class="vs-edgeone-rules-item__comment">' . vs_e((string) $rule['Description'][0]) . '</span>';
     }
     echo '</div>';
     echo '<div class="vs-edgeone-rules-item__actions">';
     if ($canManage) {
-        echo '<label class="vs-edgeone-rules-switch" title="' . ($enabled ? '已启用' : '已关闭') . '">';
-        echo '<input type="checkbox" class="vs-edgeone-rule-status-toggle" data-rule-id="' . vs_e($ruleId) . '"' . ($enabled ? ' checked' : '') . '>';
-        echo '<span class="vs-edgeone-rules-switch__track"></span>';
-        echo '</label>';
         echo '<button type="button" class="vs-edgeone-rules-icon-btn vs-edgeone-rule-edit" data-rule-id="' . vs_e($ruleId) . '" title="编辑" aria-label="编辑">';
         echo '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5l2 2L5 13H3v-2l8.5-8.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
         echo '</button>';

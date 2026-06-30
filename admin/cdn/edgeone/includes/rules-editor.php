@@ -17,17 +17,13 @@ function vs_edgeone_render_rule_editor_modal()
         <div class="vs-edgeone-rule-editor__handle" aria-hidden="true"></div>
         <header class="vs-edgeone-rule-editor__head">
             <div class="vs-edgeone-rule-editor__head-main">
+                <h4 id="edgeoneRuleEditorTitle" class="vs-edgeone-rule-editor__title-label">编辑规则</h4>
                 <input type="text" class="vs-input vs-edgeone-rule-editor__name" id="edgeoneRuleEditorName" placeholder="未命名规则" maxlength="255" aria-label="规则名称">
                 <span class="vs-edgeone-rule-editor__id" id="edgeoneRuleEditorIdHint" hidden></span>
             </div>
-            <div class="vs-edgeone-rule-editor__head-actions">
-                <button type="button" class="vs-btn vs-btn--rect vs-btn--primary" id="edgeoneRuleEditorSavePublish">保存并发布</button>
-                <button type="button" class="vs-btn vs-btn--rect vs-btn--default" id="edgeoneRuleEditorSaveOnly">仅保存</button>
-                <button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-rule-editor-close>取消</button>
-                <button type="button" class="vs-edgeone-rule-editor__close" data-rule-editor-close aria-label="关闭">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                </button>
-            </div>
+            <button type="button" class="vs-edgeone-rule-editor__close" data-rule-editor-close aria-label="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
         </header>
         <div class="vs-edgeone-rule-editor__body">
             <aside class="vs-edgeone-rule-editor__nav" id="edgeoneRuleEditorNav" aria-label="规则注释导航"></aside>
@@ -44,6 +40,13 @@ function vs_edgeone_render_rule_editor_modal()
                 <button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-editor__add-if" id="edgeoneRuleEditorAddIf">+ 添加 IF 条件块</button>
             </div>
         </div>
+        <footer class="vs-edgeone-rule-editor__foot">
+            <button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-rule-editor-close>取消</button>
+            <div class="vs-edgeone-rule-editor__foot-primary">
+                <button type="button" class="vs-btn vs-btn--rect vs-btn--default" id="edgeoneRuleEditorSaveOnly">仅保存</button>
+                <button type="button" class="vs-btn vs-btn--rect vs-btn--primary" id="edgeoneRuleEditorSavePublish">保存并发布</button>
+            </div>
+        </footer>
     </div>
 </div>
 

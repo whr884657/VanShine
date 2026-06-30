@@ -2974,11 +2974,27 @@ body.vs-drawer-open {
     gap: 4px;
 }
 
+.vs-edgeone-rules-item__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.vs-edgeone-rules-switch--list {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
 .vs-edgeone-rules-item__name {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary, #333);
-    word-break: break-all;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .vs-edgeone-rules-item__comment {
@@ -3122,6 +3138,7 @@ body.vs-drawer-open {
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
     transform: translateY(100%);
     transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow: hidden;
 }
 
 .vs-edgeone-rule-editor.is-open .vs-edgeone-rule-editor__panel {
@@ -3138,28 +3155,33 @@ body.vs-drawer-open {
 
 .vs-edgeone-rule-editor__head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
-    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .vs-edgeone-rule-editor__head-main {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1 1 240px;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
-.vs-edgeone-rule-editor__name {
-    font-size: 18px;
+.vs-edgeone-rule-editor__title-label {
+    margin: 0;
+    font-size: 13px;
     font-weight: 600;
-    border: none;
-    box-shadow: none;
-    padding-left: 0;
+    color: #666;
+}
+
+.vs-edgeone-rule-editor__name {
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
 }
 
 .vs-edgeone-rule-editor__name:focus {
@@ -3173,10 +3195,29 @@ body.vs-drawer-open {
 }
 
 .vs-edgeone-rule-editor__head-actions {
+    display: none;
+}
+
+.vs-edgeone-rule-editor__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa;
+    flex-shrink: 0;
+}
+
+.vs-edgeone-rule-editor__foot-primary {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.vs-edgeone-rule-editor__foot .vs-btn {
+    min-width: 96px;
 }
 
 .vs-edgeone-rule-editor__close {
@@ -3294,10 +3335,53 @@ body.vs-drawer-open {
 
 .vs-edgeone-rule-cond-row {
     display: grid;
-    grid-template-columns: minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 120px) minmax(160px, 2fr) 32px;
+    grid-template-columns: minmax(120px, 1fr) minmax(90px, 120px) minmax(100px, 1.4fr) 32px;
     gap: 8px;
-    align-items: start;
+    align-items: center;
     margin-bottom: 8px;
+}
+
+.vs-edgeone-rule-cond-row .vs-edgeone-rule-cond-name {
+    grid-column: 1 / -2;
+}
+
+.vs-edgeone-rule-advanced {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px dashed #e8e8e8;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+}
+
+.vs-edgeone-rule-advanced summary {
+    cursor: pointer;
+    color: #666;
+    user-select: none;
+}
+
+.vs-edgeone-rule-subrule {
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #fcfcfc;
+}
+
+.vs-edgeone-rule-subrule__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.vs-edgeone-rule-subrule__badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1677ff;
+    background: #e6f4ff;
+    padding: 4px 10px;
+    border-radius: 999px;
 }
 
 .vs-edgeone-rule-cond-remove,
@@ -3514,26 +3598,55 @@ body.vs-drawer-open {
     }
 
     .vs-edgeone-rule-cond-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
-    .vs-edgeone-rule-editor__head-actions .vs-btn--default[data-rule-editor-close] {
-        display: none;
+    .vs-edgeone-rule-cond-row .vs-edgeone-rule-cond-remove {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
     }
-}
 
-@media (max-width: 767px) {
+    .vs-edgeone-rule-editor__foot {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vs-edgeone-rule-editor__foot-primary {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .vs-edgeone-rule-editor__foot-primary .vs-btn,
+    .vs-edgeone-rule-editor__foot > .vs-btn {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .vs-edgeone-rule-editor__foot-primary {
+        flex-direction: column;
+    }
+
     .vs-edgeone-rules-item {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        align-items: center;
         padding: 12px 14px;
+        gap: 8px;
     }
 
     .vs-edgeone-rules-item__actions {
-        width: 100%;
-        justify-content: flex-end;
-        padding-top: 8px;
-        margin-top: 4px;
-        border-top: 1px solid #f5f5f5;
+        width: auto;
+        flex-shrink: 0;
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
+    }
+
+    .vs-edgeone-rules-item__comment {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .vs-edgeone-rules-toolbar-inner .vs-edgeone-domains-search {

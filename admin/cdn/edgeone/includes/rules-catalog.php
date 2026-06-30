@@ -58,12 +58,21 @@ function vs_edgeone_rules_action_catalog()
         'Cache' => array(
             'label' => '节点缓存 TTL', 'category' => 'cache',
             'defaults' => array('Name' => 'Cache', 'CacheParameters' => array('FollowOrigin' => array('Switch' => 'on', 'DefaultCache' => 'on', 'DefaultCacheStrategy' => 'on', 'DefaultCacheTime' => 0))),
-            'fields' => array(array('type' => 'json', 'key' => 'CacheParameters', 'label' => 'CacheParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'CacheParameters._uiMode', 'label' => '缓存行为', 'options' => array('follow_origin' => '跟随源站', 'no_cache' => '不缓存', 'custom' => '自定义 TTL')),
+                array('type' => 'number', 'key' => 'CacheParameters.CustomTime.CacheTime', 'label' => '自定义缓存时间（秒）', 'min' => 0, 'max' => 31536000),
+                array('type' => 'switch', 'key' => 'CacheParameters.CustomTime.IgnoreCacheControl', 'label' => '忽略 Cache-Control'),
+            ),
         ),
         'MaxAge' => array(
             'label' => '浏览器缓存 TTL', 'category' => 'cache',
             'defaults' => array('Name' => 'MaxAge', 'MaxAgeParameters' => array('FollowOrigin' => 'off', 'CacheTime' => 600)),
-            'fields' => array(array('type' => 'json', 'key' => 'MaxAgeParameters', 'label' => 'MaxAgeParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'MaxAgeParameters.FollowOrigin', 'label' => '跟随源站 Cache-Control', 'options' => array('on' => '开启', 'off' => '关闭')),
+                array('type' => 'number', 'key' => 'MaxAgeParameters.CacheTime', 'label' => '浏览器缓存时间（秒）', 'min' => 0, 'max' => 31536000),
+                array('type' => 'switch', 'key' => 'MaxAgeParameters.CustomTime.Switch', 'label' => '启用自定义时间'),
+                array('type' => 'number', 'key' => 'MaxAgeParameters.CustomTime.CacheTime', 'label' => '自定义缓存（秒）', 'min' => 0, 'max' => 31536000),
+            ),
         ),
         'CacheKey' => array(
             'label' => '自定义 Cache Key', 'category' => 'cache',
@@ -117,7 +126,9 @@ function vs_edgeone_rules_action_catalog()
         'Compression' => array(
             'label' => '智能压缩', 'category' => 'network',
             'defaults' => array('Name' => 'Compression', 'CompressionParameters' => array('Switch' => 'on', 'Algorithms' => array('gzip', 'brotli'))),
-            'fields' => array(array('type' => 'json', 'key' => 'CompressionParameters', 'label' => 'CompressionParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'switch', 'key' => 'CompressionParameters.Switch', 'label' => '启用智能压缩'),
+            ),
         ),
         'SmartRouting' => array(
             'label' => '智能加速', 'category' => 'network', 'paid' => true,

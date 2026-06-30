@@ -1,43 +1,52 @@
 # VanShine
 
-**当前版本：1.6.0**
+<p align="center">
+  <strong>轻量 Web 管理 · 文件分享 · 多云储存 · EdgeOne CDN</strong>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.7.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
+  <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
+  <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
+  <img src="https://img.shields.io/badge/PHP-8.0+-777BB4?logo=php&logoColor=white" alt="PHP">
+</p>
 
 ---
 
 ## 项目简介
 
-VanShine 是一款基于 **PHP + MySQL** 的轻量级 Web 管理系统，采用**纯自定义 PHP 架构**开发，不依赖 Laravel、ThinkPHP 等第三方 PHP 框架。
+**VanShine** 是一套可自部署的 Web 管理系统：安装后在浏览器中管理站点、上传与分享文件、对接多种对象储存，并内置 **腾讯云 EdgeOne** 控制台（概览、域名、规则引擎、DNS、证书等）。
 
 **主要能力：**
 
 - Web 五步安装向导，自动创建数据表与初始配置
-- 分组侧边栏后台（控制台、文件、七种储存、CDN、归档、AI、系统设置等）
+- 分组侧边栏后台（控制台、文件、七种储存、CDN、系统设置等）
 - **文件分享**：`{域名}/d/?token=...`，下载/预览经 `/d/stream.php` 签名 URL（可选密码）
+- **EdgeOne**：站点概览、域名加速、**可视化规则引擎**、DNS、HTTPS 证书、刷新预热
 - 站点信息、多域名绑定、SMTP 邮箱发信与忘记密码
-- 登录/注册/忘记密码独立认证页（角色动画 + 主题配色）
-- **云端在线更新**：登录后台自动检测新版本，分步进度一键安装
-- **数据库结构更新**：有结构变更的版本更新后，自动执行 `install/migrations/` 中的 SQL（新增/修改字段等，非整库迁移）
+- **云端在线更新**：登录后台自动检测新版本（Gitee / GitHub Releases）
+- **数据库结构更新**：有结构变更的版本更新后，自动执行 `install/migrations/` 增量 SQL
 - 简洁白色后台主题，纯 CSS 矢量图标，适配电脑端与手机端
 
 ### UI 规范（弹窗 / 抽屉）
 
-- **手机端（≤767px）**：所有底部抽屉高度统一为 **`80vh`（视口 4/5）**，CSS 变量 `--vs-mobile-drawer-height`
-- **电脑端（≥768px）**：大型配置/预览弹窗与文件预览一致，使用 `--vs-desktop-modal-*`（宽约 1120px、高约 92vh）；标题与底栏固定，**仅内容区滚动**
-- **按钮**：抽屉/弹窗内操作按钮使用 `vs-btn--rect`（圆角 8px）
-- **EdgeOne 页内导航**：切换子页面时先显示加载占位，避免短暂显示上一页内容
+- **手机端（≤767px）**：抽屉高度 **`80vh`**（`--vs-mobile-drawer-height`）
+- **电脑端（≥768px）**：大型弹窗约 **1120×860**（`--vs-desktop-modal-*`）；标题与底栏固定，**仅内容区滚动**
+- **规则引擎编辑器**：全屏弹窗；列表「规则名称 + 开关」单行展示
 
 ---
 
-## 发行下载
+## 代码仓库与下载
 
-| 项目 | 说明 |
+| 平台 | 链接 |
 |------|------|
-| 代码仓库 | [https://gitee.com/xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
-| 发行版本 | [Gitee Releases 发行页](https://gitee.com/xunjinlu/VanShine/releases) |
-| 压缩包命名 | `VanShine` + 版本号，例如 **`VanShine1.0.58.zip`** |
-| 发行说明 | 见仓库内 `发行说明/` 目录 |
+| **Gitee（主仓库）** | [xunjinlu/VanShine](https://gitee.com/xunjinlu/VanShine) |
+| **Gitee 发行版** | [Releases · 下载 ZIP](https://gitee.com/xunjinlu/VanShine/releases) |
+| **GitHub（镜像）** | [whr884657/VanShine](https://github.com/whr884657/VanShine) |
+| **GitHub 发行版** | [Releases · 下载 ZIP](https://github.com/whr884657/VanShine/releases) |
+
+压缩包命名：`VanShine{版本号}.zip`。各版本说明见 `发行说明/`。在线更新默认从 Gitee Releases 拉取；两仓库同步发版。
 
 ---
 
@@ -206,6 +215,21 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.7.0（2026-06-30）
+
+**类型：** 规则引擎可视化体验优化 + 文档双仓库（大版本）
+
+**变更说明：**
+- 子规则改为与主规则相同的**可视化 IF/THEN**（下拉选匹配类型/运算符/操作），不再默认展示 JSON
+- 常用操作表单化：节点缓存、浏览器缓存、智能压缩等改为开关/下拉/数字输入
+- 高级 Condition 表达式收进「开发者选项」，默认对普通用户隐藏
+- 规则编辑器：保存按钮固定底栏；手机端列表「名称+开关」单行
+- README 重写：Gitee + GitHub 双仓库、功能概览
+
+**数据库：** 无变更
+
+---
 
 ### v1.6.0（2026-06-29）
 

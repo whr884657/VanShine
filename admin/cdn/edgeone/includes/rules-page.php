@@ -109,17 +109,20 @@ function vs_edgeone_humanize_condition($condition)
     if ($condition === '' || $condition === vs_edgeone_rule_all_condition()) {
         return '全部（站点任意请求）';
     }
-    if (preg_match("/\\\\\\\\{http\\.request\\.host\\\\} in \\\\['([^']*)'\\\\]/", $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.host\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
         return 'HOST 等于 ' . str_replace("\\'", "'", $m[1]);
     }
-    if (preg_match("/host\\}\\s+in\\s+\\['([^']*)'\\]/", $condition, $m)) {
-        return 'HOST 等于 ' . str_replace("\\'", "'", $m[1]);
+    if (preg_match('/\$\{http\.request\.file_extension\}\s+in\s+\[(.*?)\]/', $condition, $m)) {
+        return '文件后缀 等于 ' . preg_replace('/\'\s*,\s*\'/', '、', trim($m[1], "'"));
     }
-    if (preg_match("/file_extension\\}\\s+in\\s+\\[(.*?)\\]/", $condition, $m)) {
-        return '文件后缀 等于 ' . preg_replace("/'\\s*,\\s*'/", '、', trim($m[1], "'"));
-    }
-    if (preg_match("/uri\\.path\\}\\s+in\\s+\\['([^']*)'\\]/", $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.uri\.path\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
         return 'URL 路径 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+    if (preg_match('/\$\{http\.request\.scheme\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
+        return '请求协议 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+    if (preg_match('/\$\{http\.request\.method\}\s+in\s+\[(.*?)\]/', $condition, $m)) {
+        return '请求方法 等于 ' . preg_replace('/\'\s*,\s*\'/', '、', trim($m[1], "'"));
     }
     return '已配置匹配条件';
 }

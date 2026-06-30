@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,18 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.10.1（2026-07-01）
+
+**类型：** 规则列表正则修复（小版本）
+
+**变更说明：**
+- 修复规则列表页 `preg_match` 正则编译失败导致的 Warning 刷屏
+- 条件摘要（HOST 等于 xxx）恢复正常
+
+**数据库：** 无变更
+
+---
 
 ### v1.10.0（2026-06-29）
 

@@ -3,6 +3,16 @@
     "branch": "main",
     "versions": [
         {
+            "version": "1.10.1",
+            "date": "2026-07-01",
+            "title": "修复规则列表 preg_match 正则编译错误",
+            "db_changes": false,
+            "changes": [
+                "修复 rules-page.php 条件摘要正则括号不匹配导致的 Warning 刷屏",
+                "统一使用单引号正则匹配 HOST/路径/后缀等常见条件"
+            ]
+        },
+        {
             "version": "1.10.0",
             "date": "2026-06-29",
             "title": "规则引擎全表单化 + SubRules ELSE 分支",

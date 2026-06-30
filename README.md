@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.10.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.11.0（2026-07-01）
+
+**类型：** 规则引擎手机端弹窗适配 + 分支标签修正（大版本）
+
+**变更说明：**
+- 手机端编辑器纵向堆叠，消除左右滑动；顶部横向导航芯片快速跳转
+- IF-1 / 嵌套IF / EI-1 / ELSE 分支编号清晰；条件摘要区分 HOST/路径/后缀
+- 列表页复合 AND 条件人类可读摘要修复
+
+**数据库：** 无变更
+
+---
 
 ### v1.10.1（2026-07-01）
 

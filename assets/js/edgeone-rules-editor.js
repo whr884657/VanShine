@@ -93,6 +93,102 @@
         return Math.round(amount * mult);
     }
 
+    function matchTypeShort(id) {
+        var map = {
+            all: '全部', host: 'HOST', url_path: '路径', url_full: '全URL',
+            query_string: '参数', file_extension: '后缀', file_name: '文件名',
+            request_header: '请求头', client_geo: '地域', client_isp: '运营商',
+            request_protocol: '协议', client_ip: 'IP', request_method: '方法',
+            cookie: 'Cookie', response_header: '响应头', response_status: '状态码'
+        };
+        if (map[id]) return map[id];
+        var mt = findMatchType(id);
+        if (!mt) return '条件';
+        return String(mt.label || id).replace(/（.*?）/g, '').replace(/\(.*?\)/g, '').trim();
+    }
+
+    function briefValues(text, max) {
+        max = max || 16;
+        var vals = String(text || '').split(/[\n,;]+/).map(function (v) {
+            return v.trim();
+        }).filter(Boolean);
+        if (vals.length === 0) return '';
+        var head = vals.slice(0, 2).join('、');
+        if (head.length > max) head = head.slice(0, max) + '…';
+        else if (vals.length > 2) head += '等';
+        return head;
+    }
+
+    function summarizeConditionRowCompact(row) {
+        var mt = findMatchType(row.matchType);
+        var op = findOperator(row.operator);
+        if (mt && mt.all) return '全部请求';
+        var label = matchTypeShort(row.matchType);
+        if (row.paramName) label += ':' + row.paramName;
+        var opLabel = op ? op.label : '等于';
+        if (row.operator === 'exists' || row.operator === 'not_exists') {
+            return label + opLabel;
+        }
+        var valText = briefValues(row.value, 20);
+        return label + ' ' + opLabel + (valText ? ' ' + valText : '');
+    }
+
+    function summarizeConditionCompact(ui) {
+        if (!ui) return '未配置';
+        if (ui.isElse) return '未匹配时执行';
+        if (ui.preserveCondition && !ui.conditionsDirty) {
+            return summarizeConditionExprCompact(ui.preserveCondition);
+        }
+        var conds = (ui.conditions || []).filter(function (r) {
+            return r && (r.matchType !== 'host' || String(r.value || '').trim() !== '' || r.matchType === 'all');
+        });
+        if (conds.length === 0) conds = ui.conditions || [];
+        if (conds.length === 0) return '未配置';
+        if (conds.length === 1) return summarizeConditionRowCompact(conds[0]);
+        var types = [];
+        conds.forEach(function (c) {
+            var t = matchTypeShort(c.matchType);
+            if (types.indexOf(t) < 0) types.push(t);
+        });
+        var valHint = briefValues(conds[0].value, 14);
+        return types.join('+') + (valHint ? ' · ' + valHint : '') + '（' + conds.length + '条）';
+    }
+
+    function summarizeConditionExprCompact(expr) {
+        expr = String(expr || '').trim();
+        if (!expr || expr === "${http.request.host} ne ''") return '全部请求';
+        var parsed = parseConditionExpression(expr);
+        if (!parsed.parseWarning) return summarizeConditionCompact(parsed);
+        var parts = expr.split(/\s+(?:and|or)\s+/i);
+        var summaries = [];
+        parts.forEach(function (part) {
+            var s = humanizeExprPart(part.trim());
+            if (s) summaries.push(s);
+        });
+        if (summaries.length) return summaries.join(' 且 ');
+        return '已配置条件';
+    }
+
+    function humanizeExprPart(part) {
+        if (!part) return '';
+        var patterns = [
+            { re: /\$\{http\.request\.host\}\s+in\s+\['([^']*)'\]/, fmt: function (m) { return 'HOST=' + m[1]; } },
+            { re: /\$\{http\.request\.uri\.path\}\s+in\s+\['([^']*)'\]/, fmt: function (m) { return '路径=' + m[1]; } },
+            { re: /\$\{http\.request\.file_extension\}\s+in\s+\[(.*?)\]/, fmt: function (m) {
+                return '后缀=' + m[1].replace(/'\s*,\s*'/g, '、').replace(/'/g, '');
+            }},
+            { re: /\$\{http\.request\.scheme\}\s+in\s+\['([^']*)'\]/, fmt: function (m) { return '协议=' + m[1]; } },
+            { re: /\$\{http\.request\.method\}\s+in\s+\[(.*?)\]/, fmt: function (m) {
+                return '方法=' + m[1].replace(/'\s*,\s*'/g, '、').replace(/'/g, '');
+            }}
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+            var m = part.match(patterns[i].re);
+            if (m) return patterns[i].fmt(m);
+        }
+        return '';
+    }
+
     function summarizeConditionRow(row) {
         var mt = findMatchType(row.matchType);
         var op = findOperator(row.operator);
@@ -126,21 +222,23 @@
         if (!expr || expr === "${http.request.host} ne ''") return '全部（站点任意请求）';
         var parsed = parseConditionExpression(expr);
         if (!parsed.parseWarning) return summarizeConditionUi(parsed);
-        var hostM = expr.match(/\$\{http\.request\.host\}\s+in\s+\['([^']*)'/);
-        if (hostM) return 'HOST 等于 ' + hostM[1];
-        return '已配置匹配条件';
+        return summarizeConditionExprCompact(expr);
+    }
+
+    function branchLabel(index, total) {
+        return total > 1 ? 'IF-' + (index + 1) : 'IF';
     }
 
     function subRuleBadge(index, total, desc, isElse) {
         if (desc) return desc;
-        if (isElse) return 'ELSE（兜底）';
-        if (index === 0) return total === 1 ? '嵌套 IF' : '嵌套 IF';
-        return 'ELSE IF ' + index;
+        if (isElse) return 'ELSE';
+        if (index === 0) return '嵌套IF';
+        return 'EI-' + index;
     }
 
     function summarizeSubRuleUi(ui) {
-        if (ui && ui.isElse) return '未匹配以上条件';
-        return summarizeConditionUi(ui);
+        if (ui && ui.isElse) return '未匹配以上条件时执行';
+        return summarizeConditionCompact(ui);
     }
 
     function taglistToText(val) {
@@ -188,8 +286,11 @@
 
     function detectMatchTypeFromVar(varExpr) {
         if (!catalog || !catalog.matchTypes) return 'host';
-        for (var i = 0; i < catalog.matchTypes.length; i++) {
-            var mt = catalog.matchTypes[i];
+        var types = catalog.matchTypes.slice().sort(function (a, b) {
+            return String(b.var || '').length - String(a.var || '').length;
+        });
+        for (var i = 0; i < types.length; i++) {
+            var mt = types[i];
             if (mt.all) continue;
             if (mt.needsName) {
                 var prefix = mt.var.split('%s')[0];
@@ -198,6 +299,12 @@
                 return mt.id;
             }
         }
+        if (varExpr.indexOf('uri.path') >= 0) return 'url_path';
+        if (varExpr.indexOf('file_extension') >= 0) return 'file_extension';
+        if (varExpr.indexOf('file_extension') < 0 && varExpr.indexOf('filename') >= 0) return 'file_name';
+        if (varExpr.indexOf('full_uri') >= 0) return 'url_full';
+        if (varExpr.indexOf('scheme') >= 0) return 'request_protocol';
+        if (varExpr.indexOf('method') >= 0) return 'request_method';
         return 'host';
     }
 
@@ -522,18 +629,24 @@
     function renderNav() {
         var nav = $('edgeoneRuleEditorNav');
         if (!nav) return;
+        var branchTotal = (state.rule.Branches || []).length;
         var html = '<div class="vs-edgeone-rule-editor__nav-title">规则导航</div>';
         html += '<button type="button" class="vs-edgeone-rule-editor__nav-item is-active" data-nav="meta">基本信息</button>';
         (state.rule.Branches || []).forEach(function (branch, i) {
             var ui = state.branchUi[i] || defaultBranchUi();
-            var label = 'IF · ' + summarizeConditionUi(ui);
-            if (label.length > 36) label = label.slice(0, 36) + '…';
-            html += '<button type="button" class="vs-edgeone-rule-editor__nav-item" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(ui)) + '">' + escHtml(label) + '</button>';
+            var bl = branchLabel(i, branchTotal);
+            var compact = summarizeConditionCompact(ui);
+            var label = bl + ' · ' + compact;
+            html += '<button type="button" class="vs-edgeone-rule-editor__nav-item" data-nav="branch-' + i + '" title="' + escHtml(summarizeConditionUi(ui)) + '">';
+            html += '<span class="vs-edgeone-rule-editor__nav-badge">' + escHtml(bl) + '</span>';
+            html += '<span class="vs-edgeone-rule-editor__nav-text">' + escHtml(compact) + '</span></button>';
             (branch.SubRules || []).forEach(function (sub, si) {
                 var sui = state.subRuleUi[i] && state.subRuleUi[i][si] ? state.subRuleUi[i][si] : defaultBranchUi();
-                var subLabel = subRuleBadge(si, branch.SubRules.length, (sub.Description && sub.Description[0]) || '', sui.isElse) + ' · ' + summarizeSubRuleUi(sui);
-                if (subLabel.length > 36) subLabel = subLabel.slice(0, 36) + '…';
-                html += '<button type="button" class="vs-edgeone-rule-editor__nav-item vs-edgeone-rule-editor__nav-item--sub" data-nav="branch-' + i + '" title="' + escHtml(summarizeSubRuleUi(sui)) + '">' + escHtml(subLabel) + '</button>';
+                var badge = subRuleBadge(si, branch.SubRules.length, (sub.Description && sub.Description[0]) || '', sui.isElse);
+                var subCompact = summarizeSubRuleUi(sui);
+                html += '<button type="button" class="vs-edgeone-rule-editor__nav-item vs-edgeone-rule-editor__nav-item--sub" data-nav="sub-' + i + '-' + si + '" title="' + escHtml(summarizeConditionUi(sui)) + '">';
+                html += '<span class="vs-edgeone-rule-editor__nav-badge">' + escHtml(badge) + '</span>';
+                html += '<span class="vs-edgeone-rule-editor__nav-text">' + escHtml(subCompact) + '</span></button>';
             });
         });
         nav.innerHTML = html;
@@ -870,9 +983,13 @@
         var branch = state.rule.Branches[branchIndex];
         var ui = state.branchUi[branchIndex] || defaultBranchUi();
         var scope = { type: 'branch', branchIndex: branchIndex };
+        var bl = branchLabel(branchIndex, state.rule.Branches.length);
         var html = '<section class="vs-edgeone-rule-branch" id="edgeoneRuleBranch-' + branchIndex + '" data-branch-index="' + branchIndex + '">';
         html += '<header class="vs-edgeone-rule-branch__head">';
-        html += '<h5>IF · ' + escHtml(summarizeConditionUi(ui)) + '</h5>';
+        html += '<div class="vs-edgeone-rule-branch__title">';
+        html += '<span class="vs-edgeone-rule-branch__badge">' + escHtml(bl) + '</span>';
+        html += '<h5>' + escHtml(summarizeConditionCompact(ui)) + '</h5>';
+        html += '</div>';
         if (state.rule.Branches.length > 1) {
             html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-branch-remove" data-branch-index="' + branchIndex + '">删除条件块</button>';
         }
@@ -908,7 +1025,7 @@
                 ui.conditions = parsed.conditions.length ? parsed.conditions : ui.conditions;
                 ui._inited = true;
             }
-            html += '<div class="vs-edgeone-rule-subrule' + (ui.isElse ? ' is-else' : '') + '" data-branch="' + branchIndex + '" data-subrule="' + si + '">';
+            html += '<div class="vs-edgeone-rule-subrule' + (ui.isElse ? ' is-else' : '') + '" id="edgeoneRuleSub-' + branchIndex + '-' + si + '" data-branch="' + branchIndex + '" data-subrule="' + si + '">';
             html += '<header class="vs-edgeone-rule-subrule__head">';
             html += '<span class="vs-edgeone-rule-subrule__badge">' + escHtml(badge) + '</span>';
             html += '<span class="vs-edgeone-rule-subrule__summary">' + escHtml(summarizeSubRuleUi(ui)) + '</span>';
@@ -1583,6 +1700,12 @@
                 if (target === 'meta') {
                     var main = document.querySelector('.vs-edgeone-rule-editor__main');
                     if (main) main.scrollTop = 0;
+                    return;
+                }
+                var subM = target && target.match(/^sub-(\d+)-(\d+)$/);
+                if (subM) {
+                    var subEl = $('edgeoneRuleSub-' + subM[1] + '-' + subM[2]);
+                    if (subEl) subEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     return;
                 }
                 var m = target && target.match(/^branch-(\d+)$/);

@@ -3129,6 +3129,7 @@ body.vs-drawer-open {
     position: fixed;
     inset: 0;
     z-index: 1200;
+    overflow: hidden;
 }
 
 .vs-edgeone-rule-editor[hidden],
@@ -3279,7 +3280,9 @@ body.vs-drawer-open {
 }
 
 .vs-edgeone-rule-editor__nav-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     width: 100%;
     text-align: left;
     border: none;
@@ -3290,9 +3293,55 @@ body.vs-drawer-open {
     color: #333;
     cursor: pointer;
     margin-bottom: 4px;
-    white-space: nowrap;
+    min-width: 0;
+}
+
+.vs-edgeone-rule-editor__nav-badge {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1677ff;
+    background: #e6f4ff;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.4;
+}
+
+.vs-edgeone-rule-editor__nav-text {
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #666;
+}
+
+.vs-edgeone-rule-branch__title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.vs-edgeone-rule-branch__badge {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1677ff;
+    background: #e6f4ff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    line-height: 1.3;
+}
+
+.vs-edgeone-rule-branch__title h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.45;
+    word-break: break-word;
 }
 
 .vs-edgeone-rule-editor__nav-item.is-active,
@@ -3496,13 +3545,13 @@ body.vs-drawer-open {
 }
 
 .vs-edgeone-rule-subrule__summary {
-    flex: 1;
+    flex: 1 1 100%;
     font-size: 12px;
     color: #666;
-    margin: 0 8px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin: 0;
+    line-height: 1.45;
+    word-break: break-word;
+    min-width: 0;
 }
 
 .vs-edgeone-rule-advanced {
@@ -3749,28 +3798,176 @@ body.vs-drawer-open {
         display: block;
     }
 
+    .vs-edgeone-rule-editor__panel {
+        max-height: 100dvh;
+        border-radius: 12px 12px 0 0;
+        width: 100%;
+        max-width: 100vw;
+    }
+
     .vs-edgeone-rule-editor__body {
         grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-width: 0;
     }
 
     .vs-edgeone-rule-editor__nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 8px 12px;
+        max-height: none;
+    }
+
+    .vs-edgeone-rule-editor__nav-title {
         display: none;
     }
 
+    .vs-edgeone-rule-editor__nav-item {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: 168px;
+        margin-bottom: 0;
+        padding: 8px 10px;
+        border: 1px solid #e8e8e8;
+        background: #fff;
+    }
+
+    .vs-edgeone-rule-editor__nav-item--sub {
+        padding-left: 10px;
+    }
+
+    .vs-edgeone-rule-editor__nav-text {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .vs-edgeone-rule-editor__main {
+        padding: 12px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-width: 0;
+    }
+
+    .vs-edgeone-rule-editor__head {
+        padding: 12px;
+    }
+
+    .vs-edgeone-rule-editor__head-main {
+        flex-direction: column;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .vs-edgeone-rule-editor__name {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .vs-edgeone-rule-branch,
+    .vs-edgeone-rule-subrule,
+    .vs-edgeone-rule-action-card {
+        padding: 12px;
+        min-width: 0;
+    }
+
+    .vs-edgeone-rule-branch__head,
+    .vs-edgeone-rule-subrule__head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .vs-edgeone-rule-branch__title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .vs-edgeone-rule-subrule-else-toggle {
+        margin-left: 0;
+        margin-right: 0;
+        align-self: flex-start;
+    }
+
     .vs-edgeone-rule-cond-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .vs-edgeone-rule-cond-row .vs-edgeone-rule-cond-name {
+        grid-column: 1;
     }
 
     .vs-edgeone-rule-cond-row .vs-edgeone-rule-cond-remove {
-        grid-column: 2;
-        grid-row: 1;
+        grid-column: 1;
+        grid-row: auto;
         justify-self: end;
+        margin-top: -4px;
+    }
+
+    .vs-edgeone-rule-cond-logic {
+        max-width: none;
+        width: 100%;
+    }
+
+    .vs-edgeone-rule-repeat-row,
+    .vs-edgeone-rule-failover-row {
+        grid-template-columns: 1fr;
+    }
+
+    .vs-edgeone-rule-duration {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vs-edgeone-rule-duration-unit {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .vs-edgeone-rule-subrules__actions {
+        flex-direction: column;
+    }
+
+    .vs-edgeone-rule-subrules__actions .vs-btn {
+        width: 100%;
     }
 
     .vs-edgeone-rule-editor__foot {
         grid-template-columns: 1fr 1fr 1fr;
         gap: 6px;
         padding: 10px 12px;
+    }
+
+    .vs-edgeone-rule-editor__foot .vs-btn {
+        min-width: 0;
+        padding-left: 8px;
+        padding-right: 8px;
+        font-size: 13px;
+    }
+
+    .vs-edgeone-rules-editor-guide .vs-form-tip {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .vs-edgeone-rule-editor__main .vs-input,
+    .vs-edgeone-rule-editor__main select.vs-input,
+    .vs-edgeone-rule-editor__main textarea.vs-input {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .vs-edgeone-rules-item {

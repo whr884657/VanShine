@@ -109,22 +109,57 @@ function vs_edgeone_humanize_condition($condition)
     if ($condition === '' || $condition === vs_edgeone_rule_all_condition()) {
         return '全部（站点任意请求）';
     }
-    if (preg_match('/\$\{http\.request\.host\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
+    if (preg_match('/\s+(and|or)\s+/i', $condition)) {
+        $parts = preg_split('/\s+(?:and|or)\s+/i', $condition);
+        $summaries = array();
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part === '') {
+                continue;
+            }
+            $s = vs_edgeone_humanize_condition_part($part);
+            if ($s !== '') {
+                $summaries[] = $s;
+            }
+        }
+        if (count($summaries) > 0) {
+            return implode(' 且 ', $summaries);
+        }
+    }
+
+    return vs_edgeone_humanize_condition_part($condition) ?: '已配置匹配条件';
+}
+
+/**
+ * @param string $part
+ * @return string
+ */
+function vs_edgeone_humanize_condition_part($part)
+{
+    $part = trim($part);
+    if ($part === '') {
+        return '';
+    }
+    if (preg_match('/\$\{http\.request\.host\}\s+in\s+\[\'([^\']*)\'\]/', $part, $m)) {
         return 'HOST 等于 ' . str_replace("\\'", "'", $m[1]);
     }
-    if (preg_match('/\$\{http\.request\.file_extension\}\s+in\s+\[(.*?)\]/', $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.file_extension\}\s+in\s+\[(.*?)\]/', $part, $m)) {
         return '文件后缀 等于 ' . preg_replace('/\'\s*,\s*\'/', '、', trim($m[1], "'"));
     }
-    if (preg_match('/\$\{http\.request\.uri\.path\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.uri\.path\}\s+in\s+\[\'([^\']*)\'\]/', $part, $m)) {
         return 'URL 路径 等于 ' . str_replace("\\'", "'", $m[1]);
     }
-    if (preg_match('/\$\{http\.request\.scheme\}\s+in\s+\[\'([^\']*)\'\]/', $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.scheme\}\s+in\s+\[\'([^\']*)\'\]/', $part, $m)) {
         return '请求协议 等于 ' . str_replace("\\'", "'", $m[1]);
     }
-    if (preg_match('/\$\{http\.request\.method\}\s+in\s+\[(.*?)\]/', $condition, $m)) {
+    if (preg_match('/\$\{http\.request\.method\}\s+in\s+\[(.*?)\]/', $part, $m)) {
         return '请求方法 等于 ' . preg_replace('/\'\s*,\s*\'/', '、', trim($m[1], "'"));
     }
-    return '已配置匹配条件';
+    if (preg_match('/\$\{http\.request\.filename\}\s+in\s+\[\'([^\']*)\'\]/', $part, $m)) {
+        return '文件名 等于 ' . str_replace("\\'", "'", $m[1]);
+    }
+
+    return '';
 }
 
 /**

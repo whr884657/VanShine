@@ -24,6 +24,13 @@ $ctx = vs_edgeone_page_start('cdn_edgeone_content', 'EdgeOne · 缓存管理');
 $zones = $ctx['zones'];
 $zoneId = $ctx['zone_id'];
 $eo = $ctx['eo'];
+
+if (vs_edgeone_is_fragment_request()) {
+    echo '<div id="edgeoneZonePanelFragment" hidden aria-hidden="true">';
+    vs_edgeone_render_cache_zone_panel($zones, $zoneId, $eo);
+    echo '</div>';
+}
+
 $purges = array();
 $prefetches = array();
 $purgeError = '';

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.12.1-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.12.2-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,18 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.12.2（2026-06-29）
+
+**类型：** 缓存管理 SPA 修复（小版本）
+
+**变更说明：**
+- 修复缓存管理页切换站点时整页刷新的问题
+- 切换站点后局部更新主内容与顶部配额条
+
+**数据库：** 无变更
+
+---
 
 ### v1.12.1（2026-06-29）
 

@@ -61,13 +61,14 @@
             .then(function (html) {
                 main.innerHTML = html;
                 main.classList.remove('is-loading');
+                applyCacheZonePanelFragment(main);
                 bindApiForms(main);
                 bindFragmentForms(main);
                 bindOverviewPage(main);
                 bindZonesPage(main);
                 bindDomainsPage(main);
                 bindRulesPage(main);
-                bindZoneForm(main);
+                bindZoneForm();
                 bindContentPage(main);
                 bindCharts(main);
                 updateNavActive(path);
@@ -99,13 +100,14 @@
         }).then(function (html) {
             main.innerHTML = html;
             main.classList.remove('is-loading');
+            applyCacheZonePanelFragment(main);
             bindApiForms(main);
             bindFragmentForms(main);
             bindOverviewPage(main);
             bindZonesPage(main);
             bindDomainsPage(main);
             bindRulesPage(main);
-            bindZoneForm(main);
+            bindZoneForm();
             bindContentPage(main);
             bindCharts(main);
             keepCleanUrl();
@@ -1676,10 +1678,24 @@
         }
     }
 
-    function bindZoneForm(root) {
+    function applyCacheZonePanelFragment(root) {
         var scope = root || document;
-        var form = scope.querySelector('#edgeoneZoneForm');
-        if (!form || form.dataset.bound === '1') return;
+        var frag = scope.querySelector('#edgeoneZonePanelFragment');
+        if (!frag) {
+            return;
+        }
+        var panel = document.querySelector('.vs-edgeone-zone-panel--cache');
+        if (panel) {
+            panel.innerHTML = frag.innerHTML;
+        }
+        frag.remove();
+    }
+
+    function bindZoneForm() {
+        var form = document.getElementById('edgeoneZoneForm');
+        if (!form || form.dataset.bound === '1') {
+            return;
+        }
         form.dataset.bound = '1';
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1688,10 +1704,6 @@
                 .then(function (data) {
                     if (data.code === 1) {
                         toast(data.msg || '已切换', 'success');
-                        if (document.querySelector('.vs-edgeone-zone-panel--cache')) {
-                            window.location.href = pagePath();
-                            return;
-                        }
                         reloadMainContent();
                     } else {
                         toast(data.msg || '切换失败', 'error');

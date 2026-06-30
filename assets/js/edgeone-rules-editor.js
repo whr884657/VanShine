@@ -151,6 +151,13 @@
                 value: regexMatch[3].replace(/\\'/g, "'")
             };
         }
+        var neMatch = part.match(/^(.+?)\s+ne\s+'((?:\\'|[^'])*)'$/i);
+        if (neMatch) {
+            var varExprNe = neMatch[1].trim();
+            if (neMatch[2] === '' && varExprNe.indexOf('http.request.host') >= 0) {
+                return { matchType: 'all', operator: 'equal', paramName: '', value: '' };
+            }
+        }
         var inMatch = part.match(/^(.+?)\s+(not\s+in|in)\s+\[(.*)\]$/i);
         if (inMatch) {
             var varExpr3 = inMatch[1].trim();
@@ -181,10 +188,12 @@
         condition = String(condition || '').trim();
         if (!condition) {
             return {
-                useRaw: false,
                 rawCondition: '',
                 logic: 'and',
-                conditions: [{ matchType: 'host', operator: 'equal', paramName: '', value: '' }]
+                conditions: [{ matchType: 'host', operator: 'equal', paramName: '', value: '' }],
+                preserveCondition: '',
+                parseWarning: false,
+                conditionsDirty: false
             };
         }
         var split = splitConditionLogic(condition);
@@ -193,10 +202,24 @@
             var row = parseSingleCondition(part);
             if (row) rows.push(row);
         });
-        if (rows.length === 0) {
-            return { useRaw: true, rawCondition: condition, logic: 'and', conditions: [] };
+        if (rows.length === 0 || rows.length < split.parts.length) {
+            return {
+                rawCondition: condition,
+                logic: split.logic,
+                conditions: rows.length ? rows : [{ matchType: 'all', operator: 'equal', paramName: '', value: '' }],
+                preserveCondition: condition,
+                parseWarning: true,
+                conditionsDirty: false
+            };
         }
-        return { useRaw: false, rawCondition: condition, logic: split.logic, conditions: rows };
+        return {
+            rawCondition: condition,
+            logic: split.logic,
+            conditions: rows,
+            preserveCondition: '',
+            parseWarning: false,
+            conditionsDirty: false
+        };
     }
 
     function buildSingleConditionExpr(row) {
@@ -225,7 +248,9 @@
 
     function buildConditionExpression(ui) {
         if (!ui) return '';
-        if (ui.useRaw) return String(ui.rawCondition || '').trim();
+        if (ui.preserveCondition && !ui.conditionsDirty) {
+            return String(ui.preserveCondition).trim();
+        }
         var parts = (ui.conditions || []).map(buildSingleConditionExpr).filter(Boolean);
         if (parts.length === 0) return '';
         var joiner = ui.logic === 'or' ? ' or ' : ' and ';
@@ -235,9 +260,10 @@
     function defaultBranchUi() {
         return {
             logic: 'and',
-            useRaw: false,
             rawCondition: '',
-            showAdvanced: false,
+            preserveCondition: '',
+            parseWarning: false,
+            conditionsDirty: false,
             conditions: [{ matchType: 'host', operator: 'equal', paramName: '', value: '' }]
         };
     }
@@ -431,6 +457,22 @@
         return html;
     }
 
+    function renderUnknownActionFields(action) {
+        var html = '<div class="vs-edgeone-rule-action-card__fields">';
+        html += '<p class="vs-form-tip">该操作来自腾讯云控制台，可在下方查看或调整参数。</p>';
+        Object.keys(action).forEach(function (key) {
+            if (key === 'Name') return;
+            var val = action[key];
+            var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
+            html += '<div class="vs-edgeone-rule-action-field" data-field-key="' + escHtml(key) + '">';
+            html += '<label class="vs-label">' + escHtml(key) + '</label>';
+            html += '<textarea class="vs-input vs-edgeone-rule-action-field-input vs-edgeone-rule-action-unknown" rows="4" data-field-type="unknown">' + escHtml(jsonVal) + '</textarea>';
+            html += '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
     function renderActionCard(scope, actionIndex, action) {
         normalizeCacheAction(action);
         var name = action.Name || '';
@@ -448,6 +490,8 @@
                 html += renderActionField(scope, actionIndex, action, field, fi);
             });
             html += '</div>';
+        } else if (!meta) {
+            html += renderUnknownActionFields(action);
         } else {
             html += '<p class="vs-form-tip">该操作已启用，无需额外配置。</p>';
         }
@@ -489,9 +533,7 @@
             html += '<input type="text" class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" value="' + escHtml(val == null ? '' : val) + '" data-field-type="text">';
         } else {
             var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
-            html += '<details class="vs-edgeone-rule-json-advanced"><summary>高级 JSON 配置</summary>';
             html += '<textarea class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" rows="5" data-field-type="json">' + escHtml(jsonVal) + '</textarea>';
-            html += '</details>';
         }
         html += '</div>';
         return html;
@@ -500,28 +542,24 @@
     function renderConditionSection(scope, ui, sectionId) {
         var pf = scopePrefix(scope);
         var html = '<div class="vs-edgeone-rule-cond-section" id="' + escHtml(sectionId) + '">';
+        if (ui.parseWarning && ui.preserveCondition) {
+            html += '<p class="vs-form-tip vs-edgeone-rule-cond-tip">部分条件较复杂，已保留腾讯云原配置。修改下方条件后将按新配置保存。</p>';
+        }
         html += '<div class="vs-edgeone-rule-branch__mode">';
-        html += '<select class="vs-input vs-edgeone-rule-cond-logic"' + (ui.useRaw ? ' hidden' : '') + ' aria-label="条件逻辑" data-scope="' + scope.type + '" data-branch="' + scope.branchIndex + '"';
+        html += '<select class="vs-input vs-edgeone-rule-cond-logic" aria-label="条件逻辑" data-scope="' + scope.type + '" data-branch="' + scope.branchIndex + '"';
         if (scope.type === 'subrule') html += ' data-subrule="' + scope.subIndex + '"';
         html += '>';
         html += '<option value="and"' + (ui.logic === 'and' ? ' selected' : '') + '>满足全部（AND）</option>';
         html += '<option value="or"' + (ui.logic === 'or' ? ' selected' : '') + '>满足任一（OR）</option>';
         html += '</select></div>';
-        html += '<div class="vs-edgeone-rule-cond-builder"' + (ui.useRaw ? ' hidden' : '') + ' data-builder-for="' + pf + '">';
+        html += '<div class="vs-edgeone-rule-cond-builder" data-builder-for="' + pf + '">';
         (ui.conditions || []).forEach(function (row, ri) {
             html += renderConditionRow(scope, ri, row);
         });
         html += '<button type="button" class="vs-btn vs-btn--text vs-edgeone-rule-cond-add" data-scope="' + scope.type + '" data-branch-index="' + scope.branchIndex + '"';
         if (scope.type === 'subrule') html += ' data-subrule-index="' + scope.subIndex + '"';
         html += '>+ 添加匹配条件</button>';
-        html += '</div>';
-        html += '<details class="vs-edgeone-rule-advanced"' + (ui.showAdvanced ? ' open' : '') + ' data-advanced-for="' + pf + '">';
-        html += '<summary>开发者选项（高级表达式，一般无需修改）</summary>';
-        html += '<label class="vs-label"><input type="checkbox" class="vs-edgeone-rule-cond-raw-toggle" data-scope="' + scope.type + '" data-branch="' + scope.branchIndex + '"';
-        if (scope.type === 'subrule') html += ' data-subrule="' + scope.subIndex + '"';
-        html += (ui.useRaw ? ' checked' : '') + '> 使用高级表达式</label>';
-        html += '<textarea class="vs-input vs-edgeone-rule-cond-raw-input" rows="3" placeholder="仅技术人员使用"' + (ui.useRaw ? '' : ' hidden') + '>' + escHtml(ui.rawCondition || '') + '</textarea>';
-        html += '</details></div>';
+        html += '</div></div>';
         return html;
     }
 
@@ -568,8 +606,10 @@
             if (subBranch.Condition && !ui._inited) {
                 var parsed = parseConditionExpression(subBranch.Condition);
                 ui.logic = parsed.logic;
-                ui.useRaw = parsed.useRaw;
                 ui.rawCondition = parsed.rawCondition || subBranch.Condition;
+                ui.preserveCondition = parsed.preserveCondition || '';
+                ui.parseWarning = parsed.parseWarning;
+                ui.conditionsDirty = false;
                 ui.conditions = parsed.conditions.length ? parsed.conditions : ui.conditions;
                 ui._inited = true;
             }
@@ -742,14 +782,9 @@
 
     function collectUiFromSection(section, ui) {
         if (!section || !ui) return;
-        var rawToggle = section.querySelector('.vs-edgeone-rule-cond-raw-toggle');
-        ui.useRaw = rawToggle && rawToggle.checked;
-        ui.showAdvanced = !!section.querySelector('.vs-edgeone-rule-advanced[open]');
-        if (ui.useRaw) {
-            var rawInput = section.querySelector('.vs-edgeone-rule-cond-raw-input');
-            ui.rawCondition = rawInput ? rawInput.value : '';
-            return;
-        }
+        ui.conditionsDirty = true;
+        ui.preserveCondition = '';
+        ui.parseWarning = false;
         var logicSel = section.querySelector('.vs-edgeone-rule-cond-logic');
         ui.logic = logicSel && logicSel.value === 'or' ? 'or' : 'and';
         ui.conditions = [];
@@ -810,12 +845,18 @@
                     val = input.checked ? 'on' : 'off';
                 } else if (type === 'number') {
                     val = input.value === '' ? 0 : Number(input.value);
-                } else if (type === 'json') {
+                } else                 if (type === 'json') {
                     try {
                         val = JSON.parse(input.value || '{}');
                     } catch (err) {
                         val = getNested(action, key);
                     }
+                } else if (type === 'unknown') {
+                    try {
+                        val = JSON.parse(input.value || '{}');
+                        action[key] = val;
+                    } catch (err) { /* keep existing */ }
+                    return;
                 } else {
                     val = input.value;
                 }
@@ -1018,19 +1059,6 @@
             });
 
             branchesHost.addEventListener('change', function (e) {
-                var rawToggle = e.target.closest('.vs-edgeone-rule-cond-raw-toggle');
-                if (rawToggle) {
-                    var wrap = rawToggle.closest('.vs-edgeone-rule-cond-section') || rawToggle.closest('.vs-edgeone-rule-subrule') || rawToggle.closest('.vs-edgeone-rule-branch');
-                    if (!wrap) return;
-                    var builder = wrap.querySelector('.vs-edgeone-rule-cond-builder');
-                    var rawInput = wrap.querySelector('.vs-edgeone-rule-cond-raw-input');
-                    var logic = wrap.querySelector('.vs-edgeone-rule-cond-logic');
-                    var on = rawToggle.checked;
-                    if (builder) builder.hidden = on;
-                    if (rawInput) rawInput.hidden = !on;
-                    if (logic) logic.hidden = on;
-                    return;
-                }
                 var logic = e.target.closest('.vs-edgeone-rule-cond-logic');
                 if (logic) {
                     var scope = logic.getAttribute('data-scope') || 'branch';

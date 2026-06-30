@@ -41,11 +41,9 @@ function vs_edgeone_render_rule_editor_modal()
             </div>
         </div>
         <footer class="vs-edgeone-rule-editor__foot">
-            <button type="button" class="vs-btn vs-btn--rect vs-btn--default" data-rule-editor-close>取消</button>
-            <div class="vs-edgeone-rule-editor__foot-primary">
-                <button type="button" class="vs-btn vs-btn--rect vs-btn--default" id="edgeoneRuleEditorSaveOnly">仅保存</button>
-                <button type="button" class="vs-btn vs-btn--rect vs-btn--primary" id="edgeoneRuleEditorSavePublish">保存并发布</button>
-            </div>
+            <button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-editor__foot-cancel" data-rule-editor-close>取消</button>
+            <button type="button" class="vs-btn vs-btn--rect vs-btn--default vs-edgeone-rule-editor__foot-save" id="edgeoneRuleEditorSaveOnly">仅保存</button>
+            <button type="button" class="vs-btn vs-btn--rect vs-btn--primary vs-edgeone-rule-editor__foot-publish" id="edgeoneRuleEditorSavePublish">保存并发布</button>
         </footer>
     </div>
 </div>

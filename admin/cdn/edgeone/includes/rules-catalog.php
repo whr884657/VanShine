@@ -20,6 +20,7 @@ function vs_edgeone_rules_match_types()
         array('id' => 'file_name', 'label' => '文件名称', 'group' => 'client', 'var' => '${http.request.filename}', 'needsName' => false),
         array('id' => 'request_header', 'label' => 'HTTP 请求头', 'group' => 'client', 'var' => '${http.request.headers["%s"]}', 'needsName' => true),
         array('id' => 'client_geo', 'label' => '客户端地理位置', 'group' => 'client', 'var' => '${http.request.ip.country}', 'needsName' => false),
+        array('id' => 'client_isp', 'label' => '客户端运营商', 'group' => 'client', 'var' => '${http.request.ip.isp}', 'needsName' => false),
         array('id' => 'request_protocol', 'label' => '请求协议', 'group' => 'client', 'var' => '${http.request.scheme}', 'needsName' => false),
         array('id' => 'client_ip', 'label' => '客户端 IP', 'group' => 'client', 'var' => '${http.request.ip}', 'needsName' => false),
         array('id' => 'request_method', 'label' => '请求方法', 'group' => 'client', 'var' => '${http.request.method}', 'needsName' => false),
@@ -130,6 +131,28 @@ function vs_edgeone_rules_action_catalog()
                 array('type' => 'switch', 'key' => 'CompressionParameters.Switch', 'label' => '启用智能压缩'),
             ),
         ),
+        'ContentCompression' => array(
+            'label' => '内容压缩', 'category' => 'network',
+            'defaults' => array('Name' => 'ContentCompression', 'ContentCompressionParameters' => $sw()),
+            'fields' => array(array('type' => 'switch', 'key' => 'ContentCompressionParameters.Switch', 'label' => '启用内容压缩（Brotli + Gzip）')),
+        ),
+        'ResponseSpeedLimit' => array(
+            'label' => '单连接下载限速', 'category' => 'network',
+            'defaults' => array('Name' => 'ResponseSpeedLimit', 'ResponseSpeedLimitParameters' => array(
+                'Mode' => 'LimitUponDownload',
+                'MaxSpeed' => '1024KB/s',
+                'StartAt' => '0KB',
+            )),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'ResponseSpeedLimitParameters.Mode', 'label' => '限速模式', 'options' => array(
+                    'LimitUponDownload' => '全过程下载限速',
+                    'LimitAfterSpecificBytesDownloaded' => '全速下载特定字节后限速',
+                    'LimitAfterSpecificSecondsDownloaded' => '全速下载特定时间后限速',
+                )),
+                array('type' => 'text', 'key' => 'ResponseSpeedLimitParameters.MaxSpeed', 'label' => '限速值（如 1024KB/s 或变量）'),
+                array('type' => 'text', 'key' => 'ResponseSpeedLimitParameters.StartAt', 'label' => '限速开始值（字节 KB 或秒 s）'),
+            ),
+        ),
         'SmartRouting' => array(
             'label' => '智能加速', 'category' => 'network', 'paid' => true,
             'defaults' => array('Name' => 'SmartRouting', 'SmartRoutingParameters' => $sw('off')),
@@ -156,7 +179,12 @@ function vs_edgeone_rules_action_catalog()
         'HSTS' => array(
             'label' => 'HSTS 配置', 'category' => 'https',
             'defaults' => array('Name' => 'HSTS', 'HSTSParameters' => array('Switch' => 'off', 'Timeout' => 0, 'IncludeSubDomains' => 'off', 'Preload' => 'off')),
-            'fields' => array(array('type' => 'json', 'key' => 'HSTSParameters', 'label' => 'HSTSParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'switch', 'key' => 'HSTSParameters.Switch', 'label' => '启用 HSTS'),
+                array('type' => 'number', 'key' => 'HSTSParameters.Timeout', 'label' => 'max-age（秒）', 'min' => 0, 'max' => 31536000),
+                array('type' => 'switch', 'key' => 'HSTSParameters.IncludeSubDomains', 'label' => '包含子域名'),
+                array('type' => 'switch', 'key' => 'HSTSParameters.Preload', 'label' => 'Preload'),
+            ),
         ),
         'TLSConfig' => array(
             'label' => 'SSL/TLS 安全配置', 'category' => 'https',
@@ -201,8 +229,11 @@ function vs_edgeone_rules_action_catalog()
         ),
         'HostHeader' => array(
             'label' => 'Host Header 重写', 'category' => 'headers',
-            'defaults' => array('Name' => 'HostHeader', 'HostHeaderParameters' => array('Action' => 'followOrigin')),
-            'fields' => array(array('type' => 'json', 'key' => 'HostHeaderParameters', 'label' => 'HostHeaderParameters（JSON）')),
+            'defaults' => array('Name' => 'HostHeader', 'HostHeaderParameters' => array('Action' => 'followOrigin', 'ServerName' => '')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'HostHeaderParameters.Action', 'label' => '行为', 'options' => array('followOrigin' => '跟随源站', 'custom' => '自定义 Host')),
+                array('type' => 'text', 'key' => 'HostHeaderParameters.ServerName', 'label' => '自定义 Host 名称'),
+            ),
         ),
         'AccessURLRedirect' => array(
             'label' => '访问 URL 重定向', 'category' => 'advanced',
@@ -217,7 +248,13 @@ function vs_edgeone_rules_action_catalog()
         'ModifyOrigin' => array(
             'label' => '修改源站', 'category' => 'advanced',
             'defaults' => array('Name' => 'ModifyOrigin', 'ModifyOriginParameters' => array('OriginType' => 'IPDomain', 'Origin' => '', 'OriginProtocol' => 'follow', 'HTTPOriginPort' => 80, 'HTTPSOriginPort' => 443)),
-            'fields' => array(array('type' => 'json', 'key' => 'ModifyOriginParameters', 'label' => 'ModifyOriginParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'select', 'key' => 'ModifyOriginParameters.OriginType', 'label' => '源站类型', 'options' => array('IPDomain' => 'IP/域名', 'OriginGroup' => '源站组')),
+                array('type' => 'text', 'key' => 'ModifyOriginParameters.Origin', 'label' => '源站地址'),
+                array('type' => 'select', 'key' => 'ModifyOriginParameters.OriginProtocol', 'label' => '回源协议', 'options' => array('follow' => '跟随', 'http' => 'HTTP', 'https' => 'HTTPS')),
+                array('type' => 'number', 'key' => 'ModifyOriginParameters.HTTPOriginPort', 'label' => 'HTTP 回源端口', 'min' => 1, 'max' => 65535),
+                array('type' => 'number', 'key' => 'ModifyOriginParameters.HTTPSOriginPort', 'label' => 'HTTPS 回源端口', 'min' => 1, 'max' => 65535),
+            ),
         ),
         'UpstreamURLRewrite' => array(
             'label' => '回源 URL 重写', 'category' => 'advanced',
@@ -250,7 +287,30 @@ function vs_edgeone_rules_action_catalog()
         'HttpResponse' => array(
             'label' => 'HTTP 应答', 'category' => 'advanced',
             'defaults' => array('Name' => 'HttpResponse', 'HttpResponseParameters' => array('StatusCode' => 403, 'ResponsePage' => '')),
-            'fields' => array(array('type' => 'json', 'key' => 'HttpResponseParameters', 'label' => 'HttpResponseParameters（JSON）')),
+            'fields' => array(
+                array('type' => 'number', 'key' => 'HttpResponseParameters.StatusCode', 'label' => '应答状态码', 'min' => 100, 'max' => 599),
+                array('type' => 'text', 'key' => 'HttpResponseParameters.ResponsePage', 'label' => '自定义页面 ID 或内容'),
+            ),
+        ),
+        'Shield' => array(
+            'label' => '源站卸载', 'category' => 'advanced',
+            'defaults' => array('Name' => 'Shield', 'ShieldParameters' => array('ShieldSpaceId' => '')),
+            'fields' => array(array('type' => 'text', 'key' => 'ShieldParameters.ShieldSpaceId', 'label' => '源站卸载空间 ID')),
+        ),
+        'SiteFailover' => array(
+            'label' => '源站故障转移', 'category' => 'advanced',
+            'defaults' => array('Name' => 'SiteFailover', 'SiteFailoverParameters' => array('SiteFailoverStatusCodes' => array(502, 503), 'SiteFailoverParams' => array())),
+            'fields' => array(array('type' => 'json', 'key' => 'SiteFailoverParameters', 'label' => '故障转移配置')),
+        ),
+        'SetContentIdentifier' => array(
+            'label' => '设置内容标识符', 'category' => 'advanced',
+            'defaults' => array('Name' => 'SetContentIdentifier', 'SetContentIdentifierParameters' => array('ContentIdentifier' => '')),
+            'fields' => array(array('type' => 'text', 'key' => 'SetContentIdentifierParameters.ContentIdentifier', 'label' => '内容标识 ID')),
+        ),
+        'OriginAuthentication' => array(
+            'label' => '回源鉴权', 'category' => 'advanced', 'paid' => true,
+            'defaults' => array('Name' => 'OriginAuthentication', 'OriginAuthenticationParameters' => array('Switch' => 'off')),
+            'fields' => array(array('type' => 'json', 'key' => 'OriginAuthenticationParameters', 'label' => '回源鉴权配置')),
         ),
         'Vary' => array(
             'label' => 'Vary 特性', 'category' => 'advanced',

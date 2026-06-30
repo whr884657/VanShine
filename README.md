@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.8.0-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,20 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.8.0（2026-06-29）
+
+**类型：** 规则引擎 API 补全 + 全面人性化（大版本）
+
+**变更说明：**
+- 移除「开发者选项/高级表达式」，所有条件与操作均为表单化填写
+- 补全官方操作：内容压缩、单连接下载限速、源站卸载/故障转移、内容标识符、回源鉴权
+- 新增「客户端运营商」匹配类型；HSTS、修改源站、HTTP 应答等改为简易表单
+- 规则列表显示 IF/子规则/操作摘要；手机端底栏三按钮单行左中右
+
+**数据库：** 无变更
+
+---
 
 ### v1.7.0（2026-06-30）
 

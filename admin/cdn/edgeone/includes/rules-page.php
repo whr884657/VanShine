@@ -93,6 +93,74 @@ function vs_edgeone_parse_host_from_condition($condition)
 
 /**
  * @param array<string, mixed> $rule
+ * @return array{branches: int, subrules: int, actions: int, cond_hint: string}
+ */
+function vs_edgeone_rule_list_stats(array $rule)
+{
+    $branches = 0;
+    $subrules = 0;
+    $actions = 0;
+    $condHint = '';
+
+    if (isset($rule['Branches']) && is_array($rule['Branches'])) {
+        $branches = count($rule['Branches']);
+        foreach ($rule['Branches'] as $branch) {
+            if (!is_array($branch)) {
+                continue;
+            }
+            if ($condHint === '' && isset($branch['Condition'])) {
+                $cond = trim((string) $branch['Condition']);
+                if ($cond !== '') {
+                    $condHint = mb_strlen($cond) > 48 ? mb_substr($cond, 0, 48) . '…' : $cond;
+                }
+            }
+            if (isset($branch['Actions']) && is_array($branch['Actions'])) {
+                $actions += count($branch['Actions']);
+            }
+            if (!isset($branch['SubRules']) || !is_array($branch['SubRules'])) {
+                continue;
+            }
+            foreach ($branch['SubRules'] as $sub) {
+                $subrules++;
+                if (!is_array($sub) || !isset($sub['Branches'][0]['Actions']) || !is_array($sub['Branches'][0]['Actions'])) {
+                    continue;
+                }
+                $actions += count($sub['Branches'][0]['Actions']);
+            }
+        }
+    }
+
+    return array(
+        'branches' => $branches,
+        'subrules' => $subrules,
+        'actions'  => $actions,
+        'cond_hint' => $condHint,
+    );
+}
+
+/**
+ * @param array<string, mixed> $rule
+ * @return string
+ */
+function vs_edgeone_rule_list_summary(array $rule)
+{
+    $stats = vs_edgeone_rule_list_stats($rule);
+    $parts = array();
+    if ($stats['branches'] > 0) {
+        $parts[] = $stats['branches'] . ' 个 IF';
+    }
+    if ($stats['subrules'] > 0) {
+        $parts[] = $stats['subrules'] . ' 个子规则';
+    }
+    if ($stats['actions'] > 0) {
+        $parts[] = $stats['actions'] . ' 个操作';
+    }
+
+    return count($parts) > 0 ? implode(' · ', $parts) : '暂无分支配置';
+}
+
+/**
+ * @param array<string, mixed> $rule
  * @return string
  */
 function vs_edgeone_rule_search_text(array $rule)
@@ -214,6 +282,8 @@ function vs_edgeone_render_rule_list_item(array $rule, $index, $canManage = true
     $status = isset($rule['Status']) ? strtolower((string) $rule['Status']) : 'disable';
     $enabled = $status === 'enable';
     $search = vs_edgeone_rule_search_text($rule);
+    $summary = vs_edgeone_rule_list_summary($rule);
+    $stats = vs_edgeone_rule_list_stats($rule);
     $num = str_pad((string) $index, 2, '0', STR_PAD_LEFT);
 
     ob_start();
@@ -234,6 +304,10 @@ function vs_edgeone_render_rule_list_item(array $rule, $index, $canManage = true
         echo '</label>';
     }
     echo '</div>';
+    echo '<span class="vs-edgeone-rules-item__summary">' . vs_e($summary) . '</span>';
+    if ($stats['cond_hint'] !== '') {
+        echo '<span class="vs-edgeone-rules-item__cond" title="' . vs_e($stats['cond_hint']) . '">' . vs_e($stats['cond_hint']) . '</span>';
+    }
     if (isset($rule['Description']) && is_array($rule['Description']) && count($rule['Description']) > 0) {
         echo '<span class="vs-edgeone-rules-item__comment">' . vs_e((string) $rule['Description'][0]) . '</span>';
     }

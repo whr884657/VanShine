@@ -526,6 +526,16 @@
                 p._uiMode = 'follow_origin';
             }
         }
+        if (p._uiMode === 'follow_origin' && !p._uiNoCcMode) {
+            var fo = p.FollowOrigin || {};
+            if (String(fo.DefaultCache).toLowerCase() === 'off') {
+                p._uiNoCcMode = 'no_cache';
+            } else if (String(fo.DefaultCacheStrategy).toLowerCase() === 'on') {
+                p._uiNoCcMode = 'default_policy';
+            } else {
+                p._uiNoCcMode = 'custom_time';
+            }
+        }
     }
 
     function applyCacheUiMode(action) {
@@ -545,13 +555,107 @@
             p.FollowOrigin.Switch = 'off';
         } else {
             p.FollowOrigin.Switch = 'on';
-            p.FollowOrigin.DefaultCache = p.FollowOrigin.DefaultCache || 'on';
-            p.FollowOrigin.DefaultCacheStrategy = p.FollowOrigin.DefaultCacheStrategy || 'on';
-            p.FollowOrigin.DefaultCacheTime = p.FollowOrigin.DefaultCacheTime != null ? p.FollowOrigin.DefaultCacheTime : 0;
             p.NoCache.Switch = 'off';
             p.CustomTime.Switch = 'off';
+            var sub = p._uiNoCcMode || 'default_policy';
+            if (sub === 'no_cache') {
+                p.FollowOrigin.DefaultCache = 'off';
+                p.FollowOrigin.DefaultCacheStrategy = 'off';
+                p.FollowOrigin.DefaultCacheTime = 0;
+            } else if (sub === 'default_policy') {
+                p.FollowOrigin.DefaultCache = 'on';
+                p.FollowOrigin.DefaultCacheStrategy = 'on';
+                p.FollowOrigin.DefaultCacheTime = 0;
+            } else {
+                p.FollowOrigin.DefaultCache = 'on';
+                p.FollowOrigin.DefaultCacheStrategy = 'off';
+                if (p.FollowOrigin.DefaultCacheTime == null) {
+                    p.FollowOrigin.DefaultCacheTime = 600;
+                }
+            }
         }
         delete p._uiMode;
+        delete p._uiNoCcMode;
+    }
+
+    function isActionFieldVisible(action, fieldKey) {
+        if (!action || !fieldKey) return true;
+        if (action.Name === 'Cache') {
+            var p = action.CacheParameters || {};
+            var mode = p._uiMode || 'follow_origin';
+            if (fieldKey === 'CacheParameters._uiMode') return true;
+            if (mode === 'no_cache') return false;
+            if (mode === 'custom') {
+                return fieldKey === 'CacheParameters.CustomTime.CacheTime'
+                    || fieldKey === 'CacheParameters.CustomTime.IgnoreCacheControl';
+            }
+            if (fieldKey === 'CacheParameters._uiNoCcMode') return true;
+            if (fieldKey === 'CacheParameters.FollowOrigin.DefaultCacheTime') {
+                return p._uiNoCcMode === 'custom_time';
+            }
+            return false;
+        }
+        if (action.Name === 'MaxAge') {
+            var mp = action.MaxAgeParameters || {};
+            var mmode = mp._uiMode || 'custom';
+            if (fieldKey === 'MaxAgeParameters._uiMode') return true;
+            return mmode === 'custom' && fieldKey === 'MaxAgeParameters.CacheTime';
+        }
+        if (action.Name === 'HostHeader') {
+            if (fieldKey === 'HostHeaderParameters.ServerName') {
+                return getNested(action, 'HostHeaderParameters.Action') === 'custom';
+            }
+        }
+        if (action.Name === 'AccessURLRedirect') {
+            if (fieldKey === 'AccessURLRedirectParameters.HostName.Value') {
+                return getNested(action, 'AccessURLRedirectParameters.HostName.Action') === 'custom';
+            }
+            if (fieldKey === 'AccessURLRedirectParameters.URLPath.Value') {
+                var pa = getNested(action, 'AccessURLRedirectParameters.URLPath.Action');
+                return pa === 'custom' || pa === 'regex';
+            }
+            if (fieldKey === 'AccessURLRedirectParameters.URLPath.Regex') {
+                return getNested(action, 'AccessURLRedirectParameters.URLPath.Action') === 'regex';
+            }
+        }
+        if (action.Name === 'CacheKey') {
+            if (fieldKey.indexOf('QueryString.Action') >= 0 || fieldKey.indexOf('QueryString.Values') >= 0) {
+                return String(getNested(action, 'CacheKeyParameters.QueryString.Switch')).toLowerCase() === 'on';
+            }
+            if (fieldKey.indexOf('Header.Values') >= 0) {
+                return String(getNested(action, 'CacheKeyParameters.Header.Switch')).toLowerCase() === 'on';
+            }
+        }
+        if (action.Name === 'ModifyOrigin') {
+            if (fieldKey.indexOf('HTTPOriginPort') >= 0 || fieldKey.indexOf('HTTPSOriginPort') >= 0 || fieldKey === 'ModifyOriginParameters.Origin') {
+                return true;
+            }
+        }
+        if (action.Name === 'UpstreamRequest') {
+            if (fieldKey.indexOf('QueryString.') >= 0 && fieldKey !== 'UpstreamRequestParameters.QueryString.Switch') {
+                return String(getNested(action, 'UpstreamRequestParameters.QueryString.Switch')).toLowerCase() === 'on';
+            }
+            if (fieldKey.indexOf('Cookie.Action') >= 0) {
+                return String(getNested(action, 'UpstreamRequestParameters.Cookie.Switch')).toLowerCase() === 'on';
+            }
+        }
+        return true;
+    }
+
+    function updateActionFieldVisibility(card) {
+        if (!card) return;
+        var action = getActionFromCard(card);
+        if (!action) return;
+        normalizeActionBeforeRender(action);
+        card.querySelectorAll('.vs-edgeone-rule-action-field').forEach(function (node) {
+            var key = node.getAttribute('data-field-key');
+            var visible = isActionFieldVisible(action, key);
+            node.classList.toggle('is-hidden', !visible);
+        });
+    }
+
+    function updateAllActionFieldVisibility() {
+        document.querySelectorAll('.vs-edgeone-rule-action-card').forEach(updateActionFieldVisibility);
     }
 
     function defaultRule() {
@@ -819,7 +923,7 @@
         var val = getNested(action, key);
         var pf = scopePrefix(scope);
         var id = 'ruleActionField_' + pf + '_' + actionIndex + '_' + fi;
-        var html = '<div class="vs-edgeone-rule-action-field" data-field-key="' + escHtml(key) + '">';
+        var html = '<div class="vs-edgeone-rule-action-field' + (isActionFieldVisible(action, key) ? '' : ' is-hidden') + '" data-field-key="' + escHtml(key) + '">';
         html += '<label class="vs-label" for="' + id + '">' + escHtml(field.label || key) + '</label>';
         if (field.type === 'switch') {
             var on = String(val).toLowerCase() === 'on';
@@ -1074,6 +1178,7 @@
         });
         host.innerHTML = html;
         renderNav();
+        updateAllActionFieldVisibility();
     }
 
     function renderActionPicker() {
@@ -1637,6 +1742,24 @@
             });
 
             branchesHost.addEventListener('change', function (e) {
+                var actionInput = e.target.closest('.vs-edgeone-rule-action-field-input');
+                if (actionInput) {
+                    var card = actionInput.closest('.vs-edgeone-rule-action-card');
+                    if (card) {
+                        var action = getActionFromCard(card);
+                        var fieldNode = actionInput.closest('.vs-edgeone-rule-action-field');
+                        var fkey = fieldNode && fieldNode.getAttribute('data-field-key');
+                        if (action && fkey) {
+                            if (actionInput.getAttribute('data-field-type') === 'switch') {
+                                setNested(action, fkey, actionInput.checked ? 'on' : 'off');
+                            } else {
+                                setNested(action, fkey, actionInput.value);
+                            }
+                            normalizeActionBeforeRender(action);
+                            updateActionFieldVisibility(card);
+                        }
+                    }
+                }
                 var elseToggle = e.target.closest('.vs-edgeone-rule-subrule-is-else');
                 if (elseToggle) {
                     collectAllFromDom();

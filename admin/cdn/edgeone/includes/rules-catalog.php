@@ -69,10 +69,14 @@ function vs_edgeone_rules_action_catalog()
                     'no_cache' => '不缓存',
                     'custom' => '自定义时间',
                 )),
-                array('type' => 'select', 'key' => 'CacheParameters.FollowOrigin.DefaultCacheStrategy', 'label' => '无 Cache-Control 时', 'options' => array('on' => '默认缓存策略', 'off' => '不缓存')),
-                array('type' => 'duration', 'key' => 'CacheParameters.FollowOrigin.DefaultCacheTime', 'label' => '默认缓存时间'),
-                array('type' => 'duration', 'key' => 'CacheParameters.CustomTime.CacheTime', 'label' => '自定义缓存时间'),
-                array('type' => 'switch', 'key' => 'CacheParameters.CustomTime.IgnoreCacheControl', 'label' => '强制缓存'),
+                array('type' => 'select', 'key' => 'CacheParameters._uiNoCcMode', 'label' => '无 Cache-Control 时', 'options' => array(
+                    'default_policy' => '默认缓存策略',
+                    'no_cache' => '不缓存',
+                    'custom_time' => '自定义时间',
+                ), 'hint' => '源站响应头无 Cache-Control 时的节点缓存策略'),
+                array('type' => 'duration', 'key' => 'CacheParameters.FollowOrigin.DefaultCacheTime', 'label' => '缓存时间'),
+                array('type' => 'duration', 'key' => 'CacheParameters.CustomTime.CacheTime', 'label' => '缓存时间'),
+                array('type' => 'switch', 'key' => 'CacheParameters.CustomTime.IgnoreCacheControl', 'label' => '强制缓存', 'hint' => '忽略源站 Cache-Control，按上方时间强制缓存'),
             ),
         ),
         'MaxAge' => array(

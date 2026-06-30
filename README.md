@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.11.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.11.1-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.11.1（2026-07-01）
+
+**类型：** 节点缓存 TTL 动态表单（小版本）
+
+**变更说明：**
+- 节点缓存 TTL 按「行为」动态显示字段，对齐腾讯云控制台
+- 无 Cache-Control 时支持默认策略/不缓存/自定义时间三选一
+- 浏览器缓存、Host 重写、URL 重定向等操作字段联动显示
+
+**数据库：** 无变更
+
+---
 
 ### v1.11.0（2026-07-01）
 

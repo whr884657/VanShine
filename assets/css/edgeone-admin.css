@@ -3635,6 +3635,10 @@ body.vs-drawer-open {
     color: #999;
 }
 
+.vs-edgeone-rule-action-field.is-hidden {
+    display: none !important;
+}
+
 .vs-edgeone-rule-action-card__fields {
     display: grid;
     gap: 10px;

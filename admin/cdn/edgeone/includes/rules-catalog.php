@@ -12,22 +12,22 @@
 function vs_edgeone_rules_match_types()
 {
     return array(
-        array('id' => 'host', 'label' => 'HOST', 'group' => 'client', 'var' => '${http.request.host}', 'needsName' => false),
-        array('id' => 'url_path', 'label' => 'URL Path', 'group' => 'client', 'var' => '${http.request.uri.path}', 'needsName' => false),
-        array('id' => 'url_full', 'label' => 'URL Full', 'group' => 'client', 'var' => '${http.request.full_uri}', 'needsName' => false),
-        array('id' => 'query_string', 'label' => '查询字符串', 'group' => 'client', 'var' => '${http.request.uri.query}', 'needsName' => false, 'kv' => true),
-        array('id' => 'file_extension', 'label' => '文件后缀', 'group' => 'client', 'var' => '${http.request.file_extension}', 'needsName' => false),
-        array('id' => 'file_name', 'label' => '文件名称', 'group' => 'client', 'var' => '${http.request.filename}', 'needsName' => false),
-        array('id' => 'request_header', 'label' => 'HTTP 请求头', 'group' => 'client', 'var' => '${http.request.headers["%s"]}', 'needsName' => true),
-        array('id' => 'client_geo', 'label' => '客户端地理位置', 'group' => 'client', 'var' => '${http.request.ip.country}', 'needsName' => false),
-        array('id' => 'client_isp', 'label' => '客户端运营商', 'group' => 'client', 'var' => '${http.request.ip.isp}', 'needsName' => false),
-        array('id' => 'request_protocol', 'label' => '请求协议', 'group' => 'client', 'var' => '${http.request.scheme}', 'needsName' => false),
-        array('id' => 'client_ip', 'label' => '客户端 IP', 'group' => 'client', 'var' => '${http.request.ip}', 'needsName' => false),
-        array('id' => 'request_method', 'label' => '请求方法', 'group' => 'client', 'var' => '${http.request.method}', 'needsName' => false),
-        array('id' => 'cookie', 'label' => 'Cookie', 'group' => 'client', 'var' => '${http.request.uri.args["%s"]}', 'needsName' => true, 'kv' => true),
-        array('id' => 'response_header', 'label' => 'HTTP 响应头', 'group' => 'origin', 'var' => '${http.response.headers["%s"]}', 'needsName' => true, 'response' => true),
-        array('id' => 'response_status', 'label' => 'HTTP 响应状态码', 'group' => 'origin', 'var' => '${http.response.status_code}', 'needsName' => false, 'response' => true),
-        array('id' => 'all', 'label' => '全部（站点任意请求）', 'group' => 'client', 'var' => '', 'needsName' => false, 'all' => true),
+        array('id' => 'host', 'label' => 'HOST（域名）', 'group' => 'client', 'var' => '${http.request.host}', 'needsName' => false, 'hint' => '访问的域名，如 api.example.com'),
+        array('id' => 'url_path', 'label' => 'URL 路径', 'group' => 'client', 'var' => '${http.request.uri.path}', 'needsName' => false, 'hint' => '网址路径，如 /images/logo.png，可用 /api/* 匹配目录'),
+        array('id' => 'url_full', 'label' => '完整 URL', 'group' => 'client', 'var' => '${http.request.full_uri}', 'needsName' => false, 'hint' => '含协议、域名、路径、参数的完整地址'),
+        array('id' => 'query_string', 'label' => '查询字符串', 'group' => 'client', 'var' => '${http.request.uri.query}', 'needsName' => false, 'kv' => true, 'hint' => 'URL 中 ? 后面的参数，需填写参数名'),
+        array('id' => 'file_extension', 'label' => '文件后缀', 'group' => 'client', 'var' => '${http.request.file_extension}', 'needsName' => false, 'hint' => '如 jpg、css、js，多个用逗号分隔'),
+        array('id' => 'file_name', 'label' => '文件名称', 'group' => 'client', 'var' => '${http.request.filename}', 'needsName' => false, 'hint' => '文件名，如 index.html'),
+        array('id' => 'request_header', 'label' => 'HTTP 请求头', 'group' => 'client', 'var' => '${http.request.headers["%s"]}', 'needsName' => true, 'hint' => '需填写 Header 名称，如 User-Agent'),
+        array('id' => 'client_geo', 'label' => '客户端地理位置', 'group' => 'client', 'var' => '${http.request.ip.country}', 'needsName' => false, 'hint' => '国家/地区代码，如 CN、US'),
+        array('id' => 'client_isp', 'label' => '客户端运营商', 'group' => 'client', 'var' => '${http.request.ip.isp}', 'needsName' => false, 'hint' => '如中国联通、中国电信、中国移动'),
+        array('id' => 'request_protocol', 'label' => '请求协议', 'group' => 'client', 'var' => '${http.request.scheme}', 'needsName' => false, 'hint' => 'HTTP 或 HTTPS'),
+        array('id' => 'client_ip', 'label' => '客户端 IP', 'group' => 'client', 'var' => '${http.request.ip}', 'needsName' => false, 'hint' => '访客 IP 或 IP 段，如 192.168.1.0/24'),
+        array('id' => 'request_method', 'label' => '请求方法', 'group' => 'client', 'var' => '${http.request.method}', 'needsName' => false, 'hint' => 'GET、POST、PUT 等，多个用逗号分隔'),
+        array('id' => 'cookie', 'label' => 'Cookie', 'group' => 'client', 'var' => '${http.request.uri.args["%s"]}', 'needsName' => true, 'kv' => true, 'hint' => '需填写 Cookie 参数名'),
+        array('id' => 'response_header', 'label' => 'HTTP 响应头', 'group' => 'origin', 'var' => '${http.response.headers["%s"]}', 'needsName' => true, 'response' => true, 'hint' => '源站返回的响应头，需填写名称'),
+        array('id' => 'response_status', 'label' => 'HTTP 响应状态码', 'group' => 'origin', 'var' => '${http.response.status_code}', 'needsName' => false, 'response' => true, 'hint' => '如 200、404、502'),
+        array('id' => 'all', 'label' => '全部（任意请求）', 'group' => 'client', 'var' => '', 'needsName' => false, 'all' => true, 'hint' => '匹配该站点下所有请求'),
     );
 }
 
@@ -154,7 +154,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'Compression', 'CompressionParameters' => array('Switch' => 'on', 'Algorithms' => array('gzip', 'brotli'))),
             'fields' => array(
                 array('type' => 'switch', 'key' => 'CompressionParameters.Switch', 'label' => '启用智能压缩'),
-                array('type' => 'checkboxes', 'key' => 'CompressionParameters.Algorithms', 'label' => '压缩算法', 'options' => array('gzip' => 'Gzip', 'brotli' => 'Brotli')),
+                array('type' => 'checkboxes', 'key' => 'CompressionParameters.Algorithms', 'label' => '压缩算法', 'options' => array('gzip' => 'Gzip（通用）', 'brotli' => 'Brotli（体积更小）')),
             ),
         ),
         'ContentCompression' => array(
@@ -199,7 +199,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'ForceRedirectHTTPS', 'ForceRedirectHTTPSParameters' => array('Switch' => 'on', 'RedirectStatusCode' => 302)),
             'fields' => array(
                 array('type' => 'switch', 'key' => 'ForceRedirectHTTPSParameters.Switch', 'label' => '启用'),
-                array('type' => 'select', 'key' => 'ForceRedirectHTTPSParameters.RedirectStatusCode', 'label' => '状态码', 'options' => array(301, 302)),
+                array('type' => 'select', 'key' => 'ForceRedirectHTTPSParameters.RedirectStatusCode', 'label' => '跳转方式', 'options' => array(301 => '301 永久跳转', 302 => '302 临时跳转')),
             ),
         ),
         'HSTS' => array(
@@ -217,7 +217,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'TLSConfig', 'TLSConfigParameters' => array('Version' => array('TLSv1.2', 'TLSv1.3'), 'CipherSuite' => 'loose-v2023')),
             'fields' => array(
                 array('type' => 'checkboxes', 'key' => 'TLSConfigParameters.Version', 'label' => 'TLS 版本', 'options' => array('TLSv1' => 'TLS 1.0', 'TLSv1.1' => 'TLS 1.1', 'TLSv1.2' => 'TLS 1.2', 'TLSv1.3' => 'TLS 1.3')),
-                array('type' => 'select', 'key' => 'TLSConfigParameters.CipherSuite', 'label' => '加密套件', 'options' => array('loose-v2023' => 'loose-v2023', 'strict-v2023' => 'strict-v2023')),
+                array('type' => 'select', 'key' => 'TLSConfigParameters.CipherSuite', 'label' => '加密套件', 'options' => array('loose-v2023' => '宽松模式（兼容旧浏览器）', 'strict-v2023' => '严格模式（更安全）')),
             ),
         ),
         'OCSPStapling' => array(
@@ -228,7 +228,7 @@ function vs_edgeone_rules_action_catalog()
         'OriginPullProtocol' => array(
             'label' => '回源 HTTPS', 'category' => 'https',
             'defaults' => array('Name' => 'OriginPullProtocol', 'OriginPullProtocolParameters' => array('Protocol' => 'follow')),
-            'fields' => array(array('type' => 'select', 'key' => 'OriginPullProtocolParameters.Protocol', 'label' => '协议', 'options' => array('follow', 'http', 'https'))),
+            'fields' => array(array('type' => 'select', 'key' => 'OriginPullProtocolParameters.Protocol', 'label' => '回源协议', 'options' => array('follow' => '跟随访问协议', 'http' => '强制 HTTP 回源', 'https' => '强制 HTTPS 回源'))),
         ),
         'ModifyResponseHeader' => array(
             'label' => '修改 HTTP 节点响应头', 'category' => 'headers',
@@ -273,8 +273,13 @@ function vs_edgeone_rules_action_catalog()
             'label' => 'Token 鉴权', 'category' => 'advanced',
             'defaults' => array('Name' => 'Authentication', 'AuthenticationParameters' => array('AuthType' => 'TypeA', 'Timeout' => 5, 'SecretKey' => '', 'BackupSecretKey' => '', 'AuthParam' => '')),
             'fields' => array(
-                array('type' => 'select', 'key' => 'AuthenticationParameters.AuthType', 'label' => '鉴权类型', 'options' => array('TypeA' => 'TypeA', 'TypeB' => 'TypeB', 'TypeC' => 'TypeC', 'TypeD' => 'TypeD')),
-                array('type' => 'number', 'key' => 'AuthenticationParameters.Timeout', 'label' => '有效时间（分钟）', 'min' => 1, 'max' => 1440),
+                array('type' => 'select', 'key' => 'AuthenticationParameters.AuthType', 'label' => '鉴权类型', 'options' => array(
+                    'TypeA' => 'TypeA（URL 参数鉴权，常用）',
+                    'TypeB' => 'TypeB（时间戳鉴权）',
+                    'TypeC' => 'TypeC（Cookie 鉴权）',
+                    'TypeD' => 'TypeD（自定义鉴权）',
+                )),
+                array('type' => 'number', 'key' => 'AuthenticationParameters.Timeout', 'label' => '链接有效时间（分钟）', 'min' => 1, 'max' => 1440, 'hint' => '生成的鉴权链接在多少分钟内有效'),
                 array('type' => 'text', 'key' => 'AuthenticationParameters.SecretKey', 'label' => '主密钥'),
                 array('type' => 'text', 'key' => 'AuthenticationParameters.BackupSecretKey', 'label' => '备密钥'),
                 array('type' => 'text', 'key' => 'AuthenticationParameters.AuthParam', 'label' => '鉴权参数名'),
@@ -334,7 +339,7 @@ function vs_edgeone_rules_action_catalog()
             'defaults' => array('Name' => 'HttpResponse', 'HttpResponseParameters' => array('StatusCode' => 403, 'ResponsePage' => '')),
             'fields' => array(
                 array('type' => 'number', 'key' => 'HttpResponseParameters.StatusCode', 'label' => '应答状态码', 'min' => 100, 'max' => 599),
-                array('type' => 'text', 'key' => 'HttpResponseParameters.ResponsePage', 'label' => '自定义页面 ID 或内容'),
+                array('type' => 'text', 'key' => 'HttpResponseParameters.ResponsePage', 'label' => '自定义页面 ID', 'hint' => '在 EdgeOne 控制台创建的自定义错误页 ID'),
             ),
         ),
         'Shield' => array(
@@ -392,6 +397,13 @@ function vs_edgeone_rules_catalog_export()
             array('id' => 'm', 'label' => '分', 'mult' => 60),
             array('id' => 'h', 'label' => '时', 'mult' => 3600),
             array('id' => 'd', 'label' => '天', 'mult' => 86400),
+        ),
+        'paramLabels' => array(
+            'CacheParameters' => '节点缓存配置',
+            'CacheKeyParameters' => 'Cache Key 配置',
+            'MaxAgeParameters' => '浏览器缓存配置',
+            'ModifyOriginParameters' => '修改源站配置',
+            'HeaderActions' => 'HTTP 头规则',
         ),
     );
 }

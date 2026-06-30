@@ -28,6 +28,9 @@ function vs_edgeone_render_rule_editor_modal()
         <div class="vs-edgeone-rule-editor__body">
             <aside class="vs-edgeone-rule-editor__nav" id="edgeoneRuleEditorNav" aria-label="规则注释导航"></aside>
             <div class="vs-edgeone-rule-editor__main">
+                <div class="vs-edgeone-rules-editor-guide">
+                    <p class="vs-form-tip">面向新手：先选<strong>匹配条件</strong>（如 HOST、URL 路径），再选<strong>要执行的操作</strong>（如缓存、压缩）。下方每一项都有中文说明，无需理解英文参数名。</p>
+                </div>
                 <div class="vs-edgeone-rule-editor__meta">
                     <label class="vs-label" for="edgeoneRuleEditorComment">规则注释</label>
                     <input type="text" class="vs-input" id="edgeoneRuleEditorComment" placeholder="可选，便于搜索与导航">

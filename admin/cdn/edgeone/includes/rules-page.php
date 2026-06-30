@@ -68,7 +68,7 @@ function vs_edgeone_build_host_rule_condition($host)
 {
     $host = trim((string) $host);
     if ($host === '' || $host === '*') {
-        return '${http.request.host} ne \'\'';
+        return vs_edgeone_rule_all_condition();
     }
 
     return '${http.request.host} in [\'' . str_replace(array('\\', '\''), array('\\\\', '\\\''), $host) . '\']';
@@ -81,7 +81,7 @@ function vs_edgeone_build_host_rule_condition($host)
 function vs_edgeone_parse_host_from_condition($condition)
 {
     $condition = trim((string) $condition);
-    if ($condition === '' || $condition === '${http.request.host} ne \'\'') {
+    if ($condition === '' || $condition === vs_edgeone_rule_all_condition()) {
         return '';
     }
     if (preg_match("/\\['([^']*)'\\]/", $condition, $m)) {
@@ -92,13 +92,21 @@ function vs_edgeone_parse_host_from_condition($condition)
 }
 
 /**
+ * @return string
+ */
+function vs_edgeone_rule_all_condition()
+{
+    return '${http.request.host} ne \'\'';
+}
+
+/**
  * @param string $condition
  * @return string
  */
 function vs_edgeone_humanize_condition($condition)
 {
     $condition = trim((string) $condition);
-    if ($condition === '' || $condition === "${http.request.host} ne ''") {
+    if ($condition === '' || $condition === vs_edgeone_rule_all_condition()) {
         return '全部（站点任意请求）';
     }
     if (preg_match("/\\\\\\\\{http\\.request\\.host\\\\} in \\\\['([^']*)'\\\\]/", $condition, $m)) {
@@ -111,7 +119,7 @@ function vs_edgeone_humanize_condition($condition)
         return '文件后缀 等于 ' . preg_replace("/'\\s*,\\s*'/", '、', trim($m[1], "'"));
     }
     if (preg_match("/uri\\.path\\}\\s+in\\s+\\['([^']*)'\\]/", $condition, $m)) {
-        return 'URL Path 等于 ' . str_replace("\\'", "'", $m[1]);
+        return 'URL 路径 等于 ' . str_replace("\\'", "'", $m[1]);
     }
     return '已配置匹配条件';
 }

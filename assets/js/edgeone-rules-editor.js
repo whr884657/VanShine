@@ -565,6 +565,9 @@
             html += '<input type="text" class="vs-input vs-edgeone-rule-cond-value" placeholder="匹配值，多个用英文逗号分隔" value="' + escHtml(String(row.value || '').replace(/\n/g, ', ')) + '">';
         }
         html += '<button type="button" class="vs-edgeone-rule-cond-remove" title="删除条件">&times;</button>';
+        if (mt && mt.hint) {
+            html += '<p class="vs-form-tip vs-edgeone-rule-cond-hint">' + escHtml(mt.hint) + '</p>';
+        }
         html += '</div>';
         return html;
     }
@@ -710,6 +713,9 @@
         } else {
             var jsonVal = val == null ? '{}' : JSON.stringify(val, null, 2);
             html += '<textarea class="vs-input vs-edgeone-rule-action-field-input" id="' + id + '" rows="5" data-field-type="json">' + escHtml(jsonVal) + '</textarea>';
+        }
+        if (field.hint) {
+            html += '<p class="vs-form-tip vs-edgeone-rule-field-hint">' + escHtml(field.hint) + '</p>';
         }
         html += '</div>';
         return html;

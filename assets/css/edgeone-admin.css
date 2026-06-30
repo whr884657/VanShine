@@ -3369,6 +3369,17 @@ body.vs-drawer-open {
     grid-column: 1 / -2;
 }
 
+.vs-edgeone-rule-cond-hint,
+.vs-edgeone-rule-field-hint {
+    grid-column: 1 / -1;
+    margin: 0 0 4px;
+    font-size: 12px;
+}
+
+.vs-edgeone-rules-editor-guide {
+    margin-bottom: 12px;
+}
+
 .vs-edgeone-rule-cond-tip {
     margin-bottom: 8px;
     color: #ad6800;

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.9.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/version-1.9.1-blue" alt="version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="license">
   <a href="https://gitee.com/xunjinlu/VanShine"><img src="https://img.shields.io/badge/Gitee-代码仓库-C71D23?logo=gitee" alt="Gitee"></a>
   <a href="https://github.com/whr884657/VanShine"><img src="https://img.shields.io/badge/GitHub-镜像仓库-181717?logo=github" alt="GitHub"></a>
@@ -215,6 +215,19 @@ location / {
 ---
 
 ## 版本记录
+
+### v1.9.1（2026-06-29）
+
+**类型：** 规则引擎紧急修复 + 中文说明（小版本）
+
+**变更说明：**
+- 修复规则列表页 PHP 8.2+ `${http.request.host}` 字符串解析导致的致命错误
+- 匹配类型、回源协议、TLS、鉴权类型等英文选项补充中文说明与 hint
+- 规则编辑器增加新手引导与各字段用途提示
+
+**数据库：** 无变更
+
+---
 
 ### v1.9.0（2026-06-29）
 
